@@ -132,9 +132,12 @@ It includes the following features:
 
 ## Testing
 
-To run the tests with coverage, you need to install lcov: `sudo apt-get -y install lcov`.
+Requirements:
 
-To test if this module is building:
+* Python 3.6+
+* lcov: `sudo apt-get -y install lcov`
+
+To perform the full range of testing of this module:
 
 ```
 sudo apt-get update
