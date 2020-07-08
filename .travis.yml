@@ -22,4 +22,5 @@ script:
 
 # Command(s) to calculate coverage
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - cd coverage_report
+  - bash <(curl -s https://codecov.io/bash) -f coverage.info
