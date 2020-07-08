@@ -1,5 +1,10 @@
 language: cpp
 
+# Command(s) to install dependencies
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install lcov
+
 # Command(s) to build
 install:
   - cd build

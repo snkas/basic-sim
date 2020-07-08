@@ -128,7 +128,24 @@ It includes the following features:
    mkdir -p /your/path/to/example_run/logs_ns3
    ./waf --run="main_example --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
    ```
-   
+
+
+## Testing
+
+To run the tests with coverage, you need to install lcov: `sudo apt-get -y install lcov`.
+
+To test if this module is building:
+
+```
+sudo apt-get update
+sudo apt-get -y install lcov
+cd build
+bash build.sh
+bash test.sh
+bash example.sh
+```
+
+
 ## Acknowledgements
 
 Based on code written by Hussain, who did his master thesis in the NDAL group.
