@@ -1,3 +1,7 @@
+# Ubuntu 18.04
+os: linux
+dist: bionic
+
 language: cpp
 
 # Command(s) to install dependencies
