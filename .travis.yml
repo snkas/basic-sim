@@ -1,0 +1,15 @@
+language: cpp
+
+# Command(s) to build
+install:
+  - cd build
+  - bash build.sh
+
+# Command(s) to run tests
+script:
+  - bash test.sh
+  - bash example.sh
+
+# Command(s) to calculate coverage
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
