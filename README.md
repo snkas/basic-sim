@@ -1,5 +1,7 @@
 # Basic simulation ns-3 module
 
+[![Build Status](https://travis-ci.org/snkas/basic-sim.svg?branch=master)](https://travis-ci.org/snkas/basic-sim) [![codecov](https://codecov.io/gh/snkas/basic-sim/branch/master/graph/badge.svg)](https://codecov.io/gh/snkas/basic-sim)
+
 This module is used to make the simulation of ns-3 (data center) networks a bit easier.
 
 It introduces a wrapper around ns-3 calls commonly made 
