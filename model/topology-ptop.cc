@@ -190,11 +190,10 @@ void TopologyPtop::SetupLinks() {
     // Queueing disciplines
     std::cout << "  > Traffic control queueing disciplines:" << std::endl;
 
-    // Qdisc for endpoints (i.e., servers if they are defined, else the ToRs)
+    // Queueing discipline for endpoints (i.e., servers if they are defined, else the ToRs)
     TrafficControlHelper tch_endpoints;
     if (m_disable_qdisc_endpoint_tors_xor_servers) {
-        tch_endpoints.SetRootQueueDisc("ns3::FifoQueueDisc", "MaxSize", QueueSizeValue(QueueSize("1p"))); // No queueing discipline basically
-        std::cout << "    >> Flow-endpoints....... none (FIFO with 1 max. queue size)" << std::endl;
+        std::cout << "    >> Flow-endpoints....... none (disabled)" << std::endl;
     } else {
         std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_ns);
         std::string target = format_string("%" PRId64 "ns", m_worst_case_rtt_ns / 20);
@@ -202,11 +201,10 @@ void TopologyPtop::SetupLinks() {
         printf("    >> Flow-endpoints....... fq-co-del (interval = %.2f ms, target = %.2f ms)\n", m_worst_case_rtt_ns / 1e6, m_worst_case_rtt_ns / 1e6 / 20);
     }
 
-    // Qdisc for non-endpoints (i.e., if servers are defined, all switches, else the switches which are not ToRs)
+    // Queueing discipline for non-endpoints (i.e., if servers are defined, all switches, else the switches which are not ToRs)
     TrafficControlHelper tch_not_endpoints;
     if (m_disable_qdisc_non_endpoint_switches) {
-        tch_not_endpoints.SetRootQueueDisc("ns3::FifoQueueDisc", "MaxSize", QueueSizeValue(QueueSize("1p"))); // No queueing discipline basically
-        std::cout << "    >> Non-flow-endpoints... none (FIFO with 1 max. queue size)" << std::endl;
+        std::cout << "    >> Non-flow-endpoints... none (disabled)" << std::endl;
     } else {
         std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_ns);
         std::string target = format_string("%" PRId64 "ns", m_worst_case_rtt_ns / 20);
@@ -226,19 +224,48 @@ void TopologyPtop::SetupLinks() {
 
         // Install traffic control
         if (IsValidEndpoint(link.first)) {
-            tch_endpoints.Install(container.Get(0));
+            if (!m_disable_qdisc_endpoint_tors_xor_servers) {
+                tch_endpoints.Install(container.Get(0));
+            }
         } else {
-            tch_not_endpoints.Install(container.Get(0));
+            if (!m_disable_qdisc_non_endpoint_switches) {
+                tch_not_endpoints.Install(container.Get(0));
+            }
         }
         if (IsValidEndpoint(link.second)) {
-            tch_endpoints.Install(container.Get(1));
+            if (!m_disable_qdisc_endpoint_tors_xor_servers) {
+                tch_endpoints.Install(container.Get(1));
+            }
         } else {
-            tch_not_endpoints.Install(container.Get(1));
+            if (!m_disable_qdisc_non_endpoint_switches) {
+                tch_not_endpoints.Install(container.Get(1));
+            }
         }
 
         // Assign IP addresses
-        address.Assign(container);
+        address.Assign(container); // This will install the default traffic control layer if not already done above
         address.NewNetwork();
+
+        // Remove the (default) traffic control layer if undesired
+        TrafficControlHelper tch_uninstaller;
+        if (IsValidEndpoint(link.first)) {
+            if (m_disable_qdisc_endpoint_tors_xor_servers) {
+                tch_uninstaller.Uninstall(container.Get(0));
+            }
+        } else {
+            if (m_disable_qdisc_non_endpoint_switches) {
+                tch_uninstaller.Uninstall(container.Get(0));
+            }
+        }
+        if (IsValidEndpoint(link.second)) {
+            if (m_disable_qdisc_endpoint_tors_xor_servers) {
+                tch_uninstaller.Uninstall(container.Get(1));
+            }
+        } else {
+            if (m_disable_qdisc_non_endpoint_switches) {
+                tch_uninstaller.Uninstall(container.Get(1));
+            }
+        }
 
         // Save to mapping
         uint32_t a = container.Get(0)->GetIfIndex();
