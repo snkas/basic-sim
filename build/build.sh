@@ -1,18 +1,19 @@
 NS3_VERSION="ns-3.30.1"
 
 # Extract copy of ns-3
-unzip ${NS3_VERSION}.zip
+if [ "$1" != "--rebuild" ]; then
+  echo "Unzipping clean ns-3"
+  unzip ${NS3_VERSION}.zip
+else
+  echo "Skipping unzipping"
+fi
 
 # Create the basic-sim module
 mkdir -p ${NS3_VERSION}/src/basic-sim
 
 # Copy over this module (excluding the build directory)
-scp ../wscript ${NS3_VERSION}/src/basic-sim/
-scp -r ../examples/ ${NS3_VERSION}/src/basic-sim/examples/
-scp -r ../helper/ ${NS3_VERSION}/src/basic-sim/helper/
-scp -r ../model/ ${NS3_VERSION}/src/basic-sim/model/
-scp -r ../test/ ${NS3_VERSION}/src/basic-sim/test/
-scp -r ../doc/ ${NS3_VERSION}/src/basic-sim/doc/
+rsync -ravh ../ ${NS3_VERSION}/src/basic-sim --exclude "build/" --exclude ".git/" --exclude ".idea/" --delete
+
 
 # Go into ns-3 directory
 cd ${NS3_VERSION} || exit 1
