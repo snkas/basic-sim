@@ -13,10 +13,6 @@ lcov --directory build/debug_all --zerocounters
 echo "Performing tests for coverage"
 python test.py -v -s "basic-sim" -t ../test_results/test_results_basic_sim
 
-# Show results
-echo "Display test results"
-cat ../test_results/test_results_basic_sim.txt
-
 # Back to build/ directory
 cd .. || exit 1
 
@@ -33,3 +29,7 @@ lcov -r ../../../coverage_report/coverage.info "/usr/*" "*/build/debug_all/ns3/*
 cd ../../../ || exit 1
 genhtml --output-directory coverage_report coverage_report/coverage.info
 echo "Coverage report is located at: coverage_report/index.html"
+
+# Show results
+echo "Display test results"
+cat ../test_results/test_results_basic_sim.txt
