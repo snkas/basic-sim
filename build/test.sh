@@ -32,4 +32,4 @@ echo "Coverage report is located at: coverage_report/index.html"
 
 # Show results
 echo "Display test results"
-cat ../test_results/test_results_basic_sim.txt
+cat test_results/test_results_basic_sim.txt
