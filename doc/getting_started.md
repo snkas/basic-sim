@@ -1,13 +1,29 @@
 # Getting started
 
+The "basic simulation" is just a wrapper which makes life easier. Essentially, it is a super complicated way to write 4 lines of C++ code:
+
+```
+ns3::RngSeedManager::SetSeed(simulation_seed);
+Simulator::Stop(NanoSeconds(simulation_end_time_ns));
+Simulator::Run();
+Simulator::Destroy();
+```
+
+However, it makes life a lot easier. It allows you to read and manage a configuration file. It keeps track of time and shows progress. It does a two-phase writing in a file called 'finished.txt' ("No" at the start, "Yes" after the run) to be able to verify that the run finished successfully.
+
+The basic-sim module is divided into two sub-modules: `core` and `apps`. `core` is the framework, including an improved routing implementation and topology management. `apps` is about applications to run -- either inside or outside of this framework. One can simply take the apps and use them somewhere else without even having to deal with the framework.
+
+## Tutorial
+
 1. Create a directory anywhere called `example_run`, and create two files in there:
 
    **config_ns3.properties**
    
    ```
-   filename_topology="topology.properties"
    simulation_end_time_ns=10000000000
    simulation_seed=123456789
+   
+   filename_topology="topology.properties"
    link_data_rate_megabit_per_s=100.0
    link_delay_ns=10000
    link_max_queue_size_pkts=100
@@ -83,14 +99,14 @@
         // Optimize TCP
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
     
-        // Install applications
         // TODO: Here you have to start your own applications
+        // TODO: Right now there is nothing being scheduled in the network
     
         // Run simulation
         basicSimulation->Run();
     
-        // Write result
-        flowScheduler.WriteResults();
+        // TODO: Here you would be collecting the results from your applications and writing them
+        // TODO: to the logs folder within your run folder
     
         // Finalize the simulation
         basicSimulation->Finalize();
@@ -101,6 +117,13 @@
     ```
 
 4. Run it by executing in your ns-3 folder:
+
+   ```
+   ./waf --run="main_example --run_dir='/your/path/to/example_run'"
+   ```
+   
+   ... or if you also want to save the console output:
+   
    ```
    mkdir -p /your/path/to/example_run/logs_ns3
    ./waf --run="main_example --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt

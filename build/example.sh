@@ -1,12 +1,50 @@
 NS3_VERSION="ns-3.30.1"
 
-# Build
+# Build optimized
 bash build.sh
 
-# Copy over scratch main example
-scp example/main_example.cc ${NS3_VERSION}/scratch
+# Create the necessary mains
+mkdir -p ${NS3_VERSION}/scratch/main_example/
+rsync -ravh example_mains/main_example/ ${NS3_VERSION}/scratch/main_example/ --delete
+mkdir -p ${NS3_VERSION}/scratch/main_flows/
+rsync -ravh example_mains/main_flows/ ${NS3_VERSION}/scratch/main_flows/ --delete
+mkdir -p ${NS3_VERSION}/scratch/main_pingmesh/
+rsync -ravh example_mains/main_pingmesh/ ${NS3_VERSION}/scratch/main_pingmesh/ --delete
+mkdir -p ${NS3_VERSION}/scratch/main_flows_and_pingmesh/
+rsync -ravh example_mains/main_flows_and_pingmesh/ ${NS3_VERSION}/scratch/main_flows_and_pingmesh/ --delete
 
-# Run the example from the README
+# Run all examples with their respective mains
 cd ${NS3_VERSION} || exit 1
-mkdir -p ../example/example_run/logs_ns3
-./waf --run="main_example --run_dir='../example/example_run'" 2>&1 | tee ../example/example_run/logs_ns3/console.txt
+
+# Example
+rm -rf ../example_runs/example_getting_started/logs_ns3
+mkdir ../example_runs/example_getting_started/logs_ns3
+./waf --run="main_example --run_dir='../example_runs/example_getting_started'" 2>&1 | tee ../example_runs/example_getting_started/logs_ns3/console.txt
+
+# Flows
+for experiment in "flows_getting_started" \
+                  "flows_ring" \
+                  "flows_leaf_spine" \
+                  "flows_leaf_spine_server" \
+                  "flows_fat_tree_k4_server"
+do
+  rm -rf ../example_runs/${experiment}/logs_ns3
+  mkdir ../example_runs/${experiment}/logs_ns3
+  ./waf --run="main_flows --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
+done
+
+# Pingmesh
+for experiment in "pingmesh_getting_started" \
+                  "pingmesh_single" \
+                  "pingmesh_grid" \
+                  "pingmesh_grid_select_pairs"
+do
+  rm -rf ../example_runs/${experiment}/logs_ns3
+  mkdir ../example_runs/${experiment}/logs_ns3
+  ./waf --run="main_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
+done
+
+# Flows AND pingmesh
+rm -rf ../example_runs/pingmesh_and_flows_fat_tree_k4_server/logs_ns3
+mkdir ../example_runs/pingmesh_and_flows_fat_tree_k4_server/logs_ns3
+./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/pingmesh_and_flows_fat_tree_k4_server'" 2>&1 | tee ../example_runs/pingmesh_and_flows_fat_tree_k4_server/logs_ns3/console.txt
