@@ -61,6 +61,11 @@ private:
     bool m_disable_qdisc_endpoint_tors_xor_servers;
     bool m_disable_qdisc_non_endpoint_switches;
 
+    // Distributed
+    bool m_enable_distributed;
+    int64_t m_distributed_logical_processes_k;
+    std::vector<int64_t> m_distributed_node_logical_process_assignment;
+
     // Graph properties
     int64_t m_num_nodes;
     int64_t m_num_undirected_edges;

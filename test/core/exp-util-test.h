@@ -2,7 +2,7 @@
 
 #include "ns3/basic-simulation.h"
 #include "ns3/test.h"
-#include "test-helpers.h"
+#include "../test-helpers.h"
 
 using namespace ns3;
 

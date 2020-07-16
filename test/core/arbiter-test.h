@@ -4,7 +4,7 @@
 #include "ns3/arbiter-ecmp.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/test.h"
-#include "test-helpers.h"
+#include "../test-helpers.h"
 
 using namespace ns3;
 

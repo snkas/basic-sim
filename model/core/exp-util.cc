@@ -310,6 +310,58 @@ std::set<int64_t> parse_set_positive_int64(const std::string str) {
 }
 
 /**
+ * Parse list string (i.e., list(...)) into a real list without whitespace.
+ * If it is incorrect format, throw an exception.
+ *
+ * @param str  Input string (e.g., "list(a,b,c)")
+ *
+ * @return List of strings (e.g., [a, b, c])
+ */
+std::vector<std::string> parse_list_string(const std::string str) {
+
+    // Check list(...)
+    if (!starts_with(str, "list(") || !ends_with(str, ")")) {
+        throw std::invalid_argument(format_string( "List %s is not encased in list(...)", str.c_str()));
+    }
+    std::string only_inside = str.substr(5, str.size() - 6);
+    if (trim(only_inside).empty()) {
+        std::vector<std::string> final;
+        return final;
+    }
+    std::vector<std::string> prelim_list = split_string(only_inside, ",");
+    std::vector<std::string> final_list;
+    for (std::string& s : prelim_list) {
+        final_list.push_back(trim(s));
+    }
+    return final_list;
+}
+
+/**
+ * Parse string into a list of positive int64, or throw an exception.
+ *
+ * @param str  Input string
+ *
+ * @return List of int64s
+ */
+std::vector<int64_t> parse_list_positive_int64(const std::string str) {
+    std::vector<std::string> string_list = parse_list_string(str);
+    std::vector<int64_t> int64_list;
+    for (std::string s : string_list) {
+        std::cout << s << std::endl;
+        int64_list.push_back(parse_positive_int64(s));
+    }
+    if (string_list.size() != int64_list.size()) {
+        throw std::invalid_argument(
+                format_string(
+                        "List %s contains int64 duplicates",
+                        str.c_str()
+                )
+        );
+    }
+    return int64_list;
+}
+
+/**
  * Throw an exception if not all items are less than a number.
  *
  * @param s         Set of int64s
@@ -321,9 +373,9 @@ void all_items_are_less_than(const std::set<int64_t>& s, const int64_t number) {
             throw std::invalid_argument(
                     format_string(
                             "Value %" PRIu64 " > %" PRIu64 "",
-                            val,
-                            number
-                    )
+                    val,
+                    number
+            )
             );
         }
     }

@@ -3,7 +3,7 @@
 #include "ns3/basic-simulation.h"
 #include "ns3/test.h"
 #include "ns3/topology-ptop.h"
-#include "test-helpers.h"
+#include "../test-helpers.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
 
 using namespace ns3;

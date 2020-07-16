@@ -11,7 +11,13 @@ lcov --directory build/debug_all --zerocounters
 
 # Perform coverage test
 echo "Performing tests for coverage"
-python test.py -v -s "basic-sim" -t ../test_results/test_results_basic_sim
+python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core
+python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps
+
+# Extract copy of ns-3
+if [ "$1" == "--short" ]; then
+  exit 0
+fi
 
 # Back to build/ directory
 cd .. || exit 1
@@ -32,4 +38,5 @@ echo "Coverage report is located at: coverage_report/index.html"
 
 # Show results
 echo "Display test results"
-cat test_results/test_results_basic_sim.txt
+cat test_results/test_results_core.txt
+cat test_results/test_results_apps.txt
