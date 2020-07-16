@@ -25,8 +25,8 @@ mkdir ../example_runs/example_getting_started/logs_ns3
 for experiment in "flows_getting_started" \
                   "flows_ring" \
                   "flows_leaf_spine" \
-                  "flows_leaf_spine_server" \
-                  "flows_fat_tree_k4_server"
+                  "flows_leaf_spine_servers" \
+                  "flows_fat_tree_k4_servers"
 do
   rm -rf ../example_runs/${experiment}/logs_ns3
   mkdir ../example_runs/${experiment}/logs_ns3
