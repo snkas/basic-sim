@@ -45,6 +45,6 @@ do
 done
 
 # Flows AND pingmesh
-rm -rf ../example_runs/pingmesh_and_flows_fat_tree_k4_server/logs_ns3
-mkdir ../example_runs/pingmesh_and_flows_fat_tree_k4_server/logs_ns3
-./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/pingmesh_and_flows_fat_tree_k4_server'" 2>&1 | tee ../example_runs/pingmesh_and_flows_fat_tree_k4_server/logs_ns3/console.txt
+rm -rf ../example_runs/pingmesh_and_flows_fat_tree_k4_servers/logs_ns3
+mkdir ../example_runs/pingmesh_and_flows_fat_tree_k4_servers/logs_ns3
+./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/pingmesh_and_flows_fat_tree_k4_servers'" 2>&1 | tee ../example_runs/pingmesh_and_flows_fat_tree_k4_servers/logs_ns3/console.txt
