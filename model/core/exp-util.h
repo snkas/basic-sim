@@ -81,7 +81,6 @@ std::set<int64_t> parse_set_positive_int64(const std::string line);
 std::vector<std::string> parse_list_string(const std::string line);
 std::vector<int64_t> parse_list_positive_int64(const std::string line);
 
-
 // Sets
 void all_items_are_less_than(const std::set<int64_t>& s, const int64_t number);
 std::set<int64_t> direct_set_intersection(const std::set<int64_t>& s1, const std::set<int64_t>& s2);

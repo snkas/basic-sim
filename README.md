@@ -9,7 +9,7 @@ This module is used to make the simulation of ns-3 (data center) networks a bit 
 
 ## Installation
 
-1. You clone or add as git module the `basic-sim` module (this is a dependency for this module) into your ns-3 `src/contrib/` folder:
+1. You clone or add as git module the `basic-sim` module (this is a dependency for this module) into your ns-3 `contrib/` folder:
 
     ```
     cd /path/to/your/folder/of/ns-3/contrib

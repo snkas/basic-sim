@@ -1,5 +1,8 @@
 NS3_VERSION="ns-3.30.1"
 
+# Build
+bash build.sh
+
 # Copy over scratch main example
 scp example/main_example.cc ${NS3_VERSION}/scratch
 

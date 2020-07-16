@@ -1,5 +1,8 @@
 NS3_VERSION="ns-3.30.1"
 
+# Build optimized
+bash build.sh --optimized
+
 # Create the necessary mains
 mkdir -p ${NS3_VERSION}/scratch/main_flows/
 rsync -ravh extra_examples/main/main_flows/ ${NS3_VERSION}/scratch/main_flows/ --delete
@@ -8,10 +11,8 @@ rsync -ravh extra_examples/main/main_pingmesh/ ${NS3_VERSION}/scratch/main_pingm
 mkdir -p ${NS3_VERSION}/scratch/main_flows_and_pingmesh/
 rsync -ravh extra_examples/main/main_flows_and_pingmesh/ ${NS3_VERSION}/scratch/main_flows_and_pingmesh/ --delete
 
-# Rebuild
-bash rebuild.sh
+# Run all available
 
-# Run them all
 cd ${NS3_VERSION} || exit 1
 for experiment in "flows_example_single" "flows_example_single_many_small_flows" "flows_example_single_one_large_flow" \
                   "flows_example_ring" "flows_example_leaf_spine" "flows_example_leaf_spine_servers" "flows_example_fat_tree_k4_servers" \

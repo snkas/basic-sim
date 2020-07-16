@@ -1,8 +1,14 @@
 NS3_VERSION="ns-3.30.1"
 
+# Usage help
+if [ "$1" == "--help" ]; then
+  echo "Usage: bash build.sh [--help, --debug_all, --debug_minimal, --optimized, --optimized_with_tests]"
+  exit 0
+fi
+
 # Extract copy of ns-3
-echo "Unzipping clean ns-3"
-unzip ${NS3_VERSION}.zip
+echo "Unzipping clean ns-3 (no overwrites)"
+unzip -n ${NS3_VERSION}.zip
 
 # Create the basic-sim module
 mkdir -p ${NS3_VERSION}/contrib/basic-sim
