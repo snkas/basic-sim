@@ -201,7 +201,7 @@ void TopologyPtop::ReadTopology() {
         printf("  > Number of logical processes... %" PRIu64 "\n", m_distributed_logical_processes_k);
         printf("  > Logical process information:\n");
         for (int i = 0; i < m_distributed_logical_processes_k; i++) {
-            printf("    >> Logical process %d has %d nodes\n", i, logical_process_counter[i]);
+            printf("    >> Logical process %d has %d node(s)\n", i, logical_process_counter[i]);
         }
         printf("\n");
 
