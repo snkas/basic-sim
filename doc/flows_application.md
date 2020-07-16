@@ -145,6 +145,14 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
    mkdir -p /your/path/to/example_run/logs_ns3
    ./waf --run="main_flows --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
    ```
+   
+5. You can see the result by viewing `/your/path/to/example_run/logs_ns3/flows.txt`, which should have in it:
+
+   ```
+   Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
+   0           1         3         80.00 Mbit      0                 1310034712        1310.03 ms      80.00 Mbit      100.0%       61.1 Mbit/s     YES           
+   1           2         3         56.00 Mbit      10000             1420569910        1420.56 ms      56.00 Mbit      100.0%       39.4 Mbit/s     YES           
+   ```
 
 ## Flow scheduler
 

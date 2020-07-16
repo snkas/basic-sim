@@ -132,6 +132,17 @@ You can use the application(s) separately, or make use of the pingmesh scheduler
    ./waf --run="main_pingmesh --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
    ```
    
+5. You can see the result by viewing `/your/path/to/example_run/logs_ns3/pingmesh.txt`, which should have in it:
+
+   ```
+    Source    Target    Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival
+    1         2         0.03 ms               0.03 ms               0.05 ms         0.05 ms         0.05 ms         0.00 ms         100/100 (100%)
+    1         3         0.03 ms               0.03 ms               0.05 ms         0.05 ms         0.05 ms         0.00 ms         100/100 (100%)
+    2         1         0.03 ms               0.03 ms               0.05 ms         0.05 ms         0.05 ms         0.00 ms         100/100 (100%)
+    2         3         0.03 ms               0.03 ms               0.06 ms         0.06 ms         0.06 ms         0.00 ms         100/100 (100%)
+    3         1         0.03 ms               0.03 ms               0.06 ms         0.06 ms         0.06 ms         0.00 ms         100/100 (100%)
+    3         2         0.03 ms               0.03 ms               0.05 ms         0.05 ms         0.05 ms         0.00 ms         100/100 (100%)
+   ```
 
 ## Pingmesh scheduler
 
