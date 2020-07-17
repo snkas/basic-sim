@@ -1,4 +1,4 @@
-NS3_VERSION="ns-3.30.1"
+NS3_VERSION="ns-3.31"
 
 # Extract copy of ns-3
 echo "Unzipping clean ns-3 (no overwrites)"

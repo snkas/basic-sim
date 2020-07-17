@@ -21,7 +21,7 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
     git clone git@github.com:snkas/basic-sim.git
     ```
    
-3. Now you should be able to compile it along with all your other modules. It has been tested for ns-3 version 3.30.1.
+3. Now you should be able to compile it along with all your other modules. It has been tested for ns-3 version 3.31.
 
 
 ## Getting started
