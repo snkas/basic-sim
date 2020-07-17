@@ -35,7 +35,7 @@ cd .. || exit 1
 rm -rf coverage_report
 mkdir -p coverage_report
 cd ${NS3_VERSION}/build/debug_all/ || exit 1
-lcov --capture --directory src/basic-sim --output-file ../../../coverage_report/coverage.info
+lcov --capture --directory contrib/basic-sim --output-file ../../../coverage_report/coverage.info
 
 # Remove directories from coverage report which we don't want
 lcov -r ../../../coverage_report/coverage.info "/usr/*" "*/build/debug_all/ns3/*" "*/test/*" "test/*" --output-file ../../../coverage_report/coverage.info
