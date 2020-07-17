@@ -144,7 +144,7 @@ void BasicSimulation::ConfigureSimulation() {
             if (m_distributed_node_system_id_assignment[i] < 0 || m_distributed_node_system_id_assignment[i] >= m_systems_count) {
                 throw std::invalid_argument(
                         format_string(
-                                "Node %d is assigned to an invalid logical process %" PRId64 " (k=%" PRId64 ")",
+                                "Node %d is assigned to an invalid system id %" PRId64 " (k=%" PRId64 ")",
                         i,
                         m_distributed_node_system_id_assignment[i],
                         m_systems_count
