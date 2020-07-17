@@ -45,16 +45,16 @@ if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--flows_only" ]; then
   done
 
   # Flows distributed
-  experiment="flows_fat_tree_k4_servers_distributed"
-  rm -rf ../example_runs/${experiment}/logs_ns3
-  mkdir ../example_runs/${experiment}/logs_ns3
-  mpirun -np 4 ./waf --run="main_flows --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-  for s in "0" "1" "2" "3"
-  do
-    if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-      exit 1
-    fi
-  done
+#  experiment="flows_fat_tree_k4_servers_distributed"
+#  rm -rf ../example_runs/${experiment}/logs_ns3
+#  mkdir ../example_runs/${experiment}/logs_ns3
+#  mpirun -np 4 ./waf --run="main_flows --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
+#  for s in "0" "1" "2" "3"
+#  do
+#    if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
+#      exit 1
+#    fi
+#  done
 
 fi
 
@@ -78,16 +78,16 @@ if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--pingmesh_only" ]; then
   done
 
   # Pingmesh distributed
-  experiment="pingmesh_fat_tree_k4_servers_distributed"
-  rm -rf ../example_runs/${experiment}/logs_ns3
-  mkdir ../example_runs/${experiment}/logs_ns3
-  mpirun -np 4 ./waf --run="main_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-  for s in "0" "1" "2" "3"
-  do
-    if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-      exit 1
-    fi
-  done
+#  experiment="pingmesh_fat_tree_k4_servers_distributed"
+#  rm -rf ../example_runs/${experiment}/logs_ns3
+#  mkdir ../example_runs/${experiment}/logs_ns3
+#  mpirun -np 4 ./waf --run="main_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
+#  for s in "0" "1" "2" "3"
+#  do
+#    if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
+#      exit 1
+#    fi
+#  done
 
 fi
 
@@ -105,16 +105,16 @@ if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--flows_and_pingmesh_only
   fi
 
   # Flows AND pingmesh distributed
-  experiment="pingmesh_and_flows_fat_tree_k4_servers_distributed"
-  rm -rf ../example_runs/${experiment}/logs_ns3
-  mkdir ../example_runs/${experiment}/logs_ns3
-  mpirun -np 4 ./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-  for s in "0" "1" "2" "3"
-  do
-    if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-      exit 1
-    fi
-  done
+#  experiment="pingmesh_and_flows_fat_tree_k4_servers_distributed"
+#  rm -rf ../example_runs/${experiment}/logs_ns3
+#  mkdir ../example_runs/${experiment}/logs_ns3
+#  mpirun -np 4 ./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
+#  for s in "0" "1" "2" "3"
+#  do
+#    if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
+#      exit 1
+#    fi
+#  done
 
 fi
 
