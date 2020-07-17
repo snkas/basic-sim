@@ -105,13 +105,79 @@ void BasicSimulation::ReadConfig() {
 void BasicSimulation::ConfigureSimulation() {
     std::cout << "CONFIGURE SIMULATION" << std::endl;
 
+    // Check if enabled
+    m_enable_distributed = parse_boolean(GetConfigParamOrDefault("enable_distributed", "false"));
+    if (m_enable_distributed) {
+        printf("  > Distributed is enabled\n");
+
+        // Bind simulator type
+        std::string distributed_simulator_implementation_type = GetConfigParamOrFail("distributed_simulator_implementation_type");
+        if (distributed_simulator_implementation_type == "nullmsg") {
+            GlobalValue::Bind ("SimulatorImplementationType", StringValue ("ns3::NullMessageSimulatorImpl"));
+        } else if (distributed_simulator_implementation_type == "default") {
+            GlobalValue::Bind ("SimulatorImplementationType", StringValue ("ns3::DistributedSimulatorImpl"));
+        } else {
+            throw std::runtime_error(format_string("Unknown distributed simulator implementation type: %s", distributed_simulator_implementation_type));
+        }
+        printf("  > Simulator implementation type... %s\n", distributed_simulator_implementation_type.c_str());
+        printf("\n");
+
+        // Enable MPI
+        int argc = 0;
+        char** argv;
+        MpiInterface::Enable(&argc, &argv);
+
+        // Retrieve from MPI
+        m_system_id = MpiInterface::GetSystemId();
+        m_systems_count = MpiInterface::GetSize();
+
+        // Check that the systems count matches up
+        uint32_t config_systems_count = (size_t) parse_positive_int64(GetConfigParamOrFail("distributed_systems_count"));
+        if (m_systems_count != config_systems_count) {
+            throw std::runtime_error(format_string("Systems count in configuration (%u) does not match up with MPI systems count (%u)", config_systems_count, m_systems_count));
+        }
+
+        // Check node-to-system-id assignment
+        m_distributed_node_system_id_assignment = parse_list_positive_int64(GetConfigParamOrFail("distributed_node_system_id_assignment"));
+        std::vector<int> system_id_counter(m_systems_count, 0);
+        for (uint32_t i = 0; i < m_distributed_node_system_id_assignment.size(); i++) {
+            if (m_distributed_node_system_id_assignment[i] < 0 || m_distributed_node_system_id_assignment[i] >= m_systems_count) {
+                throw std::invalid_argument(
+                        format_string(
+                                "Node %d is assigned to an invalid logical process %" PRId64 " (k=%" PRId64 ")",
+                        i,
+                        m_distributed_node_system_id_assignment[i],
+                        m_systems_count
+                )
+                );
+            }
+            system_id_counter[m_distributed_node_system_id_assignment[i]]++;
+        }
+
+        // All good, showing summary
+        printf("  > System information:\n");
+        for (uint32_t i = 0; i < m_systems_count; i++) {
+            printf("    >> System %d has %d node(s)\n", i, system_id_counter[i]);
+        }
+
+    } else {
+        printf("  > Distributed is not enabled\n");
+        m_distributed_node_system_id_assignment.clear();
+        m_system_id = 0;
+        m_systems_count = 1;
+    }
+
+    // System information
+    printf("  > System id........ %u\n", m_system_id);
+    printf("  > No. of systems... %u\n", m_systems_count);
+
     // Set primary seed
     ns3::RngSeedManager::SetSeed(m_simulation_seed);
-    std::cout << "  > Seed: " << m_simulation_seed << std::endl;
+    std::cout << "  > Seed............. " << m_simulation_seed << std::endl;
 
     // Set end time
     Simulator::Stop(NanoSeconds(m_simulation_end_time_ns));
-    printf("  > Duration: %.2f s (%" PRId64 " ns)\n", m_simulation_end_time_ns / 1e9, m_simulation_end_time_ns);
+    printf("  > Duration......... %.2f s (%" PRId64 " ns)\n", m_simulation_end_time_ns / 1e9, m_simulation_end_time_ns);
 
     std::cout << std::endl;
     RegisterTimestamp("Configure simulator");
@@ -192,10 +258,18 @@ void BasicSimulation::Run() {
 
 void BasicSimulation::CleanUpSimulation() {
     std::cout << "CLEAN-UP" << std::endl;
+
     Simulator::Destroy();
     std::cout << "  > Simulator is destroyed" << std::endl;
-    std::cout << std::endl;
     RegisterTimestamp("Destroy simulator");
+
+    if (m_enable_distributed) {
+        MpiInterface::Disable ();
+        std::cout << "  > MPI interface is disabled" << std::endl;
+        RegisterTimestamp("Disable MPI interface");
+    }
+
+    std::cout << std::endl;
 }
 
 void BasicSimulation::StoreTimingResults() {
@@ -230,6 +304,22 @@ void BasicSimulation::Finalize() {
     CleanUpSimulation();
     StoreTimingResults();
     WriteFinished(true);
+}
+
+bool BasicSimulation::IsDistributedEnabled() {
+    return m_enable_distributed;
+}
+
+uint32_t BasicSimulation::GetSystemId() {
+    return m_system_id;
+}
+
+uint32_t BasicSimulation::GetSystemsCount() {
+    return m_systems_count;
+}
+
+std::vector<int64_t> BasicSimulation::GetDistributedNodeSystemIdAssignment() {
+    return m_distributed_node_system_id_assignment;
 }
 
 int64_t BasicSimulation::GetSimulationEndTimeNs() {

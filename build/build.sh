@@ -16,6 +16,16 @@ mkdir -p ${NS3_VERSION}/contrib/basic-sim
 # Copy over this module (excluding the build directory)
 rsync -ravh ../ ${NS3_VERSION}/contrib/basic-sim --exclude "build/" --exclude ".git/" --exclude ".idea/" --delete
 
+# Create the necessary mains
+mkdir -p ${NS3_VERSION}/scratch/main_example/
+rsync -ravh example_mains/main_example/ ${NS3_VERSION}/scratch/main_example/ --delete
+mkdir -p ${NS3_VERSION}/scratch/main_flows/
+rsync -ravh example_mains/main_flows/ ${NS3_VERSION}/scratch/main_flows/ --delete
+mkdir -p ${NS3_VERSION}/scratch/main_pingmesh/
+rsync -ravh example_mains/main_pingmesh/ ${NS3_VERSION}/scratch/main_pingmesh/ --delete
+mkdir -p ${NS3_VERSION}/scratch/main_flows_and_pingmesh/
+rsync -ravh example_mains/main_flows_and_pingmesh/ ${NS3_VERSION}/scratch/main_flows_and_pingmesh/ --delete
+
 # Go into ns-3 directory
 cd ${NS3_VERSION} || exit 1
 

@@ -3,16 +3,6 @@ NS3_VERSION="ns-3.30.1"
 # Build optimized
 bash build.sh
 
-# Create the necessary mains
-mkdir -p ${NS3_VERSION}/scratch/main_example/
-rsync -ravh example_mains/main_example/ ${NS3_VERSION}/scratch/main_example/ --delete
-mkdir -p ${NS3_VERSION}/scratch/main_flows/
-rsync -ravh example_mains/main_flows/ ${NS3_VERSION}/scratch/main_flows/ --delete
-mkdir -p ${NS3_VERSION}/scratch/main_pingmesh/
-rsync -ravh example_mains/main_pingmesh/ ${NS3_VERSION}/scratch/main_pingmesh/ --delete
-mkdir -p ${NS3_VERSION}/scratch/main_flows_and_pingmesh/
-rsync -ravh example_mains/main_flows_and_pingmesh/ ${NS3_VERSION}/scratch/main_flows_and_pingmesh/ --delete
-
 # Run all examples with their respective mains
 cd ${NS3_VERSION} || exit 1
 

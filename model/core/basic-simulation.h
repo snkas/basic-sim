@@ -43,6 +43,7 @@
 #include "ns3/random-variable-stream.h"
 #include "ns3/command-line.h"
 #include "ns3/traffic-control-helper.h"
+#include "ns3/mpi-interface.h"
 
 #include "ns3/exp-util.h"
 
@@ -63,6 +64,10 @@ public:
     void RegisterTimestamp(std::string label);
 
     // Getters
+    bool IsDistributedEnabled();
+    uint32_t GetSystemId();
+    uint32_t GetSystemsCount();
+    std::vector<int64_t> GetDistributedNodeSystemIdAssignment();
     int64_t GetSimulationEndTimeNs();
     std::string GetConfigParamOrFail(std::string key);
     std::string GetConfigParamOrDefault(std::string key, std::string default_value);
@@ -95,6 +100,10 @@ private:
     std::set<std::string> m_configRequestedKeys;
     int64_t m_simulation_seed;
     int64_t m_simulation_end_time_ns;
+    uint32_t m_system_id;
+    uint32_t m_systems_count;
+    bool m_enable_distributed;
+    std::vector<int64_t> m_distributed_node_system_id_assignment;
 
     // Progress show variables
     int64_t m_sim_start_time_ns_since_epoch;

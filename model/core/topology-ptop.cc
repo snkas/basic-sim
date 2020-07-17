@@ -52,16 +52,6 @@ void TopologyPtop::ReadRelevantConfig() {
     m_disable_qdisc_endpoint_tors_xor_servers = parse_boolean(m_basicSimulation->GetConfigParamOrFail("disable_qdisc_endpoint_tors_xor_servers"));
     m_disable_qdisc_non_endpoint_switches = parse_boolean(m_basicSimulation->GetConfigParamOrFail("disable_qdisc_non_endpoint_switches"));
 
-    // Distributed
-    m_enable_distributed = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_distributed", "false"));
-    if (m_enable_distributed) {
-        m_distributed_logical_processes_k = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("distributed_logical_processes_k"));
-        m_distributed_node_logical_process_assignment = parse_list_positive_int64(m_basicSimulation->GetConfigParamOrFail("distributed_node_logical_process_assignment"));
-    } else {
-        m_distributed_logical_processes_k = 1;
-        m_distributed_node_logical_process_assignment.clear();
-    }
-
 }
 
 void TopologyPtop::ReadTopology() {
@@ -155,6 +145,16 @@ void TopologyPtop::ReadTopology() {
         m_has_zero_servers = true;
     }
 
+    // Check that each node has an assignment to a system id if it is distributed
+    if (m_basicSimulation->IsDistributedEnabled()) {
+        size_t node_assignment_size = m_basicSimulation->GetDistributedNodeSystemIdAssignment().size();
+        if (node_assignment_size != (size_t) m_num_nodes) {
+            throw std::invalid_argument(
+                    format_string("Incorrect amount of node-to-system-id assignments (must be %" PRId64 " but got %u)", m_num_nodes, node_assignment_size)
+            );
+        }
+    }
+
     // Print summary
     printf("TOPOLOGY SUMMARY\n");
     printf("  > Number of nodes.... %" PRIu64 "\n", m_num_nodes);
@@ -162,50 +162,6 @@ void TopologyPtop::ReadTopology() {
     printf("    >> Servers......... %" PRIu64 "\n", m_servers.size());
     printf("  > Undirected edges... %" PRIu64 "\n\n", m_num_undirected_edges);
     m_basicSimulation->RegisterTimestamp("Read topology");
-
-
-    if (m_enable_distributed) {
-
-        // At least one logical process
-        if (m_distributed_logical_processes_k < 1) {
-            throw std::invalid_argument(
-                    format_string("Distributed number of logical processes k=%" PRId64 " must be at least 1", m_distributed_logical_processes_k)
-            );
-        }
-
-        // Each node must have an assignment to a logical process
-        if (m_distributed_node_logical_process_assignment.size() != (size_t) m_num_nodes) {
-            throw std::invalid_argument(
-                    format_string("Incorrect amount of node assignments (must be %" PRId64 " but got %u)", m_num_nodes, m_distributed_node_logical_process_assignment.size())
-            );
-        }
-
-        // Check assignment
-        std::vector<int> logical_process_counter(m_distributed_logical_processes_k, 0);
-        for (int i = 0; i < m_num_nodes; i++) {
-            if (m_distributed_node_logical_process_assignment[i] < 0 || m_distributed_node_logical_process_assignment[i] >= m_distributed_logical_processes_k) {
-                throw std::invalid_argument(
-                        format_string(
-                                "Node %d is assigned to an invalid logical process %" PRId64 " (k=%" PRId64 ")",
-                                i,
-                                m_distributed_node_logical_process_assignment[i],
-                                m_distributed_logical_processes_k
-                        )
-                );
-            }
-            logical_process_counter[m_distributed_node_logical_process_assignment[i]]++;
-        }
-
-        // All good, showing summary
-        printf("DISTRIBUTED IS ENABLED\n");
-        printf("  > Number of logical processes... %" PRIu64 "\n", m_distributed_logical_processes_k);
-        printf("  > Logical process information:\n");
-        for (int i = 0; i < m_distributed_logical_processes_k; i++) {
-            printf("    >> Logical process %d has %d node(s)\n", i, logical_process_counter[i]);
-        }
-        printf("\n");
-
-    }
 
     // MTU = 1500 byte, +2 with the p2p header.
     // There are n_q packets in the queue at most, e.g. n_q + 2 (incl. transmit and within mandatory 1-packet qdisc)
