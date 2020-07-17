@@ -9,22 +9,32 @@ This module is used to make the simulation of ns-3 (data center) networks a bit 
 
 ## Installation
 
-1. You clone or add as git module the `basic-sim` module (this is a dependency for this module) into your ns-3 `contrib/` folder:
+1. Install the following dependencies:
+   * Python 3.6+
+   * MPI: `sudo apt-get install mpic++`
+   * (optional, for testing) lcov: `sudo apt-get install lcov`
+
+2. You clone or add as git module the `basic-sim` module (this is a dependency for this module) into your ns-3 `contrib/` folder:
 
     ```
     cd /path/to/your/folder/of/ns-3/contrib
     git clone git@github.com:snkas/basic-sim.git
     ```
    
-2. Now you should be able to compile it along with all your other modules. It has been tested for ns-3 version 3.30.1.
+3. Now you should be able to compile it along with all your other modules. It has been tested for ns-3 version 3.30.1.
 
+
+## Getting started
+
+Documentation (including tutorials) to get started is located in the `doc/` folder.
 
 ## Testing
 
 Requirements:
 
 * Python 3.6+
-* lcov: `sudo apt-get -y install lcov`
+* MPI: `sudo apt-get install mpic++`
+* lcov: `sudo apt-get install lcov`
 
 To perform the full range of testing of this module:
 

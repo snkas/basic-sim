@@ -1,6 +1,6 @@
 # Getting started
 
-The "basic simulation" is just a wrapper which makes life easier. Essentially, it is a super complicated way to write 4 lines of C++ code:
+The `BasicSimulation` class is just a wrapper which makes managing the simulation easier. Essentially, it is a super complicated way to write 4 lines of C++ code:
 
 ```
 ns3::RngSeedManager::SetSeed(simulation_seed);
@@ -9,9 +9,9 @@ Simulator::Run();
 Simulator::Destroy();
 ```
 
-However, it makes life a lot easier. It allows you to read and manage a configuration file. It keeps track of time and shows progress. It does a two-phase writing in a file called 'finished.txt' ("No" at the start, "Yes" after the run) to be able to verify that the run finished successfully.
+However, it offers a lot of (often needed) experiment functionality out-of-the-box. It allows you to read and manage a configuration file. It keeps track of time and shows progress. It does a two-phase writing in a file called 'finished.txt' ("No" at the start, "Yes" after the run) to be able to verify that the run finished successfully.
 
-The basic-sim module is divided into two sub-modules: `core` and `apps`. `core` is the framework, including an improved routing implementation and topology management. `apps` is about applications to run -- either inside or outside of this framework. One can simply take the apps and use them somewhere else without even having to deal with the framework.
+The basic-sim module is divided into two sub-modules: `core` and `apps`. `core` is the framework, including an improved routing implementation (called 'arbiter routing') and topology management. `apps` is about applications to run -- either inside or outside of this framework. One can simply take the apps and use them somewhere else without even having to deal with the framework.
 
 ## Tutorial
 
