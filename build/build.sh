@@ -21,20 +21,20 @@ cd ${NS3_VERSION} || exit 1
 
 # Configure the build
 if [ "$1" == "--debug_all" ]; then
-  ./waf configure --enable-gcov --enable-examples --enable-tests --out=build/debug_all
+  ./waf configure --enable-mpi --enable-tests --enable-examples --enable-gcov --out=build/debug_all
 
 elif [ "$1" == "--debug_minimal" ]; then
-  ./waf configure --out=build/debug_minimal
+  ./waf configure --enable-mpi --out=build/debug_minimal
 
 elif [ "$1" == "--optimized" ]; then
-  ./waf configure --build-profile=optimized --out=build/optimized
+  ./waf configure --build-profile=optimized --enable-mpi --out=build/optimized
 
 elif [ "$1" == "--optimized_with_tests" ]; then
-  ./waf configure --enable-tests --build-profile=optimized --out=build/optimized_with_tests
+  ./waf configure --build-profile=optimized --enable-mpi --enable-tests --out=build/optimized_with_tests
 
 elif [ "$1" == "" ]; then
   # Default is debug_all
-  ./waf configure --enable-gcov --enable-examples --enable-tests --out=build/debug_all
+  ./waf configure --enable-mpi --enable-tests --enable-examples --enable-gcov --out=build/debug_all
 
 else
   echo "Invalid build option: $1"
