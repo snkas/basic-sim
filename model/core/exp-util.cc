@@ -347,7 +347,6 @@ std::vector<int64_t> parse_list_positive_int64(const std::string str) {
     std::vector<std::string> string_list = parse_list_string(str);
     std::vector<int64_t> int64_list;
     for (std::string s : string_list) {
-        std::cout << s << std::endl;
         int64_list.push_back(parse_positive_int64(s));
     }
     if (string_list.size() != int64_list.size()) {
