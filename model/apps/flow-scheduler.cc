@@ -31,20 +31,51 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
     m_nodes = m_topology->GetNodes();
     m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
     m_enableFlowLoggingToFileForFlowIds = parse_set_positive_int64(m_basicSimulation->GetConfigParamOrDefault("enable_flow_logging_to_file_for_flow_ids", "set()"));
+    m_system_id = m_basicSimulation->GetSystemId();
+    m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
+    m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
+
+    // Start of info
+    printf("FLOW SCHEDULER\n");
 
     // Read schedule
-    m_schedule = read_schedule(
+    std::vector<schedule_entry_t> complete_schedule = read_schedule(
             m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("filename_schedule"),
             m_topology,
             m_simulation_end_time_ns
     );
+
+    // Filter the schedule to only have applications starting at nodes which are part of this system
+    if (m_enable_distributed) {
+        std::vector<schedule_entry_t> filtered_schedule;
+        for (schedule_entry_t &entry : complete_schedule) {
+            if (m_distributed_node_system_id_assignment[entry.from_node_id] == m_system_id) {
+                filtered_schedule.push_back(entry);
+            }
+        }
+        m_schedule = filtered_schedule;
+    } else {
+        m_schedule = complete_schedule;
+    }
+
+    // Schedule read
+    printf("  > Read schedule (total flow start events: %lu)\n", m_schedule.size());
     m_basicSimulation->RegisterTimestamp("Read schedule");
 
-    printf("FLOW SCHEDULE\n");
-    printf("  > Read schedule (total flow start events: %lu)\n", m_schedule.size());
-    remove_file_if_exists(m_basicSimulation->GetLogsDir() + "/flows.csv");
-    remove_file_if_exists(m_basicSimulation->GetLogsDir() + "/flows.txt");
+    // Determine filenames
+    if (m_enable_distributed) {
+        m_flows_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_flows.csv";
+        m_flows_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_flows.txt";
+    } else {
+        m_flows_csv_filename = m_basicSimulation->GetLogsDir() + "/flows.csv";
+        m_flows_txt_filename = m_basicSimulation->GetLogsDir() + "/flows.txt";
+    }
+
+    // Remove files if they are there
+    remove_file_if_exists(m_flows_csv_filename);
+    remove_file_if_exists(m_flows_txt_filename);
     printf("  > Removed previous flow log files if present\n");
+    m_basicSimulation->RegisterTimestamp("Remove previous flow log files");
 
     std::cout << std::endl;
 
@@ -88,13 +119,15 @@ void FlowScheduler::Schedule() {
     // Install sink on each endpoint node
     std::cout << "  > Setting up sinks" << std::endl;
     for (int64_t endpoint : m_topology->GetEndpoints()) {
-        FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
-        ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
-        app.Start(Seconds(0.0));
+        if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
+            FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+            ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
+            app.Start(Seconds(0.0));
+        }
     }
     m_basicSimulation->RegisterTimestamp("Setup traffic sinks");
 
-    // Setup all source applications
+    // Setup start of first source application
     std::cout << "  > Setting up traffic flow starter" << std::endl;
     if (m_schedule.size() > 0) {
         Simulator::Schedule(NanoSeconds(m_schedule[0].start_time_ns), &FlowScheduler::StartNextFlow, this, 0);
@@ -109,10 +142,10 @@ void FlowScheduler::WriteResults() {
 
     // Open files
     std::cout << "  > Opening flow log files:" << std::endl;
-    FILE* file_csv = fopen((m_basicSimulation->GetLogsDir() + "/flows.csv").c_str(), "w+");
-    std::cout << "    >> Opened: " << (m_basicSimulation->GetLogsDir() + "/flows.csv") << std::endl;
-    FILE* file_txt = fopen((m_basicSimulation->GetLogsDir() + "/flows.txt").c_str(), "w+");
-    std::cout << "    >> Opened: " << (m_basicSimulation->GetLogsDir() + "/flows.txt") << std::endl;
+    FILE* file_csv = fopen(m_flows_csv_filename.c_str(), "w+");
+    std::cout << "    >> Opened: " << m_flows_csv_filename << std::endl;
+    FILE* file_txt = fopen(m_flows_txt_filename.c_str(), "w+");
+    std::cout << "    >> Opened: " << m_flows_txt_filename << std::endl;
 
     // Header
     std::cout << "  > Writing flows.txt header" << std::endl;
@@ -187,9 +220,9 @@ void FlowScheduler::WriteResults() {
     // Close files
     std::cout << "  > Closing flow log files:" << std::endl;
     fclose(file_csv);
-    std::cout << "    >> Closed: " << (m_basicSimulation->GetLogsDir() + "/flows.csv") << std::endl;
+    std::cout << "    >> Closed: " << m_flows_csv_filename << std::endl;
     fclose(file_txt);
-    std::cout << "    >> Closed: " << (m_basicSimulation->GetLogsDir() + "/flows.txt") << std::endl;
+    std::cout << "    >> Closed: " << m_flows_txt_filename << std::endl;
 
     // Register completion
     std::cout << "  > Flow log files have been written" << std::endl;

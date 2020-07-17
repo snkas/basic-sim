@@ -71,6 +71,11 @@ protected:
     NodeContainer m_nodes;
     std::vector<ApplicationContainer> m_apps;
     std::set<int64_t> m_enableFlowLoggingToFileForFlowIds;
+    uint32_t m_system_id;
+    bool m_enable_distributed;
+    std::vector<int64_t> m_distributed_node_system_id_assignment;
+    std::string m_flows_csv_filename;
+    std::string m_flows_txt_filename;
 
 };
 

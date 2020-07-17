@@ -180,10 +180,19 @@ void TopologyPtop::ReadTopology() {
 
 void TopologyPtop::SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper) {
     std::cout << "SETUP NODES" << std::endl;
-    std::cout << "  > Creating nodes and installing Internet stack on each" << std::endl;
+
+    // Creating the nodes in their respective system ID
+    std::cout << "  > Creating nodes" << std::endl;
+    if (m_basicSimulation->IsDistributedEnabled()) {
+        for (int64_t system_id_assigned : m_basicSimulation->GetDistributedNodeSystemIdAssignment()) {
+            m_nodes.Create(1, system_id_assigned);
+        }
+    } else {
+        m_nodes.Create(m_num_nodes);
+    }
 
     // Install Internet on all nodes
-    m_nodes.Create(m_num_nodes);
+    std::cout << "  > Installing Internet stack on each node" << std::endl;
     InternetStackHelper internet;
     internet.SetRoutingHelper(ipv4RoutingHelper);
     internet.Install(m_nodes);
