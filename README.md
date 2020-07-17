@@ -40,6 +40,7 @@ To perform the full range of testing of this module:
 
 ```
 sudo apt-get update
+sudo apt-get -y install mpic++
 sudo apt-get -y install lcov
 cd build
 bash build.sh
