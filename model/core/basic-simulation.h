@@ -78,9 +78,10 @@ private:
 
     // Internal setup
     void ConfigureRunDirectory();
-    void WriteFinished(bool finished);
     void ReadConfig();
     void ConfigureSimulation();
+    void PrepareBasicSimulationLogFiles();
+    void WriteFinished(bool finished);
     void ShowSimulationProgress();
     void RunSimulation();
     void CleanUpSimulation();
@@ -94,6 +95,8 @@ private:
     // Run directory
     std::string m_run_dir;
     std::string m_logs_dir;
+    std::string m_finished_filename;
+    std::string m_timing_results_filename;
 
     // Config variables
     std::map<std::string, std::string> m_config;

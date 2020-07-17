@@ -37,9 +37,10 @@ BasicSimulation::BasicSimulation(std::string run_dir) {
     m_run_dir = run_dir;
     RegisterTimestamp("Start");
     ConfigureRunDirectory();
-    WriteFinished(false);
     ReadConfig();
     ConfigureSimulation();
+    PrepareBasicSimulationLogFiles();
+    WriteFinished(false);
 }
 
 int64_t BasicSimulation::NowNsSinceEpoch() {
@@ -62,23 +63,11 @@ void BasicSimulation::ConfigureRunDirectory() {
 
     // Logs in run directory
     m_logs_dir = m_run_dir + "/logs_ns3";
-    if (dir_exists(m_logs_dir)) {
-        printf("  > Emptying existing logs directory\n");
-        remove_file_if_exists(m_logs_dir + "/finished.txt");
-        remove_file_if_exists(m_logs_dir + "/timing_results.txt");
-    } else {
-        mkdir_if_not_exists(m_logs_dir);
-    }
+    mkdir_if_not_exists(m_logs_dir);
     printf("  > Logs directory: %s\n", m_logs_dir.c_str());
     printf("\n");
 
-    RegisterTimestamp("Configure run directory");
-}
-
-void BasicSimulation::WriteFinished(bool finished) {
-    std::ofstream fileFinishedEnd(m_logs_dir + "/finished.txt");
-    fileFinishedEnd << (finished ? "Yes" : "No") << std::endl;
-    fileFinishedEnd.close();
+    RegisterTimestamp("Configure run and logs directory");
 }
 
 void BasicSimulation::ReadConfig() {
@@ -183,6 +172,24 @@ void BasicSimulation::ConfigureSimulation() {
     RegisterTimestamp("Configure simulator");
 }
 
+void BasicSimulation::PrepareBasicSimulationLogFiles() {
+    if (m_enable_distributed) {
+        m_finished_filename = m_logs_dir + "/system_" + std::to_string(m_system_id) + "_finished.txt";
+        m_timing_results_filename = m_logs_dir + "/system_" + std::to_string(m_system_id) + "_timing_results.txt";
+    } else {
+        m_finished_filename = m_logs_dir + "/finished.txt";
+        m_timing_results_filename = m_logs_dir + "/timing_results.txt";
+    }
+    remove_file_if_exists(m_finished_filename);
+    remove_file_if_exists(m_timing_results_filename);
+}
+
+void BasicSimulation::WriteFinished(bool finished) {
+    std::ofstream fileFinishedEnd(m_finished_filename);
+    fileFinishedEnd << (finished ? "Yes" : "No") << std::endl;
+    fileFinishedEnd.close();
+}
+
 void BasicSimulation::ShowSimulationProgress() {
     int64_t now = NowNsSinceEpoch();
     if (now - m_last_log_time_ns_since_epoch > m_progress_interval_ns) {
@@ -277,7 +284,7 @@ void BasicSimulation::StoreTimingResults() {
     std::cout << "------" << std::endl;
 
     // Write to both file and out
-    std::ofstream fileTimingResults(m_logs_dir + "/timing_results.txt");
+    std::ofstream fileTimingResults(m_timing_results_filename);
     int64_t t_prev = -1;
     for (std::pair <std::string, int64_t> &ts : m_timestamps) {
         if (t_prev == -1) {
