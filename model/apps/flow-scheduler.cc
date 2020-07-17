@@ -60,7 +60,7 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
 
     // Schedule read
     printf("  > Read schedule (total flow start events: %lu)\n", m_schedule.size());
-    m_basicSimulation->RegisterTimestamp("Read schedule");
+    m_basicSimulation->RegisterTimestamp("Read flow schedule");
 
     // Determine filenames
     if (m_enable_distributed) {

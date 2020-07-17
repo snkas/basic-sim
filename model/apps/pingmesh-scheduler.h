@@ -52,7 +52,11 @@ protected:
     std::vector<ApplicationContainer> m_apps;
     int64_t m_interval_ns;
     std::vector<std::pair<int64_t, int64_t>> m_pingmesh_endpoint_pairs;
-
+    uint32_t m_system_id;
+    bool m_enable_distributed;
+    std::vector<int64_t> m_distributed_node_system_id_assignment;
+    std::string m_pingmesh_csv_filename;
+    std::string m_pingmesh_txt_filename;
 };
 
 }

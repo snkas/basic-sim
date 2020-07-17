@@ -10,14 +10,24 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
     m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
     m_interval_ns = parse_positive_int64(basicSimulation->GetConfigParamOrFail("pingmesh_interval_ns"));
     std::string pingmesh_endpoints_pair_str = basicSimulation->GetConfigParamOrDefault("pingmesh_endpoint_pairs", "all");
+    m_system_id = m_basicSimulation->GetSystemId();
+    m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
+    m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
+
+    // Start of info
+    printf("PINGMESH SCHEDULER\n");
+
+    // Pairs
     if (pingmesh_endpoints_pair_str == "all") {
 
         // All-to-all for all endpoints
         std::set<int64_t> endpoints = m_topology->GetEndpoints();
         for (int64_t i : endpoints) {
-            for (int64_t j : endpoints) {
-                if (i != j) {
-                    m_pingmesh_endpoint_pairs.push_back(std::make_pair(i, j));
+            if (!m_enable_distributed || m_distributed_node_system_id_assignment[i] == m_system_id) {
+                for (int64_t j : endpoints) {
+                    if (i != j) {
+                        m_pingmesh_endpoint_pairs.push_back(std::make_pair(i, j));
+                    }
                 }
             }
         }
@@ -39,7 +49,9 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
             if (!m_topology->IsValidEndpoint(b)) {
                 throw std::invalid_argument(format_string("Right node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", b));
             }
-            m_pingmesh_endpoint_pairs.push_back(std::make_pair(a, b));
+            if (!m_enable_distributed || m_distributed_node_system_id_assignment[a] == m_system_id) {
+                m_pingmesh_endpoint_pairs.push_back(std::make_pair(a, b));
+            }
         }
 
     }
@@ -47,11 +59,30 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
     // Sort the pairs ascending such that we can do some spacing
     std::sort(m_pingmesh_endpoint_pairs.begin(), m_pingmesh_endpoint_pairs.end());
 
+    // Schedule read
+    printf("  > Determined pingmesh pairs (size: %lu)\n", m_pingmesh_endpoint_pairs.size());
+    m_basicSimulation->RegisterTimestamp("Determined pingmesh pairs");
 
+    // Determine filenames
+    if (m_enable_distributed) {
+        m_pingmesh_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_pingmesh.csv";
+        m_pingmesh_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_pingmesh.txt";
+    } else {
+        m_pingmesh_csv_filename = m_basicSimulation->GetLogsDir() + "/pingmesh.csv";
+        m_pingmesh_txt_filename = m_basicSimulation->GetLogsDir() + "/pingmesh.txt";
+    }
+
+    // Remove files if they are there
+    remove_file_if_exists(m_pingmesh_csv_filename);
+    remove_file_if_exists(m_pingmesh_txt_filename);
+    printf("  > Removed previous pingmesh log files if present\n");
+    m_basicSimulation->RegisterTimestamp("Remove previous pingmesh log files");
+
+    std::cout << std::endl;
 }
 
 void PingmeshScheduler::Schedule() {
-    std::cout << "SCHEDULING PINGMESH" << std::endl;
+    std::cout << "SCHEDULING PINGMESH APPLICATIONS" << std::endl;
 
     // Info
     std::cout << "  > Ping interval: " << m_interval_ns << " ns" << std::endl;
@@ -62,9 +93,11 @@ void PingmeshScheduler::Schedule() {
     // Install echo server on each node
     std::cout << "  > Setting up " << endpoints.size() << " pingmesh servers" << std::endl;
     for (int64_t i : endpoints) {
-        UdpRttServerHelper echoServerHelper(1025);
-        ApplicationContainer app = echoServerHelper.Install(m_nodes.Get(i));
-        app.Start(Seconds(0.0));
+        if (!m_enable_distributed || m_distributed_node_system_id_assignment[i] == m_system_id) {
+            UdpRttServerHelper echoServerHelper(1025);
+            ApplicationContainer app = echoServerHelper.Install(m_nodes.Get(i));
+            app.Start(Seconds(0.0));
+        }
     }
     m_basicSimulation->RegisterTimestamp("Setup pingmesh servers");
 
@@ -104,12 +137,20 @@ void PingmeshScheduler::Schedule() {
 void PingmeshScheduler::WriteResults() {
     std::cout << "STORE PINGMESH RESULTS" << std::endl;
 
-    // Write to CSV and TXT
-    FILE* file_csv = fopen((m_basicSimulation->GetLogsDir() + "/pingmesh.csv").c_str(), "w+");
-    FILE* file_txt = fopen((m_basicSimulation->GetLogsDir() + "/pingmesh.txt").c_str(), "w+");
+    // Open files
+    std::cout << "  > Opening pingmesh log files:" << std::endl;
+    FILE* file_csv = fopen(m_pingmesh_csv_filename.c_str(), "w+");
+    std::cout << "    >> Opened: " << m_pingmesh_csv_filename << std::endl;
+    FILE* file_txt = fopen(m_pingmesh_txt_filename.c_str(), "w+");
+    std::cout << "    >> Opened: " << m_pingmesh_txt_filename << std::endl;
+
+    // Header
+    std::cout << "  > Writing pingmesh.txt header" << std::endl;
     fprintf(file_txt, "%-10s%-10s%-22s%-22s%-16s%-16s%-16s%-16s%s\n",
             "Source", "Target", "Mean latency there", "Mean latency back",
             "Min. RTT", "Mean RTT", "Max. RTT", "Smp.std. RTT", "Reply arrival");
+
+    // Go over the applications, write each ping's result
     for (uint32_t i = 0; i < m_apps.size(); i++) {
         Ptr<UdpRttClient> client = m_apps[i].Get(0)->GetObject<UdpRttClient>();
 
@@ -199,14 +240,19 @@ void PingmeshScheduler::WriteResults() {
         );
 
     }
+
+    // Close files
+    std::cout << "  > Closing pingmesh log files:" << std::endl;
     fclose(file_csv);
+    std::cout << "    >> Closed: " << m_pingmesh_csv_filename << std::endl;
     fclose(file_txt);
+    std::cout << "    >> Closed: " << m_pingmesh_txt_filename << std::endl;
 
+    // Register completion
     std::cout << "  > Pingmesh log files have been written" << std::endl;
-
     std::cout << std::endl;
-    m_basicSimulation->RegisterTimestamp("Write pingmesh log files");
 
+    m_basicSimulation->RegisterTimestamp("Write pingmesh log files");
 }
 
 }
