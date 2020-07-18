@@ -6,6 +6,8 @@ language: cpp
 
 # Command(s) to install dependencies
 before_install:
+  - test -n $CC && unset CC
+  - test -n $CXX && unset CXX
   - pyenv global 3.6
   - sudo apt-get update
   - sudo apt-get -y install mpic++
