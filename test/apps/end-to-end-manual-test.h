@@ -57,7 +57,9 @@ public:
 
         // Install flow sink on all
         FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
-        sink.Install(topology->GetNodes()).Start(Seconds(0.0));
+        ApplicationContainer app = sink.Install(topology->GetNodes());
+        app.Start(NanoSeconds(0));
+        app.Stop(NanoSeconds(1900000000));
 
         // 0 --> 1
         FlowSendHelper source0(
@@ -68,7 +70,9 @@ public:
                 true,
                 basicSimulation->GetLogsDir()
         );
-        source0.Install(topology->GetNodes().Get(0)).Start(NanoSeconds(0));
+        app = source0.Install(topology->GetNodes().Get(0));
+        app.Start(NanoSeconds(0));
+        app.Stop(NanoSeconds(1000000000));
 
         // 1 --> 0
         FlowSendHelper source1(
@@ -79,11 +83,15 @@ public:
                 true,
                 basicSimulation->GetLogsDir()
         );
-        source1.Install(topology->GetNodes().Get(1)).Start(NanoSeconds(7000));
+        app = source1.Install(topology->GetNodes().Get(1));
+        app.Start(NanoSeconds(7000));
+        app.Stop(NanoSeconds(1000000000));
 
         // Install echo server on all nodes
         UdpRttServerHelper echoServerHelper(1025);
-        echoServerHelper.Install(topology->GetNodes()).Start(Seconds(0.0));;
+        app = echoServerHelper.Install(topology->GetNodes());
+        app.Start(NanoSeconds(0));
+        app.Stop(NanoSeconds(600000000));
 
         // Pinging 0 --> 1
         UdpRttClientHelper source_ping0(
@@ -93,7 +101,9 @@ public:
                 1
         );
         source_ping0.SetAttribute("Interval", TimeValue(NanoSeconds(100000000)));
-        source_ping0.Install(topology->GetNodes().Get(0)).Start(NanoSeconds(0));
+        app = source_ping0.Install(topology->GetNodes().Get(0));
+        app.Start(NanoSeconds(0));
+        app.Stop(NanoSeconds(1000000000));
 
         // Pinging 1 --> 0
         UdpRttClientHelper source_ping1(
@@ -103,7 +113,9 @@ public:
                 0
         );
         source_ping1.SetAttribute("Interval", TimeValue(NanoSeconds(100000000)));
-        source_ping1.Install(topology->GetNodes().Get(1)).Start(NanoSeconds(0));
+        app = source_ping1.Install(topology->GetNodes().Get(1));
+        app.Start(NanoSeconds(0));
+        app.Stop(NanoSeconds(1000000000));
 
         // Run simulation
         basicSimulation->Run();
