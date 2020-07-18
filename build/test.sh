@@ -43,8 +43,8 @@ do
   done
 done
 
-# 2 core tests
-if [ "${num_cores}" -ge "2" ]; then
+# 2 core tests (set to >= 4 because Travis does not support ns-3 MPI properly with more than 1 logical process)
+if [ "${num_cores}" -ge "4" ]; then
   for experiment in "test_distributed_2_core_default" \
                     "test_distributed_2_core_nullmsg"
   do
