@@ -25,6 +25,9 @@ echo "Performing tests for coverage"
 python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
 python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
 
+# Show MPI state
+mpirun --help || exit 1
+
 # Check cores
 num_cores=$(nproc --all)
 
@@ -43,8 +46,8 @@ do
   done
 done
 
-# 2 core tests
-if [ "${num_cores}" -ge "2" ]; then
+# 2 core tests (for now only if at least 4 cores are present; Jenkins seems to not work well with MPI 2+ processes)
+if [ "${num_cores}" -ge "4" ]; then
   for experiment in "test_distributed_2_core_default" \
                     "test_distributed_2_core_nullmsg"
   do
