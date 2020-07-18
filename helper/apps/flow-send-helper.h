@@ -37,72 +37,20 @@
 
 namespace ns3 {
 
-/**
- * \ingroup bulksend
- * \brief A helper to make it easier to instantiate an ns3::FlowSendApplication
- * on a set of nodes.
- */
+
 class FlowSendHelper
 {
 public:
-  /**
-   * Create an FlowSendHelper to make it easier to work with FlowSendApplications
-   *
-   * \param protocol the name of the protocol to use to send traffic
-   *        by the applications. This string identifies the socket
-   *        factory type used to create sockets for the applications.
-   *        A typical value would be ns3::UdpSocketFactory.
-   * \param address the address of the remote node to send traffic
-   *        to.
-   * \param maxBytes Amount of bytes to send
-   * \param flowId Flow identifier
-   * \param enableFlowLoggingToFile True iff enable flow logging to file
-   * \param baseLogsDir Base log directory
-   */
   FlowSendHelper (std::string protocol, Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir);
-
-  /**
-   * Install an ns3::FlowSendApplication on each node of the input container
-   * configured with all the attributes set with SetAttribute.
-   *
-   * \param c NodeContainer of the set of nodes on which an FlowSendApplication
-   * will be installed.
-   * \returns Container of Ptr to the applications installed.
-   */
-  ApplicationContainer Install (NodeContainer c) const;
-
-  /**
-   * Install an ns3::FlowSendApplication on the node configured with all the
-   * attributes set with SetAttribute.
-   *
-   * \param node The node on which an FlowSendApplication will be installed.
-   * \returns Container of Ptr to the applications installed.
-   */
   ApplicationContainer Install (Ptr<Node> node) const;
 
-  /**
-   * Install an ns3::FlowSendApplication on the node configured with all the
-   * attributes set with SetAttribute.
-   *
-   * \param nodeName The node on which an FlowSendApplication will be installed.
-   * \returns Container of Ptr to the applications installed.
-   */
-  ApplicationContainer Install (std::string nodeName) const;
-
 private:
-  /**
-   * Install an ns3::FlowSendApplication on the node configured with all the
-   * attributes set with SetAttribute.
-   *
-   * \param node The node on which an FlowSendApplication will be installed.
-   * \returns Ptr to the application installed.
-   */
   Ptr<Application> InstallPriv (Ptr<Node> node) const;
+  ObjectFactory m_factory;
 
-  ObjectFactory m_factory; //!< Object factory.
 };
 
 } // namespace ns3
 
-#endif /* ON_OFF_HELPER_H */
+#endif /* FLOW_SEND_HELPER_H */
 

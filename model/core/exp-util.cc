@@ -159,7 +159,22 @@ std::vector<std::string> split_string(const std::string line, const std::string 
  * @return Int64
  */
 int64_t parse_int64(const std::string& str) {
-    return std::stoll(str);
+
+    // Parse using stoll -- rethrow argument to be a bit easier debuggable
+    int64_t val;
+    size_t i;
+    try {
+        val = std::stoll(str, &i);
+    } catch (const std::invalid_argument&) {
+        throw std::invalid_argument("Could not convert to int64: " + str);
+    }
+
+    // No remainder
+    if (i != str.size()) {
+        throw std::invalid_argument("Could not convert to int64: " + str);
+    }
+
+    return val;
 }
 
 /**
@@ -185,7 +200,7 @@ int64_t parse_positive_int64(const std::string& str) {
  * @return Int64 >= 1
  */
 int64_t parse_geq_one_int64(const std::string& str) {
-    int64_t val = std::stoll(str);
+    int64_t val = parse_positive_int64(str);
     if (val < 1) {
         throw std::invalid_argument(format_string("Value must be >= 1: %" PRId64, val));
     }
@@ -200,7 +215,22 @@ int64_t parse_geq_one_int64(const std::string& str) {
  * @return Double
  */
 double parse_double(const std::string& str) {
-    return std::stod(str);
+
+    // Parse using stod -- rethrow argument to be a bit easier debuggable
+    double val;
+    size_t i;
+    try {
+        val = std::stod(str, &i);
+    } catch (const std::invalid_argument&) {
+        throw std::invalid_argument("Could not convert to double: " + str);
+    }
+
+    // No remainder
+    if (i != str.size()) {
+        throw std::invalid_argument("Could not convert to double: " + str);
+    }
+
+    return val;
 }
 
 /**
@@ -226,7 +256,7 @@ double parse_positive_double(const std::string& str) {
  * @return Double in the range of [0.0, 1.0]
  */
 double parse_double_between_zero_and_one(const std::string& str) {
-    double val = std::stod(str);
+    double val = parse_double(str);
     if (val < 0 || val > 1) {
         throw std::invalid_argument(format_string("Double value must be [0, 1]: %f", val));
     }
@@ -348,14 +378,6 @@ std::vector<int64_t> parse_list_positive_int64(const std::string str) {
     std::vector<int64_t> int64_list;
     for (std::string s : string_list) {
         int64_list.push_back(parse_positive_int64(s));
-    }
-    if (string_list.size() != int64_list.size()) {
-        throw std::invalid_argument(
-                format_string(
-                        "List %s contains int64 duplicates",
-                        str.c_str()
-                )
-        );
     }
     return int64_list;
 }

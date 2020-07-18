@@ -5,6 +5,7 @@
 #include "schedule-reader-test.h"
 #include "end-to-end-flows-test.h"
 #include "end-to-end-pingmesh-test.h"
+#include "end-to-end-manual-test.h"
 
 using namespace ns3;
 
@@ -22,6 +23,7 @@ public:
         AddTestCase(new EndToEndFlowsOneDropOneNotTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndPingmeshNineAllTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndPingmeshNinePairsTestCase, TestCase::QUICK);
+        AddTestCase(new EndToEndManualTestCase, TestCase::QUICK);
     }
 };
 static BasicAppsTestSuite basicAppsTestSuite;

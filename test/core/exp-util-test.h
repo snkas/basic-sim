@@ -14,6 +14,12 @@ public:
 
     void DoRun() {
 
+        // Format string
+        ASSERT_EQUAL(format_string("%d", 65), "65");
+        ASSERT_EQUAL(format_string("%s", ""), "");
+        ASSERT_EQUAL(format_string("%s %s", "abc", "def"), "abc def");
+        ASSERT_EQUAL(format_string("%s%d", "abc", 4636), "abc4636");
+
         // Trimming
         ASSERT_EQUAL(trim("abc"), "abc");
         ASSERT_EQUAL(trim(" abc"), "abc");
@@ -81,82 +87,109 @@ public:
     ExpUtilParsingTestCase() : TestCase("exp-util parsing") {};
 
     void DoRun() {
-        bool caught = false;
+
+        // Int64
+        ASSERT_EQUAL(parse_int64("0"), 0);
+        ASSERT_EQUAL(parse_int64("1"), 1);
+        ASSERT_EQUAL(parse_int64("-1"), -1);
+        ASSERT_EQUAL(parse_int64("5848484"), 5848484);
+        ASSERT_EQUAL(parse_int64("-9"), -9);
+        ASSERT_EXCEPTION(parse_int64("3.5"));
+        ASSERT_EXCEPTION(parse_int64("-0.00001"));
+        ASSERT_EXCEPTION(parse_int64("-8888.0"));
+        ASSERT_EXCEPTION(parse_int64("5e-1"));
 
         // Positive in64
         ASSERT_EQUAL(parse_positive_int64("1"), 1);
         ASSERT_EQUAL(parse_positive_int64("0"), 0);
-        caught = false;
-        try { parse_positive_int64(""); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
-        caught = false;
-        try { parse_positive_int64("-6"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
+        ASSERT_EXCEPTION(parse_positive_int64(""));
+        ASSERT_EXCEPTION(parse_positive_int64("-6"));
+        ASSERT_EXCEPTION(parse_positive_int64("3.5"));
 
         // Positive int64 >= 1
         ASSERT_EQUAL(parse_geq_one_int64("345"), 345);
         ASSERT_EQUAL(parse_geq_one_int64("1"), 1);
-        caught = false;
-        try { parse_geq_one_int64("0"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
+        ASSERT_EXCEPTION(parse_geq_one_int64("0"));
+        ASSERT_EXCEPTION(parse_geq_one_int64("1.1"));
+
+        // Double
+        ASSERT_EQUAL(parse_double("0.0"), 0.0);
+        ASSERT_EQUAL(parse_double("-0.0"), 0.0);
+        ASSERT_EQUAL(parse_double("6.89"), 6.89);
+        ASSERT_EQUAL(parse_double("99"), 99.0);
+        ASSERT_EQUAL(parse_double("-0.00001"), -0.00001);
+        ASSERT_EQUAL(parse_double("-8888"), -8888);
+        ASSERT_EQUAL(parse_double("5e-1"), 0.5);
+        ASSERT_EXCEPTION(parse_double("abc"));
+        ASSERT_EXCEPTION(parse_double("58.2abc"));
+        ASSERT_EXCEPTION(parse_double("a58.2"));
+        ASSERT_EXCEPTION(parse_double("a58.289.a"));
 
         // Positive double
         ASSERT_EQUAL(parse_positive_double("0.0"), 0.0);
         ASSERT_EQUAL(parse_positive_double("-0.0"), 0.0);
         ASSERT_EQUAL(parse_positive_double("6.89"), 6.89);
         ASSERT_EQUAL(parse_positive_double("99"), 99.0);
-        caught = false;
-        try { parse_positive_double("-0.00001"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
-        caught = false;
-        try { parse_positive_double("-8888"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
+        ASSERT_EXCEPTION(parse_positive_double("-0.00001"));
+        ASSERT_EXCEPTION(parse_positive_double("-8888"));
 
         // Positive double in [0, 1]
         ASSERT_EQUAL(parse_double_between_zero_and_one("0.0"), 0.0);
         ASSERT_EQUAL(parse_double_between_zero_and_one("0.6"), 0.6);
         ASSERT_EQUAL(parse_double_between_zero_and_one("1.0"), 1.0);
-        caught = false;
-        try { parse_double_between_zero_and_one("-0.00001"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
-        caught = false;
-        try { parse_double_between_zero_and_one("1.00001"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
+        ASSERT_EXCEPTION(parse_double_between_zero_and_one("-0.00001"));
+        ASSERT_EXCEPTION(parse_double_between_zero_and_one("1.00001"));
 
         // Boolean
         ASSERT_TRUE(parse_boolean("1"));
         ASSERT_TRUE(parse_boolean("true"));
         ASSERT_FALSE(parse_boolean("0"));
         ASSERT_FALSE(parse_boolean("false"));
-        caught = false;
-        try { parse_boolean("y"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
-        caught = false;
-        try { parse_boolean("falselytrue"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
+        ASSERT_EXCEPTION(parse_boolean("y"));
+        ASSERT_EXCEPTION(parse_boolean("n"));
+        ASSERT_EXCEPTION(parse_boolean("yes"));
+        ASSERT_EXCEPTION(parse_boolean("no"));
+        ASSERT_EXCEPTION(parse_boolean("falselytrue"));
 
         // Set string
         std::set <std::string> set_a = parse_set_string("set(a, b, 1245, , 77)");
         ASSERT_EQUAL(set_a.size(), 5);
-        caught = false;
-        try { parse_set_string("seta, b, 1245, , 77)"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
-        caught = false;
-        try { parse_set_string("a, b, c"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
-        caught = false;
-        try { parse_set_string("set(a, b, c"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
+        ASSERT_EXCEPTION(parse_set_string("seta, b, 1245, , 77)"));
+        ASSERT_EXCEPTION(parse_set_string("a, b, c"));
+        ASSERT_EXCEPTION(parse_set_string("set(a, b, c"));
+        ASSERT_EXCEPTION(parse_set_string("set(a, a)"));
 
         // Set positive int64
-        std::set <int64_t> set_b = parse_set_positive_int64("set(100, 0, 1, 56)");
+        std::set<int64_t> set_b = parse_set_positive_int64("set(100, 0, 1, 56)");
         ASSERT_EQUAL(set_b.size(), 4);
-        caught = false;
-        try { parse_set_positive_int64("set(-1, 5, 6)"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
-        caught = false;
-        try { parse_set_positive_int64("set(0, 5, 0.5)"); } catch (std::exception &e) { caught = true; }
-        ASSERT_TRUE(caught);
+        ASSERT_EXCEPTION(parse_set_positive_int64("set(-1, 5, 6)"));
+        ASSERT_EXCEPTION(parse_set_positive_int64("set(0, 5, 0.5)"));
+        ASSERT_EXCEPTION(parse_set_positive_int64("set(3, 3)"));
+        ASSERT_EXCEPTION(parse_set_positive_int64("set(3, 03)"));
+
+        // List string
+        std::vector<std::string> list_a = parse_list_string("list(a, b, c, 77, e)");
+        ASSERT_EQUAL(list_a.size(), 5);
+        list_a = parse_list_string("list()");
+        ASSERT_EQUAL(list_a.size(), 0);
+        list_a = parse_list_string("list(123)");
+        ASSERT_EQUAL(list_a.size(), 1);
+        ASSERT_EXCEPTION(parse_list_string("lista,b,c)"));
+        ASSERT_EXCEPTION(parse_list_string("c)"));
+        ASSERT_EXCEPTION(parse_list_string("list(a, b, c"));
+
+        // List positive int64
+        std::vector<int64_t> list_b = parse_list_positive_int64("list(3, 5, 0, 24, 24)");
+        ASSERT_EQUAL(list_b.size(), 5);
+        list_b = parse_list_positive_int64("list()");
+        ASSERT_EQUAL(list_b.size(), 0);
+        list_b = parse_list_positive_int64("list(0)");
+        ASSERT_EQUAL(list_b.size(), 1);
+        ASSERT_EXCEPTION(parse_list_positive_int64("list(-1,0,3,5,225)"));
+        ASSERT_EXCEPTION(parse_list_positive_int64("list1,2,3)"));
+        ASSERT_EXCEPTION(parse_list_positive_int64("c)"));
+        ASSERT_EXCEPTION(parse_list_positive_int64("list(a, 324)"));
+        ASSERT_EXCEPTION(parse_list_positive_int64("list(3.5)"));
 
     }
 };
@@ -226,8 +259,6 @@ public:
 
         // Non-existent file
         ASSERT_EXCEPTION(read_config("temp.file"));
-
-
 
     }
 };

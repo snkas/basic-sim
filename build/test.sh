@@ -9,10 +9,12 @@ fi
 # Test results output folder
 rm -rf test_results
 mkdir -p test_results
-cd ${NS3_VERSION} || exit 1
 
 # Rebuild to have the most up-to-date
-bash rebuild.sh
+bash rebuild.sh || exit 1
+
+# Go into the ns-3 folder
+cd ${NS3_VERSION} || exit 1
 
 # Empty coverage counters
 echo "Zeroing coverage counters"
@@ -20,8 +22,8 @@ lcov --directory build/debug_all --zerocounters
 
 # Perform coverage test
 echo "Performing tests for coverage"
-python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core
-python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps
+python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
+python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
 
 # Stop if we don't want a coverage report
 if [ "$1" == "--no_coverage" ]; then

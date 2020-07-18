@@ -150,7 +150,7 @@ public:
                 ASSERT_EQUAL(parse_positive_int64(line_spl[0]), j);
                 ASSERT_EQUAL(parse_positive_int64(line_spl[1]), write_schedule[j].from_node_id);
                 ASSERT_EQUAL(parse_positive_int64(line_spl[2]), write_schedule[j].to_node_id);
-                ASSERT_EQUAL_APPROX(parse_positive_int64(line_spl[3]), byte_to_megabit(write_schedule[j].size_byte), 0.01);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), byte_to_megabit(write_schedule[j].size_byte), 0.01);
                 ASSERT_EQUAL(line_spl[4], "Mbit");
                 ASSERT_EQUAL(parse_positive_int64(line_spl[5]), write_schedule[j].start_time_ns);
                 ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns_list[j]);
@@ -158,7 +158,7 @@ public:
                 ASSERT_EQUAL(line_spl[8], "ms");
                 ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[9]), byte_to_megabit(sent_byte_list[j]), 0.01);
                 ASSERT_EQUAL(line_spl[10], "Mbit");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[11].substr(0, line_spl.size() - 1)), sent_byte_list[j] * 100.0 / write_schedule[j].size_byte, 0.1);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[11].substr(0, line_spl[11].size() - 1)), sent_byte_list[j] * 100.0 / write_schedule[j].size_byte, 0.1);
                 ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), byte_to_megabit(sent_byte_list[j]) / nanosec_to_sec(end_time_ns_list[j] - write_schedule[j].start_time_ns), 0.1);
                 ASSERT_EQUAL(line_spl[13], "Mbit/s");
                 ASSERT_TRUE(line_spl[14] == "NO_ONGOING" || line_spl[14] == "YES");

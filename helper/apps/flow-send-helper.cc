@@ -48,25 +48,6 @@ FlowSendHelper::Install (Ptr<Node> node) const
   return ApplicationContainer (InstallPriv (node));
 }
 
-ApplicationContainer
-FlowSendHelper::Install (std::string nodeName) const
-{
-  Ptr<Node> node = Names::Find<Node> (nodeName);
-  return ApplicationContainer (InstallPriv (node));
-}
-
-ApplicationContainer
-FlowSendHelper::Install (NodeContainer c) const
-{
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
-    {
-      apps.Add (InstallPriv (*i));
-    }
-
-  return apps;
-}
-
 Ptr<Application>
 FlowSendHelper::InstallPriv (Ptr<Node> node) const
 {

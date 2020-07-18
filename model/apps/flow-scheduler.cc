@@ -117,7 +117,7 @@ void FlowScheduler::Schedule() {
     std::cout << "SCHEDULING FLOW APPLICATIONS" << std::endl;
 
     // Install sink on each endpoint node
-    std::cout << "  > Setting up sinks" << std::endl;
+    std::cout << "  > Setting up flow sinks" << std::endl;
     for (int64_t endpoint : m_topology->GetEndpoints()) {
         if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
             FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
@@ -125,7 +125,7 @@ void FlowScheduler::Schedule() {
             app.Start(Seconds(0.0));
         }
     }
-    m_basicSimulation->RegisterTimestamp("Setup traffic sinks");
+    m_basicSimulation->RegisterTimestamp("Setup flow sinks");
 
     // Setup start of first source application
     std::cout << "  > Setting up traffic flow starter" << std::endl;

@@ -171,6 +171,7 @@ UdpRttClient::HandleRead(Ptr <Socket> socket) {
         m_replyTimestamps[seqNo] = incomingSeqTs.GetTs().GetNanoSeconds();
         m_receiveReplyTimestamps[seqNo] = Simulator::Now().GetNanoSeconds();
 
+
     }
 }
 

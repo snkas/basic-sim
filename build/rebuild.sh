@@ -14,4 +14,4 @@ rsync -ravh ../ ${NS3_VERSION}/contrib/basic-sim --exclude "build/" --exclude ".
 cd ${NS3_VERSION} || exit 1
 
 # Rebuild whichever build is configured right now
-./waf -j4
+./waf -j4 || exit 1

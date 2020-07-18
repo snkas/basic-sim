@@ -30,8 +30,8 @@ namespace ns3 {
 FlowSinkHelper::FlowSinkHelper (std::string protocol, Address address)
 {
   m_factory.SetTypeId ("ns3::FlowSink");
-  m_factory.Set ("Protocol", StringValue (protocol));
-  m_factory.Set ("Local", AddressValue (address));
+  SetAttribute ("Protocol", StringValue (protocol));
+  SetAttribute ("Local", AddressValue (address));
 }
 
 void 
@@ -43,13 +43,6 @@ FlowSinkHelper::SetAttribute (std::string name, const AttributeValue &value)
 ApplicationContainer
 FlowSinkHelper::Install (Ptr<Node> node) const
 {
-  return ApplicationContainer (InstallPriv (node));
-}
-
-ApplicationContainer
-FlowSinkHelper::Install (std::string nodeName) const
-{
-  Ptr<Node> node = Names::Find<Node> (nodeName);
   return ApplicationContainer (InstallPriv (node));
 }
 
