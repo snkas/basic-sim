@@ -141,8 +141,10 @@ namespace ns3 {
                 const std::vector<std::tuple<int64_t, int64_t, int64_t>> intervals = tracker->FinalizeUtilization();
                 int64_t interval_left_side_ns = 0;
                 int64_t utilization_busy_sum_ns = 0;
+                int64_t running_busy_sum_ns = 0;
                 for (size_t j = 0; j < intervals.size(); j++) {
                     utilization_busy_sum_ns += std::get<2>(intervals[j]);
+                    running_busy_sum_ns += std::get<2>(intervals[j]);
 
                     // Write plain to the uncompressed CSV file:
                     // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<amount of busy in this interval (ns)>
@@ -159,8 +161,8 @@ namespace ns3 {
                     // Only write if it is the last one, or if the utilization is sufficiently different from the next
                     bool print_compressed_line = (j == intervals.size() - 1);
                     if (!print_compressed_line) {
-                        double util_j = std::get<2>(intervals[j]) / (std::get<1>(intervals[j]) - std::get<0>(intervals[j]));
-                        double util_j_next = std::get<2>(intervals[j + 1]) / (std::get<1>(intervals[j + 1]) - std::get<0>(intervals[j + 1]));
+                        double util_j = ((double) std::get<2>(intervals[j])) / (double) (std::get<1>(intervals[j]) - std::get<0>(intervals[j]));
+                        double util_j_next = ((double) std::get<2>(intervals[j + 1])) / (double) (std::get<1>(intervals[j + 1]) - std::get<0>(intervals[j + 1]));
                         if (std::abs(util_j - util_j_next) >= UTILIZATION_TRACKER_COMPRESSION_APPROXIMATELY_NOT_EQUAL) { // Approximately not equal
                             print_compressed_line = true;
                         }
@@ -175,7 +177,7 @@ namespace ns3 {
                                 (int) directed_edge.second,
                                 interval_left_side_ns,
                                 std::get<1>(intervals[j]),
-                                std::get<2>(intervals[j])
+                                running_busy_sum_ns
                         );
 
                         // Write nicely formatted to the TXT file
@@ -185,10 +187,11 @@ namespace ns3 {
                                 (int) directed_edge.second,
                                 interval_left_side_ns / 1000000.0,
                                 std::get<1>(intervals[j]) / 1000000.0,
-                                ((double) std::get<2>(intervals[j])) / ((double) m_utilization_interval_ns) * 100.0
+                                ((double) running_busy_sum_ns) / ((double) (std::get<1>(intervals[j]) - interval_left_side_ns)) * 100.0
                         );
 
                         interval_left_side_ns = std::get<1>(intervals[j]);
+                        running_busy_sum_ns = 0;
 
                     }
                 }
