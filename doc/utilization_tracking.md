@@ -9,6 +9,39 @@ It encompasses the following files:
 
 You can use the application(s) separately, or make use of the helper which requires a topology (which is recommended).
 
+
+## Getting started
+
+1. Add the following to the `config_ns3.properties` in your run folder (for tracking utilization at a 100ms granularity):
+
+   ```
+   enable_link_utilization_tracking=true
+   link_utilization_tracking_interval_ns=100000000
+   ```
+
+2. In your code, import the helper:
+
+   ```
+   #include "ns3/ptop-utilization-tracker-helper.h"
+   ```
+   
+3. Before the start of the simulation run, in your code add:
+
+   ```c++
+   // Install utilization trackers
+   PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
+   ```
+
+4. After the run, in your code add:
+
+   ```c++
+   // Write utilization result
+   utilTrackerHelper.WriteResults();
+   ```
+   
+5. After the run, you should have the utilization log files in the `logs_ns3` of your run folder.
+
+
 ## Helper information
 
 You MUST set the following key in `config_ns3.properties` for utilization tracking to be enabled:
