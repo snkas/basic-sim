@@ -25,48 +25,26 @@ echo "Performing tests for coverage"
 python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
 python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
 
+# Back to build/ directory
+cd .. || exit 1
+
 # Check cores
 num_cores=$(nproc --all)
 
 # 1 core tests
-for experiment in "test_distributed_1_core_default" \
-                  "test_distributed_1_core_nullmsg"
-do
-  rm -rf ../test_runs/${experiment}/logs_ns3
-  mkdir ../test_runs/${experiment}/logs_ns3
-  mpirun -np 1 ./waf --run="main_flows_and_pingmesh --run_dir='../test_runs/${experiment}'" 2>&1 | tee ../test_runs/${experiment}/logs_ns3/console.txt
-  for s in "0"
-  do
-    if [[ $(< "../test_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-      exit 1
-    fi
-  done
-done
+bash run_assist.sh "main_flows_and_pingmesh" "test_runs/test_distributed_1_core_default" 1 || exit 1
+bash run_assist.sh "main_flows_and_pingmesh" "test_runs/test_distributed_1_core_nullmsg" 1 || exit 1
 
 # 2 core tests (set to >= 4 because Travis does not support ns-3 MPI properly with more than 1 logical process)
 if [ "${num_cores}" -ge "4" ]; then
-  for experiment in "test_distributed_2_core_default" \
-                    "test_distributed_2_core_nullmsg"
-  do
-    rm -rf ../test_runs/${experiment}/logs_ns3
-    mkdir ../test_runs/${experiment}/logs_ns3
-    mpirun -np 2 ./waf --run="main_flows_and_pingmesh --run_dir='../test_runs/${experiment}'" 2>&1 | tee ../test_runs/${experiment}/logs_ns3/console.txt
-    for s in "0" "1"
-    do
-      if [[ $(< "../test_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-        exit 1
-      fi
-    done
-  done
+  bash run_assist.sh "main_flows_and_pingmesh" "test_runs/test_distributed_2_core_default" 2 || exit 1
+  bash run_assist.sh "main_flows_and_pingmesh" "test_runs/test_distributed_2_core_nullmsg" 2 || exit 1
 fi
 
 # Stop if we don't want a coverage report
 if [ "$1" == "--no_coverage" ]; then
   exit 0
 fi
-
-# Back to build/ directory
-cd .. || exit 1
 
 # Make coverage report
 rm -rf coverage_report

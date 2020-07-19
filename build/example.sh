@@ -1,5 +1,3 @@
-NS3_VERSION="ns-3.31"
-
 # Usage help
 if [ "$1" == "--help" ]; then
   echo "Usage: bash build.sh [--help, --all, --example_only, --utilization_only, --flows_only, --pingmesh_only, --flows_and_pingmesh_only]"
@@ -9,9 +7,6 @@ fi
 # Rebuild
 bash rebuild.sh || exit 1
 
-# Run all examples with their respective mains
-cd ${NS3_VERSION} || exit 1
-
 # Check cores
 num_cores=$(nproc --all)
 
@@ -20,13 +15,7 @@ num_cores=$(nproc --all)
 if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--example_only" ]; then
 
   # Example
-  experiment="example_getting_started"
-  rm -rf ../example_runs/${experiment}/logs_ns3
-  mkdir ../example_runs/${experiment}/logs_ns3
-  ./waf --run="main_example --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-  if [[ $(< "../example_runs/${experiment}/logs_ns3/finished.txt") != "Yes" ]]; then
-    exit 1
-  fi
+  bash run_assist.sh "main_example" "example_runs/example_getting_started" 0 || exit 1
 
 fi
 
@@ -35,33 +24,16 @@ fi
 if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--flows_only" ]; then
 
   # Flows
-  for experiment in "flows_getting_started" \
-                    "flows_ring" \
-                    "flows_tor_servers" \
-                    "flows_leaf_spine" \
-                    "flows_leaf_spine_servers" \
-                    "flows_fat_tree_k4_servers"
-  do
-    rm -rf ../example_runs/${experiment}/logs_ns3
-    mkdir ../example_runs/${experiment}/logs_ns3
-    ./waf --run="main_flows --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-    if [[ $(< "../example_runs/${experiment}/logs_ns3/finished.txt") != "Yes" ]]; then
-      exit 1
-    fi
-  done
+  bash run_assist.sh "main_flows" "example_runs/flows_getting_started" 0 || exit 1
+  bash run_assist.sh "main_flows" "example_runs/flows_ring" 0 || exit 1
+  bash run_assist.sh "main_flows" "example_runs/flows_tor_servers" 0 || exit 1
+  bash run_assist.sh "main_flows" "example_runs/flows_leaf_spine" 0 || exit 1
+  bash run_assist.sh "main_flows" "example_runs/flows_leaf_spine_servers" 0 || exit 1
+  bash run_assist.sh "main_flows" "example_runs/flows_fat_tree_k4_servers" 0 || exit 1
 
   # Flows distributed
   if [ "${num_cores}" -ge "4" ]; then
-    experiment="flows_fat_tree_k4_servers_distributed"
-    rm -rf ../example_runs/${experiment}/logs_ns3
-    mkdir ../example_runs/${experiment}/logs_ns3
-    mpirun -np 4 ./waf --run="main_flows --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-    for s in "0" "1" "2" "3"
-    do
-      if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-        exit 1
-      fi
-    done
+    bash run_assist.sh "main_flows" "example_runs/flows_fat_tree_k4_servers_distributed" 4 || exit 1
   fi
 
 fi
@@ -71,32 +43,15 @@ fi
 if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--pingmesh_only" ]; then
 
   # Pingmesh
-  for experiment in "pingmesh_getting_started" \
-                    "pingmesh_single" \
-                    "pingmesh_grid" \
-                    "pingmesh_grid_select_pairs" \
-                    "pingmesh_fat_tree_k4_servers"
-  do
-    rm -rf ../example_runs/${experiment}/logs_ns3
-    mkdir ../example_runs/${experiment}/logs_ns3
-    ./waf --run="main_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-    if [[ $(< "../example_runs/${experiment}/logs_ns3/finished.txt") != "Yes" ]]; then
-      exit 1
-    fi
-  done
+  bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_getting_started" 0 || exit 1
+  bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_single" 0 || exit 1
+  bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_grid" 0 || exit 1
+  bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_grid_select_pairs" 0 || exit 1
+  bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_fat_tree_k4_servers" 0 || exit 1
 
   # Pingmesh distributed
   if [ "${num_cores}" -ge "4" ]; then
-    experiment="pingmesh_fat_tree_k4_servers_distributed"
-    rm -rf ../example_runs/${experiment}/logs_ns3
-    mkdir ../example_runs/${experiment}/logs_ns3
-    mpirun -np 4 ./waf --run="main_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-    for s in "0" "1" "2" "3"
-    do
-      if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-        exit 1
-      fi
-    done
+    bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_fat_tree_k4_servers_distributed" 4 || exit 1
   fi
 
 fi
@@ -106,40 +61,16 @@ fi
 if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--flows_and_pingmesh_only" ]; then
 
   # Flows AND pingmesh
-  experiment="pingmesh_and_flows_fat_tree_k4_servers"
-  rm -rf ../example_runs/${experiment}/logs_ns3
-  mkdir ../example_runs/${experiment}/logs_ns3
-  ./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-  if [[ $(< "../example_runs/${experiment}/logs_ns3/finished.txt") != "Yes" ]]; then
-    exit 1
-  fi
+  bash run_assist.sh "main_flows_and_pingmesh" "example_runs/pingmesh_and_flows_fat_tree_k4_servers" 0 || exit 1
 
   # Flows AND pingmesh distributed
 
   # 1 core
-  experiment="pingmesh_and_flows_fat_tree_k4_servers_distributed_one_core"
-  rm -rf ../example_runs/${experiment}/logs_ns3
-  mkdir ../example_runs/${experiment}/logs_ns3
-  mpirun -np 1 ./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-  for s in "0"
-  do
-    if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-      exit 1
-    fi
-  done
+  bash run_assist.sh "main_flows_and_pingmesh" "example_runs/pingmesh_and_flows_fat_tree_k4_servers_distributed_one_core" 1 || exit 1
 
   # 4 cores
   if [ "${num_cores}" -ge "4" ]; then
-    experiment="pingmesh_and_flows_fat_tree_k4_servers_distributed"
-    rm -rf ../example_runs/${experiment}/logs_ns3
-    mkdir ../example_runs/${experiment}/logs_ns3
-    mpirun -np 4 ./waf --run="main_flows_and_pingmesh --run_dir='../example_runs/${experiment}'" 2>&1 | tee ../example_runs/${experiment}/logs_ns3/console.txt
-    for s in "0" "1" "2" "3"
-    do
-      if [[ $(< "../example_runs/${experiment}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
-        exit 1
-      fi
-    done
+    bash run_assist.sh "main_flows_and_pingmesh" "example_runs/pingmesh_and_flows_fat_tree_k4_servers_distributed" 4 || exit 1
   fi
 
 fi
