@@ -14,12 +14,21 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
    * MPI: `sudo apt-get install mpic++`
    * (optional, for testing) lcov: `sudo apt-get install lcov`
 
-2. You clone or add as git module the `basic-sim` module (this is a dependency for this module) into your ns-3 `contrib/` folder:
+2. You need to add the `basic-sim` module into your own ns-3's `contrib/` folder.
 
+    Method 1: git clone
     ```
     cd /path/to/your/folder/of/ns-3/contrib
-    git clone git@github.com:snkas/basic-sim.git
+    git clone https://github.com/snkas/basic-sim.git
     ```
+   
+    Method 2: git submodule
+    ```
+    cd /path/to/your/folder/of/ns-3/contrib
+    git submodule add https://github.com/snkas/basic-sim.git
+    ```
+   
+    Method 3: download the zip of this git repository and extract it there.
    
 3. Now you should be able to compile it along with all your other modules. It has been tested for ns-3 version 3.31.
 
