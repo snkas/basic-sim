@@ -38,9 +38,20 @@ namespace ns3 {
 
     private:
         std::vector<Ptr<PtopUtilizationTracker>> m_utilization_trackers;
+        std::vector<std::pair<int64_t, int64_t>> m_installed_edges;
         Ptr<BasicSimulation> m_basicSimulation;
         Ptr<TopologyPtop> m_topology;
         int64_t m_utilization_interval_ns;
+        bool m_enabled;
+
+        std::string m_filename_utilization_csv;
+        std::string m_filename_utilization_compressed_csv;
+        std::string m_filename_utilization_compressed_txt;
+        std::string m_filename_utilization_summary_txt;
+
+        uint32_t m_system_id;
+        bool m_enable_distributed;
+        std::vector<int64_t> m_distributed_node_system_id_assignment;
 
     };
 

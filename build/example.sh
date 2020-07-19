@@ -2,9 +2,12 @@ NS3_VERSION="ns-3.31"
 
 # Usage help
 if [ "$1" == "--help" ]; then
-  echo "Usage: bash build.sh [--help, --all, --example_only, --flows_only, --pingmesh_only, --flows_and_pingmesh_only]"
+  echo "Usage: bash build.sh [--help, --all, --example_only, --utilization_only, --flows_only, --pingmesh_only, --flows_and_pingmesh_only]"
   exit 0
 fi
+
+# Rebuild
+bash rebuild.sh || exit 1
 
 # Run all examples with their respective mains
 cd ${NS3_VERSION} || exit 1

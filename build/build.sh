@@ -21,6 +21,8 @@ mkdir -p ${NS3_VERSION}/scratch/main_example/
 rsync -ravh example_mains/main_example/ ${NS3_VERSION}/scratch/main_example/ --delete
 mkdir -p ${NS3_VERSION}/scratch/main_flows/
 rsync -ravh example_mains/main_flows/ ${NS3_VERSION}/scratch/main_flows/ --delete
+mkdir -p ${NS3_VERSION}/scratch/main_flows_utilization/
+rsync -ravh example_mains/main_flows_utilization/ ${NS3_VERSION}/scratch/main_flows_utilization/ --delete
 mkdir -p ${NS3_VERSION}/scratch/main_pingmesh/
 rsync -ravh example_mains/main_pingmesh/ ${NS3_VERSION}/scratch/main_pingmesh/ --delete
 mkdir -p ${NS3_VERSION}/scratch/main_flows_and_pingmesh/

@@ -16,6 +16,7 @@
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
+#include "ns3/ptop-utilization-tracker-helper.h"
 
 using namespace ns3;
 
@@ -42,6 +43,9 @@ int main(int argc, char *argv[]) {
     Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
     ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
+    // Install utilization trackers
+    PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
+
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
@@ -54,6 +58,9 @@ int main(int argc, char *argv[]) {
 
     // Write result
     flowScheduler.WriteResults();
+
+    // Write utilization result
+    utilTrackerHelper.WriteResults();
 
     // Finalize the simulation
     basicSimulation->Finalize();
