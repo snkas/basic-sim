@@ -14,19 +14,23 @@ def build(bld):
         'model/core/arbiter.cc',
         'model/core/arbiter-ptop.cc',
         'model/core/arbiter-ecmp.cc',
-        'helper/core/arbiter-ecmp-helper.cc',
         'model/core/ipv4-arbiter-routing.cc',
+        'model/core/ptop-utilization-tracker.cc',
+
+        'helper/core/arbiter-ecmp-helper.cc',
         'helper/core/ipv4-arbiter-routing-helper.cc',
+        'helper/core/ptop-utilization-tracker-helper.cc',
 
         'model/apps/flow-send-application.cc',
         'model/apps/flow-sink.cc',
         'model/apps/schedule-reader.cc',
-        'helper/apps/flow-send-helper.cc',
-        'helper/apps/flow-sink-helper.cc',
         'model/apps/flow-scheduler.cc',
         'model/apps/pingmesh-scheduler.cc',
         'model/apps/udp-rtt-client.cc',
         'model/apps/udp-rtt-server.cc',
+
+        'helper/apps/flow-send-helper.cc',
+        'helper/apps/flow-sink-helper.cc',
         'helper/apps/udp-rtt-helper.cc',
         ]
 
@@ -42,19 +46,23 @@ def build(bld):
         'model/core/arbiter.h',
         'model/core/arbiter-ptop.h',
         'model/core/arbiter-ecmp.h',
-        'helper/core/arbiter-ecmp-helper.h',
         'model/core/ipv4-arbiter-routing.h',
+        'model/core/ptop-utilization-tracker.h',
+
+        'helper/core/arbiter-ecmp-helper.h',
         'helper/core/ipv4-arbiter-routing-helper.h',
+        'helper/core/ptop-utilization-tracker-helper.h',
 
         'model/apps/flow-send-application.h',
         'model/apps/flow-sink.h',
         'model/apps/schedule-reader.h',
-        'helper/apps/flow-send-helper.h',
-        'helper/apps/flow-sink-helper.h',
         'model/apps/flow-scheduler.h',
         'model/apps/pingmesh-scheduler.h',
         'model/apps/udp-rtt-client.h',
         'model/apps/udp-rtt-server.h',
+
+        'helper/apps/flow-send-helper.h',
+        'helper/apps/flow-sink-helper.h',
         'helper/apps/udp-rtt-helper.h',
         ]
 

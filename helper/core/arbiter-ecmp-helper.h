@@ -1,5 +1,5 @@
-#ifndef ARBITER_ECMP_HELPER
-#define ARBITER_ECMP_HELPER
+#ifndef ARBITER_ECMP_HELPER_H
+#define ARBITER_ECMP_HELPER_H
 
 #include "ns3/ipv4-routing-helper.h"
 #include "ns3/basic-simulation.h"
@@ -19,4 +19,4 @@ namespace ns3 {
 
 } // namespace ns3
 
-#endif /* ARBITER_ECMP_HELPER */
+#endif /* ARBITER_ECMP_HELPER_H */
