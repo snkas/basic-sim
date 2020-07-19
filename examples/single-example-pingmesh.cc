@@ -9,6 +9,7 @@
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
+#include "ns3/ptop-utilization-tracker-helper.h"
 
 using namespace ns3;
 
@@ -32,6 +33,8 @@ int main(int argc, char *argv[]) {
     config_file << "link_max_queue_size_pkts=100" << std::endl;
     config_file << "disable_qdisc_endpoint_tors_xor_servers=false" << std::endl;
     config_file << "disable_qdisc_non_endpoint_switches=false" << std::endl;
+    config_file << "enable_link_utilization_tracking=true" << std::endl;
+    config_file << "link_utilization_tracking_interval_ns=100000000" << std::endl;
     config_file << "pingmesh_interval_ns=100000000" << std::endl;
     config_file.close();
 
@@ -53,6 +56,9 @@ int main(int argc, char *argv[]) {
     Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
     ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
+    // Install utilization trackers
+    PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
+
     // Schedule pings
     PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires pingmesh_interval_ns to be present in the configuration
     pingmeshScheduler.Schedule();
@@ -62,6 +68,9 @@ int main(int argc, char *argv[]) {
 
     // Write results
     pingmeshScheduler.WriteResults();
+
+    // Write utilization result
+    utilTrackerHelper.WriteResults();
 
     // Finalize the simulation
     basicSimulation->Finalize();
