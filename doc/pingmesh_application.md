@@ -17,6 +17,7 @@ You can use the application(s) separately, or make use of the pingmesh scheduler
 1. Add the following to the `config_ns3.properties` in your run folder (for sending pings between all endpoints at a 100ms granularity):
 
    ```
+   enable_pingmesh_scheduler=true
    pingmesh_interval_ns=100000000
    pingmesh_endpoint_pairs=all
    ```
@@ -31,8 +32,7 @@ You can use the application(s) separately, or make use of the pingmesh scheduler
 
     ```c++
     // Schedule pings
-    PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires pingmesh_interval_ns to be present in the configuration
-    pingmeshScheduler.Schedule();
+    PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
     ```
    
 4. After the run, in your code add:
@@ -95,8 +95,9 @@ You can use the application(s) separately, or make use of the pingmesh scheduler
 
 ## Pingmesh scheduler information
 
-You MUST set the following key in `config_ns3.properties`:
+You MUST set the following keys in `config_ns3.properties`:
 
+* `enable_pingmesh_scheduler` : Must be set to `true`
 * `pingmesh_interval_ns` : Interval to send a ping (ns)
 
 The following are OPTIONAL:

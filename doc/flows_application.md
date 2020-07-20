@@ -19,6 +19,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 1. Add the following to the `config_ns3.properties` in your run folder (for 2 flows that need to be tracked):
 
    ```
+   enable_flow_scheduler=true
    filename_schedule="schedule.csv"
    enable_flow_logging_to_file_for_flow_ids=set(0,1)
    ```
@@ -41,8 +42,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 
     ```c++
     // Schedule flows
-    FlowScheduler flowScheduler(basicSimulation, topology); // Requires filename_schedule to be present in the configuration
-    flowScheduler.Schedule();
+    FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_flow_scheduler=true
     ```
    
 4. After the run, in your code add:
@@ -121,8 +121,9 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 
 ## Flow scheduler information
 
-You MUST set the following key in `config_ns3.properties`:
+You MUST set the following keys in `config_ns3.properties`:
 
+* `enable_flow_scheduler` : Must be set to `true`
 * `filename_schedule` : Schedule filename (relative to run folder) (path/to/schedule.csv)
 
 The following are OPTIONAL in `config_ns3.properties`:

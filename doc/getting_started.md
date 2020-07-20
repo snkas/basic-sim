@@ -30,6 +30,7 @@ You can either immediately start with the tutorial below, or read more documenta
    enable_link_utilization_tracking=true
    link_utilization_tracking_interval_ns=100000000
    
+   enable_flow_scheduler=true
    filename_schedule="schedule.csv"
    enable_flow_logging_to_file_for_flow_ids=set(0,1,2,3,4)
    ```
@@ -128,7 +129,6 @@ You can either immediately start with the tutorial below, or read more documenta
     
         // Schedule flows
         FlowScheduler flowScheduler(basicSimulation, topology); // Requires filename_schedule to be present in the configuration
-        flowScheduler.Schedule();
     
         // Run simulation
         basicSimulation->Run();

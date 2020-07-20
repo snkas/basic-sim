@@ -61,7 +61,6 @@ int main(int argc, char *argv[]) {
 
     // Schedule pings
     PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires pingmesh_interval_ns to be present in the configuration
-    pingmeshScheduler.Schedule();
 
     // Run simulation
     basicSimulation->Run();

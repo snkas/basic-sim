@@ -45,18 +45,16 @@ int main(int argc, char *argv[]) {
     ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
     // Install utilization trackers
-    PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
+    PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
 
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
     // Schedule flows
-    FlowScheduler flowScheduler(basicSimulation, topology); // Requires filename_schedule to be present in the configuration
-    flowScheduler.Schedule();
+    FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
 
     // Schedule pings
-    PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires pingmesh_interval_ns to be present in the configuration
-    pingmeshScheduler.Schedule();
+    PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
 
     // Run simulation
     basicSimulation->Run();

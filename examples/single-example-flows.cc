@@ -70,7 +70,6 @@ int main(int argc, char *argv[]) {
 
     // Schedule flows
     FlowScheduler flowScheduler(basicSimulation, topology); // Requires filename_schedule to be present in the configuration
-    flowScheduler.Schedule();
 
     // Run simulation
     basicSimulation->Run();

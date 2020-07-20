@@ -219,12 +219,11 @@ namespace ns3 {
 
             // Register completion
             std::cout << "  > Utilization log files have been written" << std::endl;
-            std::cout << std::endl;
-
             m_basicSimulation->RegisterTimestamp("Write utilization log files");
 
         }
 
+        std::cout << std::endl;
     }
 
 }

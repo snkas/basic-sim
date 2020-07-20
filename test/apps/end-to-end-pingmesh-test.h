@@ -28,15 +28,16 @@ public:
     void write_basic_config(int64_t simulation_end_time_ns, int64_t pingmesh_interval_ns, std::string pingmesh_endpoint_pairs) {
         std::ofstream config_file;
         config_file.open (temp_dir + "/config_ns3.properties");
-        config_file << "filename_topology=\"topology.properties\"" << std::endl;
-        config_file << "pingmesh_interval_ns=" << pingmesh_interval_ns << std::endl;
         config_file << "simulation_end_time_ns=5000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "filename_topology=\"topology.properties\"" << std::endl;
         config_file << "link_data_rate_megabit_per_s=10000" << std::endl;
         config_file << "link_delay_ns=50000000" << std::endl;
         config_file << "link_max_queue_size_pkts=10000" << std::endl;
         config_file << "disable_qdisc_endpoint_tors_xor_servers=true" << std::endl;
         config_file << "disable_qdisc_non_endpoint_switches=true" << std::endl;
+        config_file << "enable_pingmesh_scheduler=true" << std::endl;
+        config_file << "pingmesh_interval_ns=" << pingmesh_interval_ns << std::endl;
         config_file << "pingmesh_endpoint_pairs=" << pingmesh_endpoint_pairs << std::endl;
         config_file.close();
     }
@@ -69,8 +70,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires pingmesh_interval_ns to be present in the configuration
-        pingmeshScheduler.Schedule();
+        PingmeshScheduler pingmeshScheduler(basicSimulation, topology);
         basicSimulation->Run();
         pingmeshScheduler.WriteResults();
         basicSimulation->Finalize();
