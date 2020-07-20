@@ -17,8 +17,6 @@ mkdir -p ${NS3_VERSION}/contrib/basic-sim || exit 1
 rsync -ravh ../ ${NS3_VERSION}/contrib/basic-sim --exclude "build/" --exclude ".git/" --exclude ".idea/" --delete || exit 1
 
 # Create the necessary mains
-mkdir -p ${NS3_VERSION}/scratch/main_example/ || exit 1
-rsync -ravh example_mains/main_example/ ${NS3_VERSION}/scratch/main_example/ --delete || exit 1
 mkdir -p ${NS3_VERSION}/scratch/main_flows/ || exit 1
 rsync -ravh example_mains/main_flows/ ${NS3_VERSION}/scratch/main_flows/ --delete || exit 1
 mkdir -p ${NS3_VERSION}/scratch/main_pingmesh/ || exit 1

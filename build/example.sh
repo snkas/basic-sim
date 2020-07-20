@@ -1,6 +1,6 @@
 # Usage help
 if [ "$1" == "--help" ]; then
-  echo "Usage: bash build.sh [--help, --all, --example_only, --utilization_only, --flows_only, --pingmesh_only, --flows_and_pingmesh_only]"
+  echo "Usage: bash build.sh [--help, --all, --utilization_only, --flows_only, --pingmesh_only, --flows_and_pingmesh_only]"
   exit 0
 fi
 
@@ -12,21 +12,11 @@ num_cores=$(nproc --all)
 
 ############################################
 
-if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--example_only" ]; then
-
-  # Example
-  bash run_assist.sh "main_example" "example_runs/example_getting_started" 0 || exit 1
-
-fi
-
-############################################
-
 if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--flows_only" ]; then
 
   # Flows
-  bash run_assist.sh "main_flows" "example_runs/flows_getting_started" 0 || exit 1
+  bash run_assist.sh "main_flows" "example_runs/tutorial" 0 || exit 1
   bash run_assist.sh "main_flows" "example_runs/flows_ring" 0 || exit 1
-  bash run_assist.sh "main_flows" "example_runs/flows_tor_servers" 0 || exit 1
   bash run_assist.sh "main_flows" "example_runs/flows_leaf_spine" 0 || exit 1
   bash run_assist.sh "main_flows" "example_runs/flows_leaf_spine_servers" 0 || exit 1
   bash run_assist.sh "main_flows" "example_runs/flows_fat_tree_k4_servers" 0 || exit 1
@@ -43,7 +33,6 @@ fi
 if [ "$1" == "" ] || [ "$1" == "--all" ] || [ "$1" == "--pingmesh_only" ]; then
 
   # Pingmesh
-  bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_getting_started" 0 || exit 1
   bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_single" 0 || exit 1
   bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_grid" 0 || exit 1
   bash run_assist.sh "main_pingmesh" "example_runs/pingmesh_grid_select_pairs" 0 || exit 1

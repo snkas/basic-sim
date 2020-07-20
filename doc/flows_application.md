@@ -4,158 +4,122 @@ The flows application is the most simple type of application. It schedules flows
 
 It encompasses the following files:
 
-* `model/apps/flow-scheduler.cc/h` - Reads in a schedule of flows and inserts events for them to start over time. Installs flow sinks on all nodes. Once the run is over, it can write the results to file.
 * `model/apps/flow-send-application.cc/h` - Application which opens a TCP connection and uni-directionally sends data over it
 * `model/apps/flow-sink.cc/h` - Accepts incoming flows and acknowledges incoming data, does not send data back
-* `model/apps/schedule-reader.cc/h` - Schedule reader from file
 * `helper/apps/flow-send-helper.cc/h` - Helper to install flow send applications
 * `helper/apps/flow-sink-helper.cc/h` - Helper to install flow sink applications
+* `helper/apps/flow-scheduler.cc/h` - Reads in a schedule of flows and inserts events for them to start over time. Installs flow sinks on all nodes. Once the run is over, it can write the results to file.
+* `helper/apps/schedule-reader.cc/h` - Schedule reader from file
 
 You can use the application(s) separately, or make use of the flow scheduler (which is recommended).
 
 
-## Getting started
+## Getting started: flow scheduler
 
-1. Create a directory anywhere called `example_run`, and create three files in there:
+1. Add the following to the `config_ns3.properties` in your run folder (for 2 flows that need to be tracked):
 
-   **config_ns3.properties**
-   
    ```
-   simulation_end_time_ns=10000000000
-   simulation_seed=123456789
-   
-   filename_topology="topology.properties"
-   link_data_rate_megabit_per_s=100.0
-   link_delay_ns=10000
-   link_max_queue_size_pkts=100
-   disable_qdisc_endpoint_tors_xor_servers=true
-   disable_qdisc_non_endpoint_switches=true
-   
    filename_schedule="schedule.csv"
-   ```
-   
-   **topology.properties**
-   
-   ```
-   # One ToR with 3 servers
-   #
-   #    0
-   #  / | \
-   # 1  2  3
-   
-   num_nodes=4
-   num_undirected_edges=3
-   switches=set(0)
-   switches_which_are_tors=set(0)
-   servers=set(1,2,3)
-   undirected_edges=set(0-1,0-2,0-3)
-   ```
-   
-   **schedule.csv**
-   
-   (encoded below are two flows:
-   1 -> 3 starting at t=0ns of size 10000000 byte,
-   2 -> 3 starting at t=10000ns of size 7000000 byte)
-   
-   ```
-   0,1,3,10000000,0,,
-   1,2,3,7000000,10000,,
+   enable_flow_logging_to_file_for_flow_ids=set(0,1)
    ```
 
-2. Into your ns-3 `scratch/` folder create a file named `main_flows.cc`
+2. Add the following schedule file `schedule.csv` to your run folder (three flows from 0 to 1, resp. of size 10/3/34 KB and starting at T=0/10000/30000ns):
 
-3. The following is an example code for `scratch/main_flows.cc`:
+   ```
+   0,0,1,10000,0,,
+   1,0,1,3000,10000,,
+   2,0,1,34000,30000,,
+   ```
 
-    **main_flows.cc**
-    
+3. In your code, import the pingmesh scheduler:
+
+   ```
+   #include "ns3/flow-scheduler.h"
+   ```
+
+3. Before the start of the simulation run, in your code add:
+
     ```c++
-    #include <map>
-    #include <iostream>
-    #include <fstream>
-    #include <string>
-    #include <ctime>
-    #include <iostream>
-    #include <fstream>
-    #include <sys/stat.h>
-    #include <dirent.h>
-    #include <unistd.h>
-    #include <chrono>
-    #include <stdexcept>
-    #include "ns3/basic-simulation.h"
-    #include "ns3/flow-scheduler.h"
-    #include "ns3/topology-ptop.h"
-    #include "ns3/tcp-optimizer.h"
-    #include "ns3/arbiter-ecmp-helper.h"
-    #include "ns3/ipv4-arbiter-routing-helper.h"
-    
-    using namespace ns3;
-    
-    int main(int argc, char *argv[]) {
-    
-        // No buffering of printf
-        setbuf(stdout, nullptr);
-        
-        // Retrieve run directory
-        CommandLine cmd;
-        std::string run_dir = "";
-        cmd.Usage("Usage: ./waf --run=\"main_flows --run_dir='<path/to/run/directory>'\"");
-        cmd.AddValue("run_dir",  "Run directory", run_dir);
-        cmd.Parse(argc, argv);
-        if (run_dir.compare("") == 0) {
-            printf("Usage: ./waf --run=\"main_flows --run_dir='<path/to/run/directory>'\"");
-            return 0;
-        }
-    
-        // Load basic simulation environment
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(run_dir);
-    
-        // Read point-to-point topology, and install routing arbiters
-        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-    
-        // Optimize TCP
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
-    
-        // Schedule flows
-        FlowScheduler flowScheduler(basicSimulation, topology); // Requires filename_schedule to be present in the configuration
-        flowScheduler.Schedule();
-    
-        // Run simulation
-        basicSimulation->Run();
-    
-        // Write result
-        flowScheduler.WriteResults();
-    
-        // Finalize the simulation
-        basicSimulation->Finalize();
-    
-        return 0;
-    
-    }
+    // Schedule flows
+    FlowScheduler flowScheduler(basicSimulation, topology); // Requires filename_schedule to be present in the configuration
+    flowScheduler.Schedule();
+    ```
+   
+4. After the run, in your code add:
+
+    ```c++
+    // Write result
+    flowScheduler.WriteResults();
     ```
 
-4. Run it by executing in your ns-3 folder:
+5. After the run, you should have the flows log files in the `logs_ns3` of your run folder.
+
+
+## Getting started: directly installing applications
+
+1. In your code, import the UDP RTT helper:
 
    ```
-   ./waf --run="main_flows --run_dir='/your/path/to/example_run'"
+   #include "ns3/udp-rtt-helper.h"
    ```
    
-   ... or if you also want to save the console output:
-   
-   ```
-   mkdir -p /your/path/to/example_run/logs_ns3
-   ./waf --run="main_flows --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
-   ```
-   
-5. You can see the result by viewing `/your/path/to/example_run/logs_ns3/flows.txt`, which should have in it:
+2. Before the start of the simulation run, in your code add:
 
-   ```
-   Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
-   0           1         3         80.00 Mbit      0                 1310034712        1310.03 ms      80.00 Mbit      100.0%       61.1 Mbit/s     YES           
-   1           2         3         56.00 Mbit      10000             1420569910        1420.56 ms      56.00 Mbit      100.0%       39.4 Mbit/s     YES           
+   ```c++
+   // Install a flow sink server on node B: Ptr<Node> node_b
+   FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+   ApplicationContainer app = sink.Install(node_b);
+   app.Start(Seconds(0.0));
+   
+   // Install the client on node A: Ptr<Node> node_a
+    FlowSendHelper source(
+            "ns3::TcpSocketFactory",
+            InetSocketAddress(node_b->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
+            1000000000, // Flow size (byte)
+            0, // Flow id (must be unique!)
+            true, // Enable tracking cwnd / rtt / progress
+            m_basicSimulation->GetLogsDir() // Log directory where the flow_0_{cwnd, rtt, progress}.txt are written
+    );
+    ApplicationContainer app_flow_0 = source.Install(node_a);
+    app.Start(NanoSeconds(0)); // Flow start time (ns)
    ```
 
-## Flow scheduler
+3. After the run, in your code add:
+
+   ```c++
+   // Retrieve client
+   Ptr<FlowSendApplication> flowSendApp = app_flow_0->GetObject<FlowSendApplication>();
+
+   // Data about this flow
+   bool is_completed = flowSendApp->IsCompleted();
+   bool is_conn_failed = flowSendApp->IsConnFailed();
+   bool is_closed_err = flowSendApp->IsClosedByError();
+   bool is_closed_normal = flowSendApp->IsClosedNormally();
+   int64_t sent_byte = flowSendApp->GetAckedBytes();
+   int64_t fct_ns;
+   if (is_completed) {
+       fct_ns = flowSendApp->GetCompletionTimeNs() - entry.start_time_ns;
+   } else {
+       fct_ns = m_simulation_end_time_ns - entry.start_time_ns;
+   }
+   std::string finished_state;
+   if (is_completed) {
+       finished_state = "YES";
+   } else if (is_conn_failed) {
+       finished_state = "NO_CONN_FAIL";
+   } else if (is_closed_normal) {
+       finished_state = "NO_BAD_CLOSE";
+   } else if (is_closed_err) {
+       finished_state = "NO_ERR_CLOSE";
+   } else {
+       finished_state = "NO_ONGOING";
+   }
+   
+   // ... now do whatever you want with this information
+   ```
+
+
+## Flow scheduler information
 
 You MUST set the following key in `config_ns3.properties`:
 

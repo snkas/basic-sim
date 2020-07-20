@@ -10,7 +10,7 @@ It encompasses the following files:
 You can use the application(s) separately, or make use of the helper which requires a topology (which is recommended).
 
 
-## Getting started
+## Getting started: using helper
 
 1. Add the following to the `config_ns3.properties` in your run folder (for tracking utilization at a 100ms granularity):
 
@@ -40,6 +40,37 @@ You can use the application(s) separately, or make use of the helper which requi
    ```
    
 5. After the run, you should have the utilization log files in the `logs_ns3` of your run folder.
+
+
+## Getting started: directly using tracker
+
+1. In your code, import the tracker:
+
+   ```
+   #include "ns3/ptop-utilization-tracker.h"
+   ```
+   
+2. Before the start of the simulation run, in your code add:
+
+   ```c++
+   Ptr<PointToPointNetDevice> networkDevice = ... // Get the network device from somewhere
+   int64_t utilization_interval_ns = 100000000; // 100ms
+   Ptr<PtopUtilizationTracker> tracker = CreateObject<PtopUtilizationTracker>(networkDevice, utilization_interval_ns);
+   // ... store the tracker to keep it alive and later retrieve its results
+   ```
+
+3. After the run, in your code add:
+
+   ```c++
+   const std::vector<std::tuple<int64_t, int64_t, int64_t>> intervals = tracker->FinalizeUtilization();
+   for (size_t j = 0; j < intervals.size(); j++) {
+       int64_t interval_start_ns = std::get<0>(intervals[j]);
+       int64_t interval_end_ns = std::get<1>(intervals[j]);
+       int64_t interval_busy_time_ns = std::get<2>(intervals[j]);
+       double interval_utilization = ((double) interval_busy_time_ns) / (double) (interval_end_ns - interval_start_ns);
+       // ... then do something with it, print it
+   }
+   ```
 
 
 ## Helper information

@@ -9,7 +9,6 @@ def build(bld):
     module.source = [
         'model/core/basic-simulation.cc',
         'model/core/exp-util.cc',
-        'model/core/tcp-optimizer.cc',
         'model/core/topology-ptop.cc',
         'model/core/arbiter.cc',
         'model/core/arbiter-ptop.cc',
@@ -20,18 +19,19 @@ def build(bld):
         'helper/core/arbiter-ecmp-helper.cc',
         'helper/core/ipv4-arbiter-routing-helper.cc',
         'helper/core/ptop-utilization-tracker-helper.cc',
+        'helper/core/tcp-optimizer.cc',
 
         'model/apps/flow-send-application.cc',
         'model/apps/flow-sink.cc',
-        'model/apps/schedule-reader.cc',
-        'model/apps/flow-scheduler.cc',
-        'model/apps/pingmesh-scheduler.cc',
         'model/apps/udp-rtt-client.cc',
         'model/apps/udp-rtt-server.cc',
 
         'helper/apps/flow-send-helper.cc',
         'helper/apps/flow-sink-helper.cc',
         'helper/apps/udp-rtt-helper.cc',
+        'helper/apps/schedule-reader.cc',
+        'helper/apps/flow-scheduler.cc',
+        'helper/apps/pingmesh-scheduler.cc',
         ]
 
     # Header files
@@ -40,7 +40,6 @@ def build(bld):
     headers.source = [
         'model/core/basic-simulation.h',
         'model/core/exp-util.h',
-        'model/core/tcp-optimizer.h',
         'model/core/topology.h',
         'model/core/topology-ptop.h',
         'model/core/arbiter.h',
@@ -52,18 +51,19 @@ def build(bld):
         'helper/core/arbiter-ecmp-helper.h',
         'helper/core/ipv4-arbiter-routing-helper.h',
         'helper/core/ptop-utilization-tracker-helper.h',
+        'helper/core/tcp-optimizer.h',
 
         'model/apps/flow-send-application.h',
         'model/apps/flow-sink.h',
-        'model/apps/schedule-reader.h',
-        'model/apps/flow-scheduler.h',
-        'model/apps/pingmesh-scheduler.h',
         'model/apps/udp-rtt-client.h',
         'model/apps/udp-rtt-server.h',
 
         'helper/apps/flow-send-helper.h',
         'helper/apps/flow-sink-helper.h',
         'helper/apps/udp-rtt-helper.h',
+        'helper/apps/schedule-reader.h',
+        'helper/apps/flow-scheduler.h',
+        'helper/apps/pingmesh-scheduler.h',
         ]
 
     # Tests
