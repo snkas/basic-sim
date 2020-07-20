@@ -75,7 +75,8 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python flow_plot.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [flow_id] [interval_ns]")
+        print("Usage: python flow_plot.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [flow_id]"
+              " [interval_ns (for rates)]")
         exit(1)
     else:
         flow_plot(

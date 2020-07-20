@@ -42,7 +42,7 @@ def generate_flow_rate_csv(logs_ns3_dir, data_out_dir, flow_id, interval_ns):
     if current_interval[2] != 0:
         intervals.append(current_interval)
 
-    # Now go over the intervals, and write them as
+    # Now go over the intervals
     #
     # Each interval [a, b] with progress c, gets converted into two points:
     # a, c
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) != 4:
         print("Must supply exactly four arguments")
-        print("Usage: python generate_flow_rate_csv.py [logs_ns3_dir] [data_out_dir] [flow_id] [interval in ns (int)]")
+        print("Usage: python generate_flow_rate_csv.py [logs_ns3_dir] [data_out_dir] [flow_id] [interval_ns]")
         exit(1)
     else:
         generate_flow_rate_csv(
