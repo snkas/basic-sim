@@ -37,19 +37,19 @@ public:
         remove_file_if_exists(temp_dir + "/schedule.csv");
     }
 
-    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed, double link_data_rate_megabit_per_s, int64_t link_delay_ns) {
+    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed, double topology_link_data_rate_megabit_per_s, int64_t topology_link_delay_ns) {
         std::ofstream config_file;
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
-        config_file << "filename_topology=\"topology.properties\"" << std::endl;
-        config_file << "link_data_rate_megabit_per_s=" << link_data_rate_megabit_per_s << std::endl;
-        config_file << "link_delay_ns=" << link_delay_ns << std::endl;
-        config_file << "link_max_queue_size_pkts=100" << std::endl;
-        config_file << "disable_qdisc_endpoint_tors_xor_servers=false" << std::endl;
-        config_file << "disable_qdisc_non_endpoint_switches=false" << std::endl;
+        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "topology_link_data_rate_megabit_per_s=" << topology_link_data_rate_megabit_per_s << std::endl;
+        config_file << "topology_link_delay_ns=" << topology_link_delay_ns << std::endl;
+        config_file << "topology_max_queue_size_pkt=100" << std::endl;
+        config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=false" << std::endl;
+        config_file << "topology_disable_traffic_control_non_endpoint_switches=false" << std::endl;
         config_file << "enable_flow_scheduler=true" << std::endl;
-        config_file << "filename_schedule=\"schedule.csv\"" << std::endl;
+        config_file << "flow_schedule_filename=\"schedule.csv\"" << std::endl;
         config_file << "enable_flow_logging_to_file_for_flow_ids=set(0)" << std::endl;
         config_file.close();
     }

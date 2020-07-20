@@ -44,20 +44,20 @@ TopologyPtop::TopologyPtop(Ptr<BasicSimulation> basicSimulation, const Ipv4Routi
 void TopologyPtop::ReadRelevantConfig() {
 
     // Link properties
-    m_link_data_rate_megabit_per_s = parse_positive_double(m_basicSimulation->GetConfigParamOrFail("link_data_rate_megabit_per_s"));
-    m_link_delay_ns = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("link_delay_ns"));
-    m_link_max_queue_size_pkts = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("link_max_queue_size_pkts"));
+    m_topology_link_data_rate_megabit_per_s = parse_positive_double(m_basicSimulation->GetConfigParamOrFail("topology_link_data_rate_megabit_per_s"));
+    m_topology_link_delay_ns = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("topology_link_delay_ns"));
+    m_topology_max_queue_size_pkt = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("topology_max_queue_size_pkt"));
 
     // Qdisc properties
-    m_disable_qdisc_endpoint_tors_xor_servers = parse_boolean(m_basicSimulation->GetConfigParamOrFail("disable_qdisc_endpoint_tors_xor_servers"));
-    m_disable_qdisc_non_endpoint_switches = parse_boolean(m_basicSimulation->GetConfigParamOrFail("disable_qdisc_non_endpoint_switches"));
+    m_topology_disable_traffic_control_endpoint_tors_xor_servers = parse_boolean(m_basicSimulation->GetConfigParamOrFail("topology_disable_traffic_control_endpoint_tors_xor_servers"));
+    m_topology_disable_traffic_control_non_endpoint_switches = parse_boolean(m_basicSimulation->GetConfigParamOrFail("topology_disable_traffic_control_non_endpoint_switches"));
 
 }
 
 void TopologyPtop::ReadTopology() {
 
     // Read the topology configuration
-    std::map<std::string, std::string> config = read_config(m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("filename_topology"));
+    std::map<std::string, std::string> config = read_config(m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("topology_filename"));
 
     // Basic
     m_num_nodes = parse_positive_int64(get_param_or_fail("num_nodes", config));
@@ -173,7 +173,7 @@ void TopologyPtop::ReadTopology() {
     //
     // num_hops * (((n_q + 2) * 1502 byte) / link data rate) + link delay)
     int num_hops = std::min((int64_t) 20, m_num_undirected_edges * 2);
-    m_worst_case_rtt_ns = num_hops * (((m_link_max_queue_size_pkts + 2) * 1502) / (m_link_data_rate_megabit_per_s * 125000 / 1000000000) + m_link_delay_ns);
+    m_worst_case_rtt_ns = num_hops * (((m_topology_max_queue_size_pkt + 2) * 1502) / (m_topology_link_data_rate_megabit_per_s * 125000 / 1000000000) + m_topology_link_delay_ns);
     printf("Estimated worst-case RTT: %.3f ms\n\n", m_worst_case_rtt_ns / 1e6);
 
 }
@@ -213,12 +213,12 @@ void TopologyPtop::SetupLinks() {
 
     // Point-to-point network device helper
     PointToPointHelper p2p;
-    p2p.SetDeviceAttribute("DataRate", StringValue(std::to_string(m_link_data_rate_megabit_per_s) + "Mbps"));
-    p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(m_link_delay_ns)));
-    std::cout << "    >> Data rate......... " << m_link_data_rate_megabit_per_s << " Mbit/s" << std::endl;
-    std::cout << "    >> Delay............. " << m_link_delay_ns << " ns" << std::endl;
-    std::cout << "    >> Max. queue size... " << m_link_max_queue_size_pkts << " packets" << std::endl;
-    std::string p2p_net_device_max_queue_size_pkts_str = format_string("%" PRId64 "p", m_link_max_queue_size_pkts);
+    p2p.SetDeviceAttribute("DataRate", StringValue(std::to_string(m_topology_link_data_rate_megabit_per_s) + "Mbps"));
+    p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(m_topology_link_delay_ns)));
+    std::cout << "    >> Data rate......... " << m_topology_link_data_rate_megabit_per_s << " Mbit/s" << std::endl;
+    std::cout << "    >> Delay............. " << m_topology_link_delay_ns << " ns" << std::endl;
+    std::cout << "    >> Max. queue size... " << m_topology_max_queue_size_pkt << " packets" << std::endl;
+    std::string p2p_net_device_max_queue_size_pkts_str = format_string("%" PRId64 "p", m_topology_max_queue_size_pkt);
 
     // Notify about topology state
     if (m_has_zero_servers) {
@@ -232,7 +232,7 @@ void TopologyPtop::SetupLinks() {
 
     // Queueing discipline for endpoints (i.e., servers if they are defined, else the ToRs)
     TrafficControlHelper tch_endpoints;
-    if (m_disable_qdisc_endpoint_tors_xor_servers) {
+    if (m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
         std::cout << "    >> Flow-endpoints....... none (disabled)" << std::endl;
     } else {
         std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_ns);
@@ -243,7 +243,7 @@ void TopologyPtop::SetupLinks() {
 
     // Queueing discipline for non-endpoints (i.e., if servers are defined, all switches, else the switches which are not ToRs)
     TrafficControlHelper tch_not_endpoints;
-    if (m_disable_qdisc_non_endpoint_switches) {
+    if (m_topology_disable_traffic_control_non_endpoint_switches) {
         std::cout << "    >> Non-flow-endpoints... none (disabled)" << std::endl;
     } else {
         std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_ns);
@@ -264,20 +264,20 @@ void TopologyPtop::SetupLinks() {
 
         // Install traffic control
         if (IsValidEndpoint(link.first)) {
-            if (!m_disable_qdisc_endpoint_tors_xor_servers) {
+            if (!m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
                 tch_endpoints.Install(container.Get(0));
             }
         } else {
-            if (!m_disable_qdisc_non_endpoint_switches) {
+            if (!m_topology_disable_traffic_control_non_endpoint_switches) {
                 tch_not_endpoints.Install(container.Get(0));
             }
         }
         if (IsValidEndpoint(link.second)) {
-            if (!m_disable_qdisc_endpoint_tors_xor_servers) {
+            if (!m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
                 tch_endpoints.Install(container.Get(1));
             }
         } else {
-            if (!m_disable_qdisc_non_endpoint_switches) {
+            if (!m_topology_disable_traffic_control_non_endpoint_switches) {
                 tch_not_endpoints.Install(container.Get(1));
             }
         }
@@ -289,20 +289,20 @@ void TopologyPtop::SetupLinks() {
         // Remove the (default) traffic control layer if undesired
         TrafficControlHelper tch_uninstaller;
         if (IsValidEndpoint(link.first)) {
-            if (m_disable_qdisc_endpoint_tors_xor_servers) {
+            if (m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
                 tch_uninstaller.Uninstall(container.Get(0));
             }
         } else {
-            if (m_disable_qdisc_non_endpoint_switches) {
+            if (m_topology_disable_traffic_control_non_endpoint_switches) {
                 tch_uninstaller.Uninstall(container.Get(0));
             }
         }
         if (IsValidEndpoint(link.second)) {
-            if (m_disable_qdisc_endpoint_tors_xor_servers) {
+            if (m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
                 tch_uninstaller.Uninstall(container.Get(1));
             }
         } else {
-            if (m_disable_qdisc_non_endpoint_switches) {
+            if (m_topology_disable_traffic_control_non_endpoint_switches) {
                 tch_uninstaller.Uninstall(container.Get(1));
             }
         }

@@ -20,7 +20,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 
    ```
    enable_flow_scheduler=true
-   filename_schedule="schedule.csv"
+   flow_schedule_filename="schedule.csv"
    enable_flow_logging_to_file_for_flow_ids=set(0,1)
    ```
 
@@ -124,7 +124,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 You MUST set the following keys in `config_ns3.properties`:
 
 * `enable_flow_scheduler` : Must be set to `true`
-* `filename_schedule` : Schedule filename (relative to run folder) (path/to/schedule.csv)
+* `flow_schedule_filename` : Schedule filename (relative to run folder) (path/to/schedule.csv)
 
 The following are OPTIONAL in `config_ns3.properties`:
 

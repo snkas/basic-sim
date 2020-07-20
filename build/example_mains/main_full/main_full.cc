@@ -29,11 +29,11 @@ int main(int argc, char *argv[]) {
     // Retrieve run directory
     CommandLine cmd;
     std::string run_dir = "";
-    cmd.Usage("Usage: ./waf --run=\"main_flows_and_pingmesh --run_dir='<path/to/run/directory>'\"");
+    cmd.Usage("Usage: ./waf --run=\"main_full --run_dir='<path/to/run/directory>'\"");
     cmd.AddValue("run_dir",  "Run directory", run_dir);
     cmd.Parse(argc, argv);
     if (run_dir.compare("") == 0) {
-        printf("Usage: ./waf --run=\"main_flows_and_pingmesh --run_dir='<path/to/run/directory>'\"");
+        printf("Usage: ./waf --run=\"main_full --run_dir='<path/to/run/directory>'\"");
         return 0;
     }
 
@@ -59,8 +59,10 @@ int main(int argc, char *argv[]) {
     // Run simulation
     basicSimulation->Run();
 
-    // Write results
+    // Write flow results
     flowScheduler.WriteResults();
+
+    // Write pingmesh results
     pingmeshScheduler.WriteResults();
 
     // Write utilization result

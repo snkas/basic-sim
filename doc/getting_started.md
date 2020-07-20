@@ -20,18 +20,18 @@ You can either immediately start with the tutorial below, or read more documenta
    simulation_end_time_ns=10000000000
    simulation_seed=123456789
    
-   filename_topology="topology.properties"
-   link_data_rate_megabit_per_s=100.0
-   link_delay_ns=10000
-   link_max_queue_size_pkts=100
-   disable_qdisc_endpoint_tors_xor_servers=true
-   disable_qdisc_non_endpoint_switches=true
+   topology_filename="topology.properties"
+   topology_link_data_rate_megabit_per_s=100.0
+   topology_link_delay_ns=10000
+   topology_max_queue_size_pkt=100
+   topology_disable_traffic_control_endpoint_tors_xor_servers=true
+   topology_disable_traffic_control_non_endpoint_switches=true
    
    enable_link_utilization_tracking=true
    link_utilization_tracking_interval_ns=100000000
    
    enable_flow_scheduler=true
-   filename_schedule="schedule.csv"
+   flow_schedule_filename="schedule.csv"
    enable_flow_logging_to_file_for_flow_ids=set(0,1,2,3,4)
    ```
    
@@ -128,7 +128,7 @@ You can either immediately start with the tutorial below, or read more documenta
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
     
         // Schedule flows
-        FlowScheduler flowScheduler(basicSimulation, topology); // Requires filename_schedule to be present in the configuration
+        FlowScheduler flowScheduler(basicSimulation, topology); // Requires flow_schedule_filename to be present in the configuration
     
         // Run simulation
         basicSimulation->Run();

@@ -30,12 +30,12 @@ public:
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=5000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "filename_topology=\"topology.properties\"" << std::endl;
-        config_file << "link_data_rate_megabit_per_s=10000" << std::endl;
-        config_file << "link_delay_ns=50000000" << std::endl;
-        config_file << "link_max_queue_size_pkts=10000" << std::endl;
-        config_file << "disable_qdisc_endpoint_tors_xor_servers=true" << std::endl;
-        config_file << "disable_qdisc_non_endpoint_switches=true" << std::endl;
+        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "topology_link_data_rate_megabit_per_s=10000" << std::endl;
+        config_file << "topology_link_delay_ns=50000000" << std::endl;
+        config_file << "topology_max_queue_size_pkt=10000" << std::endl;
+        config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=true" << std::endl;
+        config_file << "topology_disable_traffic_control_non_endpoint_switches=true" << std::endl;
         config_file << "enable_pingmesh_scheduler=true" << std::endl;
         config_file << "pingmesh_interval_ns=" << pingmesh_interval_ns << std::endl;
         config_file << "pingmesh_endpoint_pairs=" << pingmesh_endpoint_pairs << std::endl;

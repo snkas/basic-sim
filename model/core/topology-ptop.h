@@ -74,12 +74,12 @@ private:
     void SetupLinks();
 
     // Configuration properties
-    double m_link_data_rate_megabit_per_s;
-    int64_t m_link_delay_ns;
-    int64_t m_link_max_queue_size_pkts;
+    double m_topology_link_data_rate_megabit_per_s;
+    int64_t m_topology_link_delay_ns;
+    int64_t m_topology_max_queue_size_pkt;
     int64_t m_worst_case_rtt_ns;
-    bool m_disable_qdisc_endpoint_tors_xor_servers;
-    bool m_disable_qdisc_non_endpoint_switches;
+    bool m_topology_disable_traffic_control_endpoint_tors_xor_servers;
+    bool m_topology_disable_traffic_control_non_endpoint_switches;
 
     // Graph properties
     int64_t m_num_nodes;

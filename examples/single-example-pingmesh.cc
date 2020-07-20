@@ -27,14 +27,15 @@ int main(int argc, char *argv[]) {
     config_file.open (example_dir + "/config_ns3.properties");
     config_file << "simulation_end_time_ns=1000000000" << std::endl;
     config_file << "simulation_seed=123456789" << std::endl;
-    config_file << "filename_topology=\"topology.properties\"" << std::endl;
-    config_file << "link_data_rate_megabit_per_s=100" << std::endl;
-    config_file << "link_delay_ns=10000"<< std::endl;
-    config_file << "link_max_queue_size_pkts=100" << std::endl;
-    config_file << "disable_qdisc_endpoint_tors_xor_servers=false" << std::endl;
-    config_file << "disable_qdisc_non_endpoint_switches=false" << std::endl;
+    config_file << "topology_filename=\"topology.properties\"" << std::endl;
+    config_file << "topology_link_data_rate_megabit_per_s=100" << std::endl;
+    config_file << "topology_link_delay_ns=10000"<< std::endl;
+    config_file << "topology_max_queue_size_pkt=100" << std::endl;
+    config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=false" << std::endl;
+    config_file << "topology_disable_traffic_control_non_endpoint_switches=false" << std::endl;
     config_file << "enable_link_utilization_tracking=true" << std::endl;
     config_file << "link_utilization_tracking_interval_ns=100000000" << std::endl;
+    config_file << "enable_pingmesh_scheduler=true" << std::endl;
     config_file << "pingmesh_interval_ns=100000000" << std::endl;
     config_file.close();
 

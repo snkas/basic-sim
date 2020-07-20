@@ -13,12 +13,12 @@ It encompasses the following files:
 1. Add the following to the `config_ns3.properties` in your run folder:
 
    ```
-   filename_topology="topology.properties"
-   link_data_rate_megabit_per_s=100.0
-   link_delay_ns=10000
-   link_max_queue_size_pkts=100
-   disable_qdisc_endpoint_tors_xor_servers=true
-   disable_qdisc_non_endpoint_switches=true
+   topology_filename="topology.properties"
+   topology_link_data_rate_megabit_per_s=100.0
+   topology_link_delay_ns=10000
+   topology_max_queue_size_pkt=100
+   topology_disable_traffic_control_endpoint_tors_xor_servers=true
+   topology_disable_traffic_control_non_endpoint_switches=true
    ```
 
 2. Add the following topology file `topology.properties` to your run folder for a 3-ToR:
@@ -68,12 +68,12 @@ It encompasses the following files:
 ## Configuration properties
 
 If one uses the default point-to-point topology, the following properties MUST also be defined in `config_ns3.properties`:
-* `filename_topology` : Topology filename (relative to run folder)
-* `link_data_rate_megabit_per_s` : Data rate set for all links (Mbit/s)
-* `link_delay_ns` : Propagation delay set for all links (ns)
-* `link_max_queue_size_pkts` : Maximum queue size for all links (no. of packets)
-* `disable_qdisc_endpoint_tors_xor_servers` : Whether to disable the traffic control queueing discipline at the endpoint nodes (if there are servers, servers, else those are the ToRs) (boolean: true/false)
-* `disable_qdisc_non_endpoint_switches` : Whether to disable the traffic control queueing discipline at non-endpoint nodes (if there are servers, all switches incl. ToRs, else all switches excl. ToRs) (boolean: true/false)
+* `topology_filename` : Topology filename (relative to run folder)
+* `topology_link_data_rate_megabit_per_s` : Data rate set for all links (Mbit/s)
+* `topology_link_delay_ns` : Propagation delay set for all links (ns)
+* `topology_max_queue_size_pkt` : Maximum queue size for all links (no. of packets)
+* `topology_disable_traffic_control_endpoint_tors_xor_servers` : Whether to disable the traffic control queueing discipline at the endpoint nodes (if there are servers, servers, else those are the ToRs) (boolean: true/false)
+* `topology_disable_traffic_control_non_endpoint_switches` : Whether to disable the traffic control queueing discipline at non-endpoint nodes (if there are servers, all switches incl. ToRs, else all switches excl. ToRs) (boolean: true/false)
 
 
 ## Topology file: topology.properties

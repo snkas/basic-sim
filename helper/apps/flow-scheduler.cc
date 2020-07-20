@@ -80,7 +80,7 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
 
         // Read schedule
         std::vector <schedule_entry_t> complete_schedule = read_schedule(
-                m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("filename_schedule"),
+                m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("flow_schedule_filename"),
                 m_topology,
                 m_simulation_end_time_ns
         );
