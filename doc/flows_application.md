@@ -78,7 +78,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
             1000000000, // Flow size (byte)
             0, // Flow id (must be unique!)
             true, // Enable tracking cwnd / rtt / progress
-            m_basicSimulation->GetLogsDir() // Log directory where the flow_0_{cwnd, rtt, progress}.txt are written
+            m_basicSimulation->GetLogsDir() // Log directory where the flow_0_{cwnd, rtt, progress}.csv are written
     );
     ApplicationContainer app_flow_0 = source.Install(node_a);
     app.Start(NanoSeconds(0)); // Flow start time (ns)
@@ -128,7 +128,7 @@ You MUST set the following keys in `config_ns3.properties`:
 
 The following are OPTIONAL in `config_ns3.properties`:
 
-* `enable_flow_logging_to_file_for_flow_ids` : Set of flow identifiers for which you want logging to file for progress, cwnd and RTT (located at `logs_dir/flow-[id]-{progress, cwnd, rtt}.txt`). Example value: `set(0, 1`) to log for flows 0 and 1. The file format is: `flow_id,now_in_ns,[progress_byte/cwnd_byte/rtt_ns])`.
+* `enable_flow_logging_to_file_for_flow_ids` : Set of flow identifiers for which you want logging to file for progress, cwnd and RTT (located at `logs_dir/flow-[id]-{progress, cwnd, rtt}.csv`). Example value: `set(0, 1`) to log for flows 0 and 1. The file format is: `flow_id,now_in_ns,[progress_byte/cwnd_byte/rtt_ns])`.
 
 **schedule.csv**
 

@@ -7,6 +7,8 @@ You can either immediately start with the tutorial below, or read more documenta
 * `flows_application.md` -- Flow application ("send from A to B a flow of size X at time T")
 * `utilization_tracking.md` -- Utilization tracking
 * `pingmesh_application.md` -- Ping application ("send from A to B a ping at an interval I")
+* `tcp_optimizer.md` -- Optimize certain TCP parameters
+* `arbiter_routing.md` -- A new type of routing with more flexibility
 * `future_work.md` -- To find out what can be extended / improved
 
 
@@ -71,9 +73,9 @@ You can either immediately start with the tutorial below, or read more documenta
    |-- schedule.csv
    ```
 
-2. Into your ns-3 `scratch/` folder create a file named `main_flows.cc`
+3. Into your ns-3 `scratch/` folder create a file named `main_flows.cc`
 
-3. The following is an example code for `scratch/main_flows.cc`:
+4. The following is an example code for `scratch/main_flows.cc`:
 
     ```c++
     #include <map>
@@ -147,7 +149,7 @@ You can either immediately start with the tutorial below, or read more documenta
     }
     ```
 
-4. Run it by executing in your ns-3 folder:
+5. Run it by executing in your ns-3 folder:
 
    ```
    ./waf --run="main_flows --run_dir='/your/path/to/example_run'"
@@ -160,7 +162,7 @@ You can either immediately start with the tutorial below, or read more documenta
    ./waf --run="main_flows --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
    ```
    
-5. Within `/your/path/to/example_run/logs_ns3` you should find the following output:
+6. Within `/your/path/to/example_run/logs_ns3` you should find the following output:
 
    ```
    logs_ns3
@@ -171,10 +173,10 @@ You can either immediately start with the tutorial below, or read more documenta
    |-- utilization.csv
    |-- utilization_compressed.{csv, txt}
    |-- utilization_summary.txt
-   |-- flow_{0, 1, 2, 3}_{cwnd, progress, rtt, cwnd}.txt
+   |-- flow_{0, 1, 2, 3}_{cwnd, progress, rtt}.csv
    ```
    
-6. For example, `flows.txt` will contain:
+7. For example, `flows.txt` will contain:
 
    ```
    Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
@@ -184,3 +186,16 @@ You can either immediately start with the tutorial below, or read more documenta
    3           2         1         62.40 Mbit      3738832           1615935742        1612.20 ms      62.40 Mbit      100.0%       38.7 Mbit/s     YES           
    4           2         1         62.40 Mbit      3738832           1683533740        1679.79 ms      62.40 Mbit      100.0%       37.1 Mbit/s     YES           
    ```
+
+8. You could also plot a flow (e.g., flow 1):
+
+   ```
+   cd build/plot_helpers/flow_plot
+   python flow_plot.py /path/to/example_run/logs_ns3 /path/to/example_run/logs_ns3/data /path/to/example_run/logs_ns3/pdf 1 10000000
+   ```
+   
+   ... and then you can for example look at the congestion window of flow 1 over its runtime:
+   
+   **/path/to/example_run/logs_ns3/pdf/plot_tcp_time_vs_cwnd_1.pdf**
+   
+   [![Flow 1: time vs. cwnd](images/tutorial_plot_tcp_time_vs_cwnd_1.png)](images/tutorial_plot_tcp_time_vs_cwnd_1.pdf)
