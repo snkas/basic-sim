@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
     // Schedule flows
-    FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
+    FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_flow_scheduler=true
 
     // Schedule pings
     PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
