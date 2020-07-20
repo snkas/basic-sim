@@ -76,7 +76,7 @@ private:
     // Configuration properties
     double m_topology_link_data_rate_megabit_per_s;
     int64_t m_topology_link_delay_ns;
-    int64_t m_topology_max_queue_size_pkt;
+    int64_t m_topology_link_max_queue_size_pkt;
     int64_t m_worst_case_rtt_ns;
     bool m_topology_disable_traffic_control_endpoint_tors_xor_servers;
     bool m_topology_disable_traffic_control_non_endpoint_switches;

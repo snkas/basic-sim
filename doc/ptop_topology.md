@@ -16,7 +16,7 @@ It encompasses the following files:
    topology_filename="topology.properties"
    topology_link_data_rate_megabit_per_s=100.0
    topology_link_delay_ns=10000
-   topology_max_queue_size_pkt=100
+   topology_link_max_queue_size_pkt=100
    topology_disable_traffic_control_endpoint_tors_xor_servers=true
    topology_disable_traffic_control_non_endpoint_switches=true
    ```
@@ -71,7 +71,7 @@ If one uses the default point-to-point topology, the following properties MUST a
 * `topology_filename` : Topology filename (relative to run folder)
 * `topology_link_data_rate_megabit_per_s` : Data rate set for all links (Mbit/s)
 * `topology_link_delay_ns` : Propagation delay set for all links (ns)
-* `topology_max_queue_size_pkt` : Maximum queue size for all links (no. of packets)
+* `topology_link_max_queue_size_pkt` : Maximum queue size for all links (no. of packets)
 * `topology_disable_traffic_control_endpoint_tors_xor_servers` : Whether to disable the traffic control queueing discipline at the endpoint nodes (if there are servers, servers, else those are the ToRs) (boolean: true/false)
 * `topology_disable_traffic_control_non_endpoint_switches` : Whether to disable the traffic control queueing discipline at non-endpoint nodes (if there are servers, all switches incl. ToRs, else all switches excl. ToRs) (boolean: true/false)
 

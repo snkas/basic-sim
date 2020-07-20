@@ -109,7 +109,6 @@ void BasicSimulation::ConfigureSimulation() {
             throw std::runtime_error(format_string("Unknown distributed simulator implementation type: %s", distributed_simulator_implementation_type));
         }
         printf("  > Simulator implementation type... %s\n", distributed_simulator_implementation_type.c_str());
-        printf("\n");
 
         // Enable MPI
         int argc = 0;

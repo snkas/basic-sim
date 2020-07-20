@@ -45,7 +45,7 @@ public:
         config_file << "topology_filename=\"topology.properties\"" << std::endl;
         config_file << "topology_link_data_rate_megabit_per_s=" << topology_link_data_rate_megabit_per_s << std::endl;
         config_file << "topology_link_delay_ns=" << topology_link_delay_ns << std::endl;
-        config_file << "topology_max_queue_size_pkt=100" << std::endl;
+        config_file << "topology_link_max_queue_size_pkt=100" << std::endl;
         config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=false" << std::endl;
         config_file << "topology_disable_traffic_control_non_endpoint_switches=false" << std::endl;
         config_file << "enable_flow_scheduler=true" << std::endl;

@@ -118,7 +118,6 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
         remove_file_if_exists(m_flows_txt_filename);
         printf("  > Removed previous flow log files if present\n");
         m_basicSimulation->RegisterTimestamp("Remove previous flow log files");
-        std::cout << std::endl;
 
         // Install sink on each endpoint node
         std::cout << "  > Setting up flow sinks" << std::endl;

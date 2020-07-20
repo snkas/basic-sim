@@ -72,6 +72,9 @@ def build(bld):
         'test/basic-sim-test-suite.cc',
         ]
 
+    # Main
+    bld.recurse('main')
+
     # Examples
     if bld.env.ENABLE_EXAMPLES:
         bld.recurse('examples')

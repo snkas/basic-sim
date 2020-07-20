@@ -25,15 +25,15 @@ int main(int argc, char *argv[]) {
 
     // No buffering of printf
     setbuf(stdout, nullptr);
-    
+
     // Retrieve run directory
     CommandLine cmd;
     std::string run_dir = "";
-    cmd.Usage("Usage: ./waf --run=\"main_full --run_dir='<path/to/run/directory>'\"");
+    cmd.Usage("Usage: ./waf --run=\"basic-sim-main-full --run_dir='<path/to/run/directory>'\"");
     cmd.AddValue("run_dir",  "Run directory", run_dir);
     cmd.Parse(argc, argv);
     if (run_dir.compare("") == 0) {
-        printf("Usage: ./waf --run=\"main_full --run_dir='<path/to/run/directory>'\"");
+        printf("Usage: ./waf --run=\"basic-sim-main-full --run_dir='<path/to/run/directory>'\"");
         return 0;
     }
 

@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "ns3/basic-simulation.h"
-#include "ns3/flow-scheduler.h"
+#include "ns3/pingmesh-scheduler.h"
 #include "ns3/topology-ptop.h"
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
@@ -29,14 +29,14 @@ int main(int argc, char *argv[]) {
     config_file << "simulation_seed=123456789" << std::endl;
     config_file << "topology_filename=\"topology.properties\"" << std::endl;
     config_file << "topology_link_data_rate_megabit_per_s=100" << std::endl;
-    config_file << "topology_link_delay_ns=10000" << std::endl;
-    config_file << "topology_max_queue_size_pkt=100" << std::endl;
+    config_file << "topology_link_delay_ns=10000"<< std::endl;
+    config_file << "topology_link_max_queue_size_pkt=100" << std::endl;
     config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=false" << std::endl;
     config_file << "topology_disable_traffic_control_non_endpoint_switches=false" << std::endl;
     config_file << "enable_link_utilization_tracking=true" << std::endl;
     config_file << "link_utilization_tracking_interval_ns=100000000" << std::endl;
-    config_file << "enable_flow_scheduler=true" << std::endl;
-    config_file << "flow_schedule_filename=\"schedule.csv\"" << std::endl;
+    config_file << "enable_pingmesh_scheduler=true" << std::endl;
+    config_file << "pingmesh_interval_ns=100000000" << std::endl;
     config_file.close();
 
     // Write topology file (0 - 1)
@@ -50,12 +50,6 @@ int main(int argc, char *argv[]) {
     topology_file << "undirected_edges=set(0-1)" << std::endl;
     topology_file.close();
 
-     // Write schedule file
-    std::ofstream schedule_file;
-    schedule_file.open (example_dir + "/schedule.csv");
-    schedule_file << "0,0,1,100000,0,," << std::endl; // Flow 0 from node 0 to node 1 of size 100000 bytes starting at t=0
-    schedule_file.close();
-
     // Load basic simulation environment
     Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(example_dir);
 
@@ -66,17 +60,14 @@ int main(int argc, char *argv[]) {
     // Install utilization trackers
     PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
 
-    // Optimize TCP
-    TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
-
-    // Schedule flows
-    FlowScheduler flowScheduler(basicSimulation, topology); // Requires flow_schedule_filename to be present in the configuration
+    // Schedule pings
+    PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires pingmesh_interval_ns to be present in the configuration
 
     // Run simulation
     basicSimulation->Run();
 
-    // Write result
-    flowScheduler.WriteResults();
+    // Write results
+    pingmeshScheduler.WriteResults();
 
     // Write utilization result
     utilTrackerHelper.WriteResults();

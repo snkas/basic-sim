@@ -19,7 +19,7 @@ void prepare_arbiter_test_config() {
     config_file << "simulation_seed=123456789" << std::endl;
     config_file << "topology_link_data_rate_megabit_per_s=100.0" << std::endl;
     config_file << "topology_link_delay_ns=10000" << std::endl;
-    config_file << "topology_max_queue_size_pkt=100" << std::endl;
+    config_file << "topology_link_max_queue_size_pkt=100" << std::endl;
     config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=true" << std::endl;
     config_file << "topology_disable_traffic_control_non_endpoint_switches=true" << std::endl;
     config_file.close();

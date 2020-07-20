@@ -23,7 +23,7 @@ You can either immediately start with the tutorial below, or read more documenta
    topology_filename="topology.properties"
    topology_link_data_rate_megabit_per_s=100.0
    topology_link_delay_ns=10000
-   topology_max_queue_size_pkt=100
+   topology_link_max_queue_size_pkt=100
    topology_disable_traffic_control_endpoint_tors_xor_servers=true
    topology_disable_traffic_control_non_endpoint_switches=true
    

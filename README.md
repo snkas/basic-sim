@@ -36,6 +36,7 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
 ## Getting started
 
 Documentation (including tutorials) to get started is located in the `doc/` folder.
+A good starting point is: `doc/getting_started.md`.
 
 
 ## Testing

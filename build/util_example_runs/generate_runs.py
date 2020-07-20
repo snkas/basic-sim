@@ -52,4 +52,4 @@ for utilization_interval_ns in [("1s", 1000000000), ("100ms", 100000000), ("10ms
         )
 
         # Write function to run it all
-        local_shell.perfect_exec("cd ..; bash run_assist.sh main_flows util_example_runs/" + run_dir + " 0", output_redirect=exputil.OutputRedirect.CONSOLE)
+        local_shell.perfect_exec("cd ..; bash run_assist.sh util_example_runs/" + run_dir + " 0", output_redirect=exputil.OutputRedirect.CONSOLE)

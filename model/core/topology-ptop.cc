@@ -46,7 +46,7 @@ void TopologyPtop::ReadRelevantConfig() {
     // Link properties
     m_topology_link_data_rate_megabit_per_s = parse_positive_double(m_basicSimulation->GetConfigParamOrFail("topology_link_data_rate_megabit_per_s"));
     m_topology_link_delay_ns = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("topology_link_delay_ns"));
-    m_topology_max_queue_size_pkt = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("topology_max_queue_size_pkt"));
+    m_topology_link_max_queue_size_pkt = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("topology_link_max_queue_size_pkt"));
 
     // Qdisc properties
     m_topology_disable_traffic_control_endpoint_tors_xor_servers = parse_boolean(m_basicSimulation->GetConfigParamOrFail("topology_disable_traffic_control_endpoint_tors_xor_servers"));
@@ -173,7 +173,7 @@ void TopologyPtop::ReadTopology() {
     //
     // num_hops * (((n_q + 2) * 1502 byte) / link data rate) + link delay)
     int num_hops = std::min((int64_t) 20, m_num_undirected_edges * 2);
-    m_worst_case_rtt_ns = num_hops * (((m_topology_max_queue_size_pkt + 2) * 1502) / (m_topology_link_data_rate_megabit_per_s * 125000 / 1000000000) + m_topology_link_delay_ns);
+    m_worst_case_rtt_ns = num_hops * (((m_topology_link_max_queue_size_pkt + 2) * 1502) / (m_topology_link_data_rate_megabit_per_s * 125000 / 1000000000) + m_topology_link_delay_ns);
     printf("Estimated worst-case RTT: %.3f ms\n\n", m_worst_case_rtt_ns / 1e6);
 
 }
@@ -217,8 +217,8 @@ void TopologyPtop::SetupLinks() {
     p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(m_topology_link_delay_ns)));
     std::cout << "    >> Data rate......... " << m_topology_link_data_rate_megabit_per_s << " Mbit/s" << std::endl;
     std::cout << "    >> Delay............. " << m_topology_link_delay_ns << " ns" << std::endl;
-    std::cout << "    >> Max. queue size... " << m_topology_max_queue_size_pkt << " packets" << std::endl;
-    std::string p2p_net_device_max_queue_size_pkts_str = format_string("%" PRId64 "p", m_topology_max_queue_size_pkt);
+    std::cout << "    >> Max. queue size... " << m_topology_link_max_queue_size_pkt << " packets" << std::endl;
+    std::string p2p_net_device_max_queue_size_pkts_str = format_string("%" PRId64 "p", m_topology_link_max_queue_size_pkt);
 
     // Notify about topology state
     if (m_has_zero_servers) {
