@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     // Write pingmesh results
     pingmeshScheduler.WriteResults();
 
-    // Write utilization result
+    // Write utilization results
     utilTrackerHelper.WriteResults();
 
     // Finalize the simulation

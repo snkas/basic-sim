@@ -8,5 +8,3 @@ The backlog of additional work that can be done on the `basic-sim` module:
 * Add link filter to interface (link) utilization tracker
 * Improve test coverage
 * Improve plotting pipeline in build
-* Documentation for TCP optimizer
-* Documentation for arbiter routing

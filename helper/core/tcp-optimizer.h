@@ -12,7 +12,7 @@ namespace ns3 {
         static void OptimizeBasic(Ptr<BasicSimulation> basicSimulation);
         static void OptimizeUsingWorstCaseRtt(Ptr<BasicSimulation> basicSimulation, int64_t worst_case_rtt_ns);
     private:
-        static void CommonSense();
+        static void Generic();
     };
 
 } // namespace ns3

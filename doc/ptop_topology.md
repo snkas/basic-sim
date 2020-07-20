@@ -37,14 +37,14 @@ It encompasses the following files:
    ```
    #include "ns3/ptop-topology.h"
    // Possibly also: 
-   // #include "ns3/arbiter-ecmp-helper.h"
    // #include "ns3/ipv4-arbiter-routing-helper.h"
+   // #include "ns3/arbiter-ecmp-helper.h"
    ```
 
 4. Before the start of the simulation run, in your code add to create the topology:
 
     ```c++
-    // Read point-to-point topology, and install routing arbiters
+    // Read point-to-point topology
     Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
    
    // Install some type of routing, for example:

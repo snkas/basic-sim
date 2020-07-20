@@ -2,7 +2,7 @@
 
 namespace ns3 {
 
-void TcpOptimizer::CommonSense() {
+void TcpOptimizer::Generic() {
 
     // Clock granularity
     printf("  > Clock granularity.......... 1 ns\n");
@@ -69,7 +69,7 @@ void TcpOptimizer::CommonSense() {
 
 void TcpOptimizer::OptimizeBasic(Ptr<BasicSimulation> basicSimulation) {
     std::cout << "TCP OPTIMIZATION BASIC" << std::endl;
-    CommonSense();
+    Generic();
     std::cout << std::endl;
     basicSimulation->RegisterTimestamp("Setup TCP parameters");
 }
@@ -77,7 +77,7 @@ void TcpOptimizer::OptimizeBasic(Ptr<BasicSimulation> basicSimulation) {
 void TcpOptimizer::OptimizeUsingWorstCaseRtt(Ptr<BasicSimulation> basicSimulation, int64_t worst_case_rtt_ns) {
     std::cout << "TCP OPTIMIZATION USING WORST-CASE RTT" << std::endl;
 
-    CommonSense();
+    Generic();
 
     // Maximum segment lifetime
     int64_t max_seg_lifetime_ns = 5 * worst_case_rtt_ns; // 120s is default
