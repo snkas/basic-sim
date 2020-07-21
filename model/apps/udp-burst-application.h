@@ -41,11 +41,13 @@ namespace ns3 {
         static TypeId GetTypeId (void);
         UdpBurstApplication ();
         virtual ~UdpBurstApplication ();
-        void RegisterBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress);
+        void RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress);
+        void RegisterIncomingBurst(UdpBurstInfo burstInfo);
         void StartNextBurst();
         void BurstSendOut(size_t internal_burst_idx);
         void TransmitFullPacket(size_t internal_burst_idx);
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> GetOutgoingBurstsInformation();
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> GetIncomingBurstsInformation();
 
     protected:
         virtual void DoDispose (void);
@@ -65,6 +67,7 @@ namespace ns3 {
         size_t m_next_internal_burst_idx; //!< Next burst index to send out
 
         // Incoming bursts
+        std::vector<UdpBurstInfo> m_incoming_bursts;
         std::map<int64_t, uint64_t> m_incoming_bursts_received_counter;
 
     };

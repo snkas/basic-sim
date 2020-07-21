@@ -48,24 +48,11 @@ namespace ns3 {
             m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
             // Read schedule
-            std::vector<UdpBurstInfo> complete_schedule = read_udp_burst_schedule(
+            m_schedule = read_udp_burst_schedule(
                     m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("udp_burst_schedule_filename"),
                     m_topology,
                     m_simulation_end_time_ns
             );
-
-            // Filter the schedule to only have UDP bursts from a node this system controls
-            if (m_enable_distributed) {
-                std::vector<UdpBurstInfo> filtered_schedule;
-                for (UdpBurstInfo &entry : complete_schedule) {
-                    if (m_distributed_node_system_id_assignment[entry.GetFromNodeId()] == m_system_id) {
-                        filtered_schedule.push_back(entry);
-                    }
-                }
-                m_schedule = filtered_schedule;
-            } else {
-                m_schedule = complete_schedule;
-            }
 
             // Schedule read
             printf("  > Read schedule (total UDP bursts: %lu)\n", m_schedule.size());
@@ -103,14 +90,17 @@ namespace ns3 {
                     app.Start(Seconds(0.0));
                     m_apps.push_back(app);
 
-                    // Plan all burst originating from there
+                    // Register all bursts being sent from there and being received
                     Ptr<UdpBurstApplication> udpBurstApp = app.Get(0)->GetObject<UdpBurstApplication>();
                     for (UdpBurstInfo entry : m_schedule) {
                         if (entry.GetFromNodeId() == endpoint) {
-                            udpBurstApp->RegisterBurst(
+                            udpBurstApp->RegisterOutgoingBurst(
                                     entry,
                                     InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026)
                             );
+                        }
+                        if (entry.GetToNodeId() == endpoint) {
+                            udpBurstApp->RegisterIncomingBurst(entry);
                         }
                     }
 
@@ -146,9 +136,14 @@ namespace ns3 {
             // Header
             std::cout << "  > Writing udp_bursts_{incoming, outgoing}.txt headers" << std::endl;
             fprintf(
-                    file_outgoing_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-22s%-22s%-16s%s\n",
+                    file_outgoing_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-16s%s\n",
                     "UDP burst ID", "From", "To", "Target rate", "Start time", "Duration",
-                    "Rate (incl. headers)", "Rate (payload only)", "Packets out", "Metadata"
+                    "Outgoing rate (w/ headers)", "Outgoing rate (payload)", "Packets sent", "Metadata"
+            );
+            fprintf(
+                    file_incoming_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-18s%s\n",
+                    "UDP burst ID", "From", "To", "Target rate", "Start time", "Duration",
+                    "Incoming rate (w/ headers)", "Incoming rate (payload)", "Packets received", "Metadata"
             );
 
             // Go over each application
@@ -162,6 +157,7 @@ namespace ns3 {
                     UdpBurstInfo info = std::get<0>(outgoing_bursts[j]);
                     uint64_t sent_out_counter = std::get<1>(outgoing_bursts[j]);
 
+                    // Calculate outgoing rate
                     int64_t effective_duration_ns = info.GetStartTimeNs() + info.GetDurationNs() >= m_simulation_end_time_ns ? m_simulation_end_time_ns - info.GetStartTimeNs() : info.GetDurationNs();
                     double rate_incl_headers_megabit_per_s = byte_to_megabit(sent_out_counter * 1500) / nanosec_to_sec(effective_duration_ns);
                     double rate_payload_only_megabit_per_s = byte_to_megabit(sent_out_counter * 1472) / nanosec_to_sec(effective_duration_ns);
@@ -186,7 +182,7 @@ namespace ns3 {
                     sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", rate_payload_only_megabit_per_s);
                     fprintf(
                             file_outgoing_txt,
-                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-22s%-22s%-16" PRIu64 "%s\n",
+                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-16" PRIu64 "%s\n",
                             info.GetUdpBurstId(),
                             info.GetFromNodeId(),
                             info.GetToNodeId(),
@@ -196,6 +192,52 @@ namespace ns3 {
                             str_eff_rate_incl_headers,
                             str_eff_rate_payload_only,
                             sent_out_counter,
+                            info.GetMetadata().c_str()
+                    );
+
+                }
+
+                // Incoming bursts
+                std::vector<std::tuple<UdpBurstInfo, uint64_t>> incoming_bursts = udpBurstApp->GetIncomingBurstsInformation();
+                for (size_t j = 0; j < incoming_bursts.size(); j++) {
+                    UdpBurstInfo info = std::get<0>(incoming_bursts[j]);
+                    uint64_t received_counter = std::get<1>(incoming_bursts[j]);
+
+                    // Calculate incoming rate
+                    int64_t effective_duration_ns = info.GetStartTimeNs() + info.GetDurationNs() >= m_simulation_end_time_ns ? m_simulation_end_time_ns - info.GetStartTimeNs() : info.GetDurationNs();
+                    double rate_incl_headers_megabit_per_s = byte_to_megabit(received_counter * 1500) / nanosec_to_sec(effective_duration_ns);
+                    double rate_payload_only_megabit_per_s = byte_to_megabit(received_counter * 1472) / nanosec_to_sec(effective_duration_ns);
+
+                    // Write plain to the CSV
+                    fprintf(
+                            file_incoming_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%f,%" PRId64 ",%" PRId64 ",%f,%f,%" PRIu64 ",%s\n",
+                            info.GetUdpBurstId(), info.GetFromNodeId(), info.GetToNodeId(), info.GetTargetRateMegabitPerSec(), info.GetStartTimeNs(),
+                            info.GetDurationNs(), rate_incl_headers_megabit_per_s, rate_payload_only_megabit_per_s, received_counter, info.GetMetadata().c_str()
+                    );
+
+                    // Write nicely formatted to the text
+                    char str_target_rate[100];
+                    sprintf(str_target_rate, "%.2f Mbit/s", info.GetTargetRateMegabitPerSec());
+                    char str_start_time[100];
+                    sprintf(str_start_time, "%.2f ms", nanosec_to_millisec(info.GetStartTimeNs()));
+                    char str_duration_ms[100];
+                    sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(info.GetDurationNs()));
+                    char str_eff_rate_incl_headers[100];
+                    sprintf(str_eff_rate_incl_headers, "%.2f Mbit/s", rate_incl_headers_megabit_per_s);
+                    char str_eff_rate_payload_only[100];
+                    sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", rate_payload_only_megabit_per_s);
+                    fprintf(
+                            file_incoming_txt,
+                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-18" PRIu64 "%s\n",
+                            info.GetUdpBurstId(),
+                            info.GetFromNodeId(),
+                            info.GetToNodeId(),
+                            str_target_rate,
+                            str_start_time,
+                            str_duration_ms,
+                            str_eff_rate_incl_headers,
+                            str_eff_rate_payload_only,
+                            received_counter,
                             info.GetMetadata().c_str()
                     );
 

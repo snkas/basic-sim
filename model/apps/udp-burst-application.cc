@@ -64,12 +64,18 @@ namespace ns3 {
     }
 
     void
-    UdpBurstApplication::RegisterBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress) {
+    UdpBurstApplication::RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress) {
         if (m_bursts.size() >= 1 && burstInfo.GetStartTimeNs() < std::get<0>(m_bursts[m_bursts.size() - 1]).GetStartTimeNs()) {
             throw std::runtime_error("Bursts must be added weakly ascending on start time");
         }
         m_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
         m_bursts_packets_sent_counter.push_back(0);
+    }
+
+    void
+    UdpBurstApplication::RegisterIncomingBurst(UdpBurstInfo burstInfo) {
+        m_incoming_bursts.push_back(burstInfo);
+        m_incoming_bursts_received_counter[burstInfo.GetUdpBurstId()] = 0;
     }
 
     void
@@ -183,12 +189,9 @@ namespace ns3 {
 
             // Count packets from incoming bursts
             if (m_incoming_bursts_received_counter.find(incomingIdSeq.GetId()) == m_incoming_bursts_received_counter.end()) {
-                m_incoming_bursts_received_counter[incomingIdSeq.GetId()] = 0;
+                throw std::runtime_error("Incoming burst was not registered");
             }
             m_incoming_bursts_received_counter[incomingIdSeq.GetId()] += 1;
-
-            // Print
-            // std::cout << "Burst " << incomingIdSeq.GetId() << " sequence " << incomingIdSeq.GetSeq() << std::endl;
 
         }
     }
@@ -198,6 +201,15 @@ namespace ns3 {
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> result;
         for (size_t i = 0; i < m_bursts.size(); i++) {
             result.push_back(std::make_tuple(std::get<0>(m_bursts[i]), m_bursts_packets_sent_counter[i]));
+        }
+        return result;
+    }
+
+    std::vector<std::tuple<UdpBurstInfo, uint64_t>>
+    UdpBurstApplication::GetIncomingBurstsInformation() {
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> result;
+        for (size_t i = 0; i < m_incoming_bursts.size(); i++) {
+            result.push_back(std::make_tuple(m_incoming_bursts[i], m_incoming_bursts_received_counter[m_incoming_bursts[i].GetUdpBurstId()]));
         }
         return result;
     }
