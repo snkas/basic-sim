@@ -2,7 +2,7 @@
 
 #include "ns3/basic-simulation.h"
 #include "ns3/test.h"
-#include "schedule-reader-test.h"
+#include "flow-schedule-reader-test.h"
 #include "end-to-end-flows-test.h"
 #include "end-to-end-pingmesh-test.h"
 #include "end-to-end-manual-test.h"
@@ -12,8 +12,8 @@ using namespace ns3;
 class BasicAppsTestSuite : public TestSuite {
 public:
     BasicAppsTestSuite() : TestSuite("basic-sim-apps", UNIT) {
-        AddTestCase(new ScheduleReaderNormalTestCase, TestCase::QUICK);
-        AddTestCase(new ScheduleReaderInvalidTestCase, TestCase::QUICK);
+        AddTestCase(new FlowScheduleReaderNormalTestCase, TestCase::QUICK);
+        AddTestCase(new FlowScheduleReaderInvalidTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndFlowsOneToOneEqualStartTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndFlowsOneToOneSimpleStartTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndFlowsOneToOneApartStartTestCase, TestCase::QUICK);

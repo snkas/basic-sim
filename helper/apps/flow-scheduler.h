@@ -46,7 +46,7 @@
 #include "ns3/exp-util.h"
 #include "ns3/topology.h"
 
-#include "ns3/schedule-reader.h"
+#include "ns3/flow-schedule-reader.h"
 #include "ns3/flow-send-helper.h"
 #include "ns3/flow-send-application.h"
 #include "ns3/flow-sink-helper.h"
@@ -68,7 +68,7 @@ protected:
     Ptr<Topology> m_topology = nullptr;
     bool m_enabled;
 
-    std::vector<schedule_entry_t> m_schedule;
+    std::vector<FlowScheduleEntry> m_schedule;
     NodeContainer m_nodes;
     std::vector<ApplicationContainer> m_apps;
     std::set<int64_t> m_enableFlowLoggingToFileForFlowIds;

@@ -66,7 +66,7 @@ public:
         topology_file.close();
     }
 
-    void test_run_and_simple_validate(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<schedule_entry_t> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, BeforeRunOperation* beforeRunOperation) {
+    void test_run_and_simple_validate(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<FlowScheduleEntry> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, BeforeRunOperation* beforeRunOperation) {
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
@@ -76,15 +76,15 @@ public:
         // Write schedule file
         std::ofstream schedule_file;
         schedule_file.open (temp_dir + "/schedule.csv");
-        for (schedule_entry_t entry : write_schedule) {
+        for (FlowScheduleEntry entry : write_schedule) {
             schedule_file
-                    << entry.flow_id << ","
-                    << entry.from_node_id << ","
-                    << entry.to_node_id << ","
-                    << entry.size_byte << ","
-                    << entry.start_time_ns << ","
-                    << entry.additional_parameters << ","
-                    << entry.metadata
+                    << entry.GetFlowId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetSizeByte() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
                     << std::endl;
         }
         schedule_file.close();
@@ -113,17 +113,17 @@ public:
             std::vector<std::string> line_spl = split_string(line, ",");
             ASSERT_EQUAL(line_spl.size(), 10);
             ASSERT_EQUAL(parse_positive_int64(line_spl[0]), i);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), write_schedule[i].from_node_id);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), write_schedule[i].to_node_id);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[3]), write_schedule[i].size_byte);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), write_schedule[i].start_time_ns);
+            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), write_schedule[i].GetFromNodeId());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), write_schedule[i].GetToNodeId());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[3]), write_schedule[i].GetSizeByte());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), write_schedule[i].GetStartTimeNs());
             int64_t end_time_ns = parse_positive_int64(line_spl[5]);
             ASSERT_TRUE(end_time_ns >= 0 && end_time_ns <= simulation_end_time_ns);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns - write_schedule[i].start_time_ns);
+            ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns - write_schedule[i].GetStartTimeNs());
             int64_t sent_byte = parse_positive_int64(line_spl[7]);
             ASSERT_TRUE(sent_byte >= 0 && sent_byte <= simulation_end_time_ns);
             ASSERT_TRUE((line_spl[8] == "NO_ONGOING" || line_spl[8] == "YES"));
-            ASSERT_EQUAL(line_spl[9], write_schedule[i].metadata);
+            ASSERT_EQUAL(line_spl[9], write_schedule[i].GetMetadata());
             end_time_ns_list.push_back(end_time_ns);
             sent_byte_list.push_back(sent_byte);
             i++;
@@ -148,22 +148,22 @@ public:
                 }
                 ASSERT_TRUE(line_spl.size() == 15 || line_spl.size() == 16);
                 ASSERT_EQUAL(parse_positive_int64(line_spl[0]), j);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), write_schedule[j].from_node_id);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), write_schedule[j].to_node_id);
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), byte_to_megabit(write_schedule[j].size_byte), 0.01);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), write_schedule[j].GetFromNodeId());
+                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), write_schedule[j].GetToNodeId());
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), byte_to_megabit(write_schedule[j].GetSizeByte()), 0.01);
                 ASSERT_EQUAL(line_spl[4], "Mbit");
-                ASSERT_EQUAL(parse_positive_int64(line_spl[5]), write_schedule[j].start_time_ns);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[5]), write_schedule[j].GetStartTimeNs());
                 ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns_list[j]);
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(end_time_ns_list[j] - write_schedule[j].start_time_ns), 0.01);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(end_time_ns_list[j] - write_schedule[j].GetStartTimeNs()), 0.01);
                 ASSERT_EQUAL(line_spl[8], "ms");
                 ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[9]), byte_to_megabit(sent_byte_list[j]), 0.01);
                 ASSERT_EQUAL(line_spl[10], "Mbit");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[11].substr(0, line_spl[11].size() - 1)), sent_byte_list[j] * 100.0 / write_schedule[j].size_byte, 0.1);
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), byte_to_megabit(sent_byte_list[j]) / nanosec_to_sec(end_time_ns_list[j] - write_schedule[j].start_time_ns), 0.1);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[11].substr(0, line_spl[11].size() - 1)), sent_byte_list[j] * 100.0 / write_schedule[j].GetSizeByte(), 0.1);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), byte_to_megabit(sent_byte_list[j]) / nanosec_to_sec(end_time_ns_list[j] - write_schedule[j].GetStartTimeNs()), 0.1);
                 ASSERT_EQUAL(line_spl[13], "Mbit/s");
                 ASSERT_TRUE(line_spl[14] == "NO_ONGOING" || line_spl[14] == "YES");
                 if (line_spl.size() == 16) {
-                    ASSERT_EQUAL(line_spl[15], write_schedule[j].metadata);
+                    ASSERT_EQUAL(line_spl[15], write_schedule[j].GetMetadata());
                 }
             }
             i++;
@@ -202,9 +202,9 @@ public:
         write_single_topology();
 
         // A flow each way
-        std::vector<schedule_entry_t> schedule;
-        schedule.push_back({0, 0, 1, 1000000, 0, "", "abc"});
-        schedule.push_back({1, 1, 0, 1000000, 0, "", ""});
+        std::vector<FlowScheduleEntry> schedule;
+        schedule.push_back(FlowScheduleEntry(0, 0, 1, 1000000, 0, "", "abc"));
+        schedule.push_back(FlowScheduleEntry(1, 1, 0, 1000000, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -234,8 +234,8 @@ public:
         write_single_topology();
 
         // One flow
-        std::vector<schedule_entry_t> schedule;
-        schedule.push_back({0, 0, 1, 300, 0, "", ""});
+        std::vector<FlowScheduleEntry> schedule;
+        schedule.push_back(FlowScheduleEntry(0, 0, 1, 300, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -275,9 +275,9 @@ public:
         write_single_topology();
 
         // A flow each way
-        std::vector<schedule_entry_t> schedule;
-        schedule.push_back({0, 0, 1, 1000000, 0, "", "first"});
-        schedule.push_back({1, 0, 1, 1000000, 5000000000, "", "second"});
+        std::vector<FlowScheduleEntry> schedule;
+        schedule.push_back(FlowScheduleEntry(0, 0, 1, 1000000, 0, "", "first"));
+        schedule.push_back(FlowScheduleEntry(1, 0, 1, 1000000, 5000000000, "", "second"));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -315,9 +315,9 @@ public:
         topology_file.close();
 
         // A flow each way
-        std::vector<schedule_entry_t> schedule;
+        std::vector<FlowScheduleEntry> schedule;
         for (int i = 0; i < 30; i++) {
-            schedule.push_back({i, 0, 3, 100000000, 0, "", ""});
+            schedule.push_back(FlowScheduleEntry(i, 0, 3, 100000000, 0, "", ""));
         }
 
         // Perform the run
@@ -360,8 +360,8 @@ public:
         topology_file.close();
 
         // A flow each way
-        std::vector<schedule_entry_t> schedule;
-        schedule.push_back({0, 0, 3, 1000000000, 0, "", ""});
+        std::vector<FlowScheduleEntry> schedule;
+        schedule.push_back(FlowScheduleEntry(0, 0, 3, 1000000000, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -443,9 +443,9 @@ public:
         topology_file.close();
 
         // Two flows
-        std::vector<schedule_entry_t> schedule;
-        schedule.push_back({0, 0, 3, 1000000000, 0, "", ""});
-        schedule.push_back({1, 1, 3, 1000000000, 0, "", ""});
+        std::vector<FlowScheduleEntry> schedule;
+        schedule.push_back(FlowScheduleEntry(0, 0, 3, 1000000000, 0, "", ""));
+        schedule.push_back(FlowScheduleEntry(1, 1, 3, 1000000000, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;

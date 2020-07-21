@@ -26,31 +26,31 @@ namespace ns3 {
 void FlowScheduler::StartNextFlow(int i) {
 
     // Fetch the flow to start
-    schedule_entry_t& entry = m_schedule[i];
+    FlowScheduleEntry& entry = m_schedule[i];
     int64_t now_ns = Simulator::Now().GetNanoSeconds();
-    if (now_ns != entry.start_time_ns) {
+    if (now_ns != entry.GetStartTimeNs()) {
         throw std::runtime_error("Scheduling start of a flow went horribly wrong");
     }
 
     // Helper to install the source application
     FlowSendHelper source(
             "ns3::TcpSocketFactory",
-            InetSocketAddress(m_nodes.Get(entry.to_node_id)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
-            entry.size_byte,
-            entry.flow_id,
-            m_enableFlowLoggingToFileForFlowIds.find(entry.flow_id) != m_enableFlowLoggingToFileForFlowIds.end(),
+            InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
+            entry.GetSizeByte(),
+            entry.GetFlowId(),
+            m_enableFlowLoggingToFileForFlowIds.find(entry.GetFlowId()) != m_enableFlowLoggingToFileForFlowIds.end(),
             m_basicSimulation->GetLogsDir(),
-            entry.additional_parameters
+            entry.GetAdditionalParameters()
     );
 
     // Install it on the node and start it right now
-    ApplicationContainer app = source.Install(m_nodes.Get(entry.from_node_id));
+    ApplicationContainer app = source.Install(m_nodes.Get(entry.GetFromNodeId()));
     app.Start(NanoSeconds(0));
     m_apps.push_back(app);
 
     // If there is a next flow to start, schedule its start
     if (i + 1 != (int) m_schedule.size()) {
-        int64_t next_flow_ns = m_schedule[i + 1].start_time_ns;
+        int64_t next_flow_ns = m_schedule[i + 1].GetStartTimeNs();
         Simulator::Schedule(NanoSeconds(next_flow_ns - now_ns), &FlowScheduler::StartNextFlow, this, i + 1);
     }
 
@@ -80,7 +80,7 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
         m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
         // Read schedule
-        std::vector <schedule_entry_t> complete_schedule = read_schedule(
+        std::vector<FlowScheduleEntry> complete_schedule = read_flow_schedule(
                 m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("flow_schedule_filename"),
                 m_topology,
                 m_simulation_end_time_ns
@@ -88,9 +88,9 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
 
         // Filter the schedule to only have applications starting at nodes which are part of this system
         if (m_enable_distributed) {
-            std::vector <schedule_entry_t> filtered_schedule;
-            for (schedule_entry_t &entry : complete_schedule) {
-                if (m_distributed_node_system_id_assignment[entry.from_node_id] == m_system_id) {
+            std::vector<FlowScheduleEntry> filtered_schedule;
+            for (FlowScheduleEntry &entry : complete_schedule) {
+                if (m_distributed_node_system_id_assignment[entry.GetFromNodeId()] == m_system_id) {
                     filtered_schedule.push_back(entry);
                 }
             }
@@ -134,7 +134,7 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
         // Setup start of first source application
         std::cout << "  > Setting up traffic flow starter" << std::endl;
         if (m_schedule.size() > 0) {
-            Simulator::Schedule(NanoSeconds(m_schedule[0].start_time_ns), &FlowScheduler::StartNextFlow, this, 0);
+            Simulator::Schedule(NanoSeconds(m_schedule[0].GetStartTimeNs()), &FlowScheduler::StartNextFlow, this, 0);
         }
         m_basicSimulation->RegisterTimestamp("Setup traffic flow starter");
 
@@ -170,7 +170,7 @@ void FlowScheduler::WriteResults() {
         // Go over the schedule, write each flow's result
         std::cout << "  > Writing log files line-by-line" << std::endl;
         std::vector<ApplicationContainer>::iterator it = m_apps.begin();
-        for (schedule_entry_t& entry : m_schedule) {
+        for (FlowScheduleEntry& entry : m_schedule) {
 
             // Retrieve statistics
             ApplicationContainer app = *it;
@@ -182,9 +182,9 @@ void FlowScheduler::WriteResults() {
             int64_t sent_byte = flowSendApp->GetAckedBytes();
             int64_t fct_ns;
             if (is_completed) {
-                fct_ns = flowSendApp->GetCompletionTimeNs() - entry.start_time_ns;
+                fct_ns = flowSendApp->GetCompletionTimeNs() - entry.GetStartTimeNs();
             } else {
-                fct_ns = m_simulation_end_time_ns - entry.start_time_ns;
+                fct_ns = m_simulation_end_time_ns - entry.GetStartTimeNs();
             }
             std::string finished_state;
             if (is_completed) {
@@ -202,26 +202,26 @@ void FlowScheduler::WriteResults() {
             // Write plain to the csv
             fprintf(
                     file_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%s,%s\n",
-                    entry.flow_id, entry.from_node_id, entry.to_node_id, entry.size_byte, entry.start_time_ns,
-                    entry.start_time_ns + fct_ns, fct_ns, sent_byte, finished_state.c_str(), entry.metadata.c_str()
+                    entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), entry.GetSizeByte(), entry.GetStartTimeNs(),
+                    entry.GetStartTimeNs() + fct_ns, fct_ns, sent_byte, finished_state.c_str(), entry.GetMetadata().c_str()
             );
 
             // Write nicely formatted to the text
             char str_size_megabit[100];
-            sprintf(str_size_megabit, "%.2f Mbit", byte_to_megabit(entry.size_byte));
+            sprintf(str_size_megabit, "%.2f Mbit", byte_to_megabit(entry.GetSizeByte()));
             char str_duration_ms[100];
             sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(fct_ns));
             char str_sent_megabit[100];
             sprintf(str_sent_megabit, "%.2f Mbit", byte_to_megabit(sent_byte));
             char str_progress_perc[100];
-            sprintf(str_progress_perc, "%.1f%%", ((double) sent_byte) / ((double) entry.size_byte) * 100.0);
+            sprintf(str_progress_perc, "%.1f%%", ((double) sent_byte) / ((double) entry.GetSizeByte()) * 100.0);
             char str_avg_rate_megabit_per_s[100];
             sprintf(str_avg_rate_megabit_per_s, "%.1f Mbit/s", byte_to_megabit(sent_byte) / nanosec_to_sec(fct_ns));
             fprintf(
                     file_txt, "%-12" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-18" PRId64 "%-18" PRId64 "%-16s%-16s%-13s%-16s%-14s%s\n",
-                    entry.flow_id, entry.from_node_id, entry.to_node_id, str_size_megabit, entry.start_time_ns,
-                    entry.start_time_ns + fct_ns, str_duration_ms, str_sent_megabit, str_progress_perc, str_avg_rate_megabit_per_s,
-                    finished_state.c_str(), entry.metadata.c_str()
+                    entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), str_size_megabit, entry.GetStartTimeNs(),
+                    entry.GetStartTimeNs() + fct_ns, str_duration_ms, str_sent_megabit, str_progress_perc, str_avg_rate_megabit_per_s,
+                    finished_state.c_str(), entry.GetMetadata().c_str()
             );
 
             // Move on iterator
