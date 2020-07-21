@@ -9,7 +9,7 @@ It encompasses the following files:
 * `helper/apps/flow-send-helper.cc/h` - Helper to install flow send applications
 * `helper/apps/flow-sink-helper.cc/h` - Helper to install flow sink applications
 * `helper/apps/flow-scheduler.cc/h` - Reads in a schedule of flows and inserts events for them to start over time. Installs flow sinks on all nodes. Once the run is over, it can write the results to file.
-* `helper/apps/schedule-reader.cc/h` - Schedule reader from file
+* `helper/apps/flow-schedule-reader.cc/h` - Schedule reader from file
 
 You can use the application(s) separately, or make use of the flow scheduler (which is recommended).
 
@@ -20,11 +20,11 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 
    ```
    enable_flow_scheduler=true
-   flow_schedule_filename="schedule.csv"
+   flow_schedule_filename="flow_schedule.csv"
    flow_enable_logging_for_flow_ids=set(0,1)
    ```
 
-2. Add the following schedule file `schedule.csv` to your run folder (three flows from 0 to 1, resp. of size 10/3/34 KB and starting at T=0/10000/30000ns):
+2. Add the following schedule file `flow_schedule.csv` to your run folder (three flows from 0 to 1, resp. of size 10/3/34 KB and starting at T=0/10000/30000ns):
 
    ```
    0,0,1,10000,0,,
@@ -124,23 +124,23 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 You MUST set the following keys in `config_ns3.properties`:
 
 * `enable_flow_scheduler` : Must be set to `true`
-* `flow_schedule_filename` : Schedule filename (relative to run folder) (path/to/schedule.csv)
+* `flow_schedule_filename` : Schedule filename (relative to run folder) (path/to/flow_schedule.csv)
 
 The following are OPTIONAL in `config_ns3.properties`:
 
 * `flow_enable_logging_for_flow_ids` : Set of flow identifiers for which you want logging to file for progress, cwnd and RTT (located at `logs_dir/flow-[id]-{progress, cwnd, rtt}.csv`). Example value: `set(0, 1`) to log for flows 0 and 1. The file format is: `flow_id,now_in_ns,[progress_byte/cwnd_byte/rtt_ns])`.
 
-**schedule.csv**
+**flow_schedule.csv**
 
 Flow arrival schedule. 
 
 Each line defines a flow as follows:
 
 ```
-flow_id,from_node_id,to_node_id,size_byte,start_time_ns,additional_parameters,metadata
+[flow_id],[from_node_id],[to_node_id],[size_byte],[start_time_ns],[additional_parameters],[metadata]
 ```
 
-Notes: flow_id must increment each line. All values except additional_parameters and metadata are mandatory. `additional_parameters` should be set if you want to configure something special for each flow in main.cc (e.g., different transport protocol). `metadata` you can use for identification later on in the flows.csv/txt logs (e.g., to indicate the workload or coflow it was part of).
+Notes: flow_id must increment each line. All values except additional_parameters and metadata are mandatory. `additional_parameters` should be set if you want to configure something special for each flow (e.g., different transport protocol, priority). `metadata` you can use for identification later on in the `flows.csv/txt` logs (e.g., to indicate the workload or coflow it was part of).
 
 **The flow log files**
 
