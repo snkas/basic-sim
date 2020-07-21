@@ -68,7 +68,8 @@ public:
                 1000000,
                 0,
                 true,
-                basicSimulation->GetLogsDir()
+                basicSimulation->GetLogsDir(),
+                ""
         );
         app = source0.Install(topology->GetNodes().Get(0));
         app.Start(NanoSeconds(0));
@@ -81,7 +82,8 @@ public:
                 89999,
                 1,
                 true,
-                basicSimulation->GetLogsDir()
+                basicSimulation->GetLogsDir(),
+                ""
         );
         app = source1.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(7000));

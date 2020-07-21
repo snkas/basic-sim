@@ -41,7 +41,7 @@ namespace ns3 {
 class FlowSendHelper
 {
 public:
-  FlowSendHelper (std::string protocol, Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir);
+  FlowSendHelper (std::string protocol, Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters);
   ApplicationContainer Install (Ptr<Node> node) const;
 
 private:

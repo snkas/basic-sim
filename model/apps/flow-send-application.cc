@@ -85,6 +85,12 @@ FlowSendApplication::GetTypeId(void) {
                            StringValue (""),
                            MakeStringAccessor (&FlowSendApplication::m_baseLogsDir),
                            MakeStringChecker ())
+            .AddAttribute ("AdditionalParameters",
+                           "Additional parameter string; this might be parsed in another version of this application to "
+                           "do slightly different behavior (e.g., set priority on TCP socket etc.)",
+                           StringValue (""),
+                           MakeStringAccessor (&FlowSendApplication::m_additionalParameters),
+                           MakeStringChecker ())
             .AddTraceSource("Tx", "A new packet is created and is sent",
                             MakeTraceSourceAccessor(&FlowSendApplication::m_txTrace),
                             "ns3::Packet::TracedCallback");

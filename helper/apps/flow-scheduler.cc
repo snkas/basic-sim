@@ -39,7 +39,8 @@ void FlowScheduler::StartNextFlow(int i) {
             entry.size_byte,
             entry.flow_id,
             m_enableFlowLoggingToFileForFlowIds.find(entry.flow_id) != m_enableFlowLoggingToFileForFlowIds.end(),
-            m_basicSimulation->GetLogsDir()
+            m_basicSimulation->GetLogsDir(),
+            entry.additional_parameters
     );
 
     // Install it on the node and start it right now
