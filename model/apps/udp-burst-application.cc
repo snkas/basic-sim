@@ -82,21 +82,14 @@ namespace ns3 {
     UdpBurstApplication::StartApplication(void) {
         NS_LOG_FUNCTION(this);
 
+        // Bind a socket to the UDP port
         if (m_socket == 0) {
-
-            // Bind to UDP port
             TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
             m_socket = Socket::CreateSocket(GetNode(), tid);
             InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
             if (m_socket->Bind(local) == -1) {
                 NS_FATAL_ERROR("Failed to bind socket");
             }
-
-            // No multi-cast
-            if (addressUtils::IsMulticast(m_local)) {
-                throw std::runtime_error("Multi-cast is not supported.");
-            }
-
         }
 
         // Receive of packets
