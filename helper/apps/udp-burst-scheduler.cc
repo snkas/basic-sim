@@ -99,10 +99,12 @@ namespace ns3 {
                     // Plan all burst originating from there
                     Ptr<UdpBurstApplication> udpBurstApp = app.Get(0)->GetObject<UdpBurstApplication>();
                     for (UdpBurstInfo entry : m_schedule) {
-                        udpBurstApp->RegisterBurst(
-                                entry,
-                                InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026)
-                        );
+                        if (entry.GetFromNodeId() == endpoint) {
+                            udpBurstApp->RegisterBurst(
+                                    entry,
+                                    InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026)
+                            );
+                        }
                     }
 
                 }

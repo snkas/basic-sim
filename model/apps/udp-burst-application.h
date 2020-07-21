@@ -28,6 +28,7 @@
 #include "ns3/traced-callback.h"
 #include "ns3/seq-ts-header.h"
 #include "ns3/udp-burst-info.h"
+#include "ns3/id-seq-header.h"
 
 namespace ns3 {
 
@@ -41,6 +42,9 @@ namespace ns3 {
         UdpBurstApplication ();
         virtual ~UdpBurstApplication ();
         void RegisterBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress);
+        void StartNextBurst();
+        void BurstSendOut(size_t internal_burst_idx);
+        void TransmitFullPacket(size_t internal_burst_idx);
 
     protected:
         virtual void DoDispose (void);
@@ -51,15 +55,13 @@ namespace ns3 {
         void HandleRead (Ptr<Socket> socket);
 
         uint16_t m_port;      //!< Port on which we listen for incoming packets.
+        uint32_t m_max_udp_payload_size_byte;  //!< Maximum size of UDP payload before getting fragmented
         Ptr<Socket> m_socket; //!< IPv4 Socket
         Address m_local;      //!< local multicast address
 
-        std::vector<std::tuple<UdpBurstInfo, InetSocketAddress>> m_bursts;
-
-//
-//        std::vector<Address> node_id_to_remote_address;
-//        std::vector<UdpBurstInfo> m_burst_schedule; // Hops from one burst to the next (Event numero uno)
-//        std::vector<UdpBurstInfo> m_active_bursts; // Each time finds the burst which has the least amount of time remaining, and then plans that (Event numero dos)
+        std::vector<std::tuple<UdpBurstInfo, InetSocketAddress>> m_bursts; //!< Weakly ascending on start time list of bursts
+        std::vector<uint64_t> m_bursts_packets_sent_counter; //!< Amount of UDP packets sent out already for each burst
+        size_t m_next_internal_burst_idx; //!< Next burst index to send out
 
     };
 

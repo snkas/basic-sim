@@ -45,12 +45,17 @@ namespace ns3 {
                 .AddAttribute("Port", "Port on which we listen for incoming packets.",
                               UintegerValue(9),
                               MakeUintegerAccessor(&UdpBurstApplication::m_port),
-                              MakeUintegerChecker<uint16_t>());
+                              MakeUintegerChecker<uint16_t>())
+                .AddAttribute("MaxUdpPayloadSizeByte", "Total UDP payload size (byte) before it gets fragmented.",
+                              UintegerValue(1472), // 1500 (point-to-point default) - 20 (IP) - 8 (UDP) = 1472
+                              MakeUintegerAccessor(&UdpBurstApplication::m_max_udp_payload_size_byte),
+                              MakeUintegerChecker<uint32_t>());
         return tid;
     }
 
     UdpBurstApplication::UdpBurstApplication() {
         NS_LOG_FUNCTION(this);
+        m_next_internal_burst_idx = 0;
     }
 
     UdpBurstApplication::~UdpBurstApplication() {
@@ -64,6 +69,7 @@ namespace ns3 {
             throw std::runtime_error("Bursts must be added weakly ascending on start time");
         }
         m_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
+        m_bursts_packets_sent_counter.push_back(0);
     }
 
     void
@@ -96,6 +102,63 @@ namespace ns3 {
         // Receive of packets
         m_socket->SetRecvCallback(MakeCallback(&UdpBurstApplication::HandleRead, this));
 
+        // First process call is for the start of the first burst
+        if (m_bursts.size() > 0) {
+            Simulator::Schedule(NanoSeconds(std::get<0>(m_bursts[0]).GetStartTimeNs()), &UdpBurstApplication::StartNextBurst, this);
+        }
+
+    }
+
+    void
+    UdpBurstApplication::StartNextBurst()
+    {
+        int64_t now_ns = Simulator::Now().GetNanoSeconds();
+
+        // If this function is called, there must be a next burst
+        if (m_next_internal_burst_idx >= m_bursts.size() || std::get<0>(m_bursts[m_next_internal_burst_idx]).GetStartTimeNs() != now_ns) {
+            throw std::runtime_error("No next burst available; this function should not have been called.");
+        }
+
+        // Start the self-calling (and self-ending) process of sending out packets of the burst
+        BurstSendOut(m_next_internal_burst_idx);
+
+        // Schedule the start of the next burst if there are more
+        m_next_internal_burst_idx += 1;
+        if (m_next_internal_burst_idx < m_bursts.size()) {
+            Simulator::Schedule(NanoSeconds(std::get<0>(m_bursts[m_next_internal_burst_idx]).GetStartTimeNs() - now_ns), &UdpBurstApplication::StartNextBurst, this);
+        }
+
+    }
+
+    void
+    UdpBurstApplication::BurstSendOut(size_t internal_burst_idx)
+    {
+        // Send out the packet as desired
+        TransmitFullPacket(internal_burst_idx);
+
+        // For now, let's not send out one-by-one, just to verify correctness
+        // int64_t next_packet_send_ns = 1000;
+        // Simulator::Schedule(NanoSeconds(next_packet_send_ns), &UdpBurstApplication::BurstSendOut, this, internal_burst_idx);
+    }
+
+    void
+    UdpBurstApplication::TransmitFullPacket(size_t internal_burst_idx) {
+
+        // Header with (udp_burst_id, seq_no)
+        IdSeqHeader idSeq;
+        idSeq.SetId(std::get<0>(m_bursts[internal_burst_idx]).GetUdpBurstId());
+        idSeq.SetSeq(m_bursts_packets_sent_counter[internal_burst_idx]);
+
+        // One more packet will be sent out
+        m_bursts_packets_sent_counter[internal_burst_idx] += 1;
+
+        // A full payload packet
+        Ptr<Packet> p = Create<Packet>(m_max_udp_payload_size_byte - idSeq.GetSerializedSize());
+        p->AddHeader(idSeq);
+
+        // Send out the packet to the target address
+        m_socket->SendTo(p, 0, std::get<1>(m_bursts[internal_burst_idx]));
+
     }
 
     void
@@ -114,21 +177,12 @@ namespace ns3 {
         Address from;
         while ((packet = socket->RecvFrom(from))) {
 
-            // What we receive
-            SeqTsHeader incomingSeqTs;
-            packet->RemoveHeader (incomingSeqTs);
+            // Extract burst identifier and packet sequence number
+            IdSeqHeader incomingIdSeq;
+            packet->RemoveHeader (incomingIdSeq);
 
-            // Add header
-            SeqTsHeader outgoingSeqTs; // Creates one with the current timestamp
-            outgoingSeqTs.SetSeq(incomingSeqTs.GetSeq());
-            packet->AddHeader(outgoingSeqTs);
-
-            // Remove any tags
-            packet->RemoveAllPacketTags();
-            packet->RemoveAllByteTags();
-
-            // Send back with the new timestamp on it
-            socket->SendTo(packet, 0, from);
+            // Print
+            std::cout << "Burst " << incomingIdSeq.GetId() << " sequence " << incomingIdSeq.GetSeq() << std::endl;
 
         }
     }
