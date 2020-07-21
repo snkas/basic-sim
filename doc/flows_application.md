@@ -21,7 +21,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
    ```
    enable_flow_scheduler=true
    flow_schedule_filename="schedule.csv"
-   enable_flow_logging_to_file_for_flow_ids=set(0,1)
+   flow_enable_logging_for_flow_ids=set(0,1)
    ```
 
 2. Add the following schedule file `schedule.csv` to your run folder (three flows from 0 to 1, resp. of size 10/3/34 KB and starting at T=0/10000/30000ns):
@@ -128,7 +128,7 @@ You MUST set the following keys in `config_ns3.properties`:
 
 The following are OPTIONAL in `config_ns3.properties`:
 
-* `enable_flow_logging_to_file_for_flow_ids` : Set of flow identifiers for which you want logging to file for progress, cwnd and RTT (located at `logs_dir/flow-[id]-{progress, cwnd, rtt}.csv`). Example value: `set(0, 1`) to log for flows 0 and 1. The file format is: `flow_id,now_in_ns,[progress_byte/cwnd_byte/rtt_ns])`.
+* `flow_enable_logging_for_flow_ids` : Set of flow identifiers for which you want logging to file for progress, cwnd and RTT (located at `logs_dir/flow-[id]-{progress, cwnd, rtt}.csv`). Example value: `set(0, 1`) to log for flows 0 and 1. The file format is: `flow_id,now_in_ns,[progress_byte/cwnd_byte/rtt_ns])`.
 
 **schedule.csv**
 

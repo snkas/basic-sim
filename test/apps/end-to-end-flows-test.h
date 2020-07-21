@@ -50,7 +50,7 @@ public:
         config_file << "topology_disable_traffic_control_non_endpoint_switches=false" << std::endl;
         config_file << "enable_flow_scheduler=true" << std::endl;
         config_file << "flow_schedule_filename=\"schedule.csv\"" << std::endl;
-        config_file << "enable_flow_logging_to_file_for_flow_ids=set(0)" << std::endl;
+        config_file << "flow_enable_logging_for_flow_ids=set(0)" << std::endl;
         config_file.close();
     }
 

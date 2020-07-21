@@ -74,7 +74,7 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
         m_nodes = m_topology->GetNodes();
         m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
         m_enableFlowLoggingToFileForFlowIds = parse_set_positive_int64(
-                m_basicSimulation->GetConfigParamOrDefault("enable_flow_logging_to_file_for_flow_ids", "set()"));
+                m_basicSimulation->GetConfigParamOrDefault("flow_enable_logging_for_flow_ids", "set()"));
         m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
         m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();

@@ -6,6 +6,7 @@ You can either immediately start with the tutorial below, or read more documenta
 * `ptop_topology.md` -- Point-to-point topology
 * `flows_application.md` -- Flow application ("send from A to B a flow of size X at time T")
 * `utilization_tracking.md` -- Utilization tracking
+* `udp_burst_application.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
 * `pingmesh_application.md` -- Ping application ("send from A to B a ping at an interval I")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
 * `arbiter_routing.md` -- A new type of routing with more flexibility
@@ -14,27 +15,79 @@ You can either immediately start with the tutorial below, or read more documenta
 
 ## Tutorial
 
-1. Create a directory anywhere called `example_run`, and create three files in there:
+
+### Goal
+
+We are going to have a single switch which has 3 servers under it. A switch which has servers directly under it is typically referred to as a ToR. Link delay is 10 microseconds, link rate is 100 Mb/s. Each link interface has a FIFO queue of 100 packets. The simulation will be run for 4 seconds. It looks visually as follows:
+
+```
+           Switch (id: 0)
+         /     |          \
+       /       |           \
+     /         |            \
+ Server (1)  Server (2)  Server (3)
+```
+
+We are going to install three different applications:
+
+1. Three TCP flows:
+   * F0) From server 1 to 3 send 100 Mbit starting at T=0
+   * F1) From server 2 to 3 send 100 Mbit starting at T=500ms
+   * F2) From server 2 to 3 send 100 Mbit starting at T=500ms
+   
+2. Two UDP bursts:
+   * B0) From server 1 to 2 send at 50 Mbit/s starting at T=0 for 5s
+   * B1) From server 2 to 1 send at 50 Mbit/s starting at T=0 for 5s
+   
+3. Send pings between all servers at an interval of 10ms
+
+
+### Expectations
+
+* F0) Should get 50 Mbit/s for the first 500ms. Afterwards, it will still get 50 Mbit/s approximately, as F1/F2 will have to compete on the 2-0 link. `100 Mbit / 50 Mbit/s = 2s`, which means it will finish in time.
+
+* F1) Shares what B2 leaves with F2, as such get 20-30 Mbit/s its entire lifetime, which is 3.5s until end. `3.5s * 25 Mbit/s = 87.5 Mbit`, so it will not finish before the end.
+
+* F2) The same as F1.
+
+* B1) Most of its 50 Mbit/s should be received on the other side, as the TCP flows will back down whereas this one will not.
+
+* B2) The same as B1.
+
+* Especially the pings between 1 and 2 will be a bit longer as there is the queue build-up due to congestion.
+
+
+### Doing the experiments
+
+1. Create a directory anywhere called `example_run`, and create four files in there:
 
    **config_ns3.properties**
    
    ```
-   simulation_end_time_ns=10000000000
-   simulation_seed=123456789
-   
-   topology_filename="topology.properties"
-   topology_link_data_rate_megabit_per_s=100.0
-   topology_link_delay_ns=10000
-   topology_link_max_queue_size_pkt=100
-   topology_disable_traffic_control_endpoint_tors_xor_servers=true
-   topology_disable_traffic_control_non_endpoint_switches=true
-   
-   enable_link_utilization_tracking=true
-   link_utilization_tracking_interval_ns=100000000
-   
-   enable_flow_scheduler=true
-   flow_schedule_filename="schedule.csv"
-   enable_flow_logging_to_file_for_flow_ids=set(0,1,2,3,4)
+    simulation_end_time_ns=4000000000
+    simulation_seed=123456789
+    
+    topology_filename="topology.properties"
+    topology_link_data_rate_megabit_per_s=100.0
+    topology_link_delay_ns=10000
+    topology_link_max_queue_size_pkt=100
+    topology_disable_traffic_control_endpoint_tors_xor_servers=true
+    topology_disable_traffic_control_non_endpoint_switches=true
+    
+    enable_link_utilization_tracking=true
+    link_utilization_tracking_interval_ns=100000000
+    
+    enable_pingmesh_scheduler=true
+    pingmesh_interval_ns=10000000
+    pingmesh_endpoint_pairs=all
+    
+    enable_flow_scheduler=true
+    flow_schedule_filename="flow_schedule.csv"
+    flow_enable_logging_for_flow_ids=set(0,1)
+    
+    enable_udp_burst_scheduler=true
+    udp_burst_schedule_filename="udp_burst_schedule.csv"
+    udp_burst_enable_logging_for_udp_burst_ids=set(0,1,2)
    ```
    
    **topology.properties**
@@ -54,14 +107,19 @@ You can either immediately start with the tutorial below, or read more documenta
    undirected_edges=set(0-1,0-2,0-3)
    ```
    
-   **schedule.csv**
+   **flow_schedule.csv**
    
    ```
-   0,1,3,10000000,0,,
-   1,2,3,7000000,10000,,
-   2,3,1,300000,138953,,
-   3,2,1,7800001,3738832,,
-   4,2,1,7800001,3738832,,
+   0,1,3,12500000,0,,
+   1,2,3,12500000,500000000,,
+   2,2,3,12500000,500000000,,
+   ```
+   
+   **udp_burst_schedule.csv**
+   
+   ```
+   0,1,2,50,0,5000000000,,
+   1,2,1,50,0,5000000000,,
    ```
    
 2. Your folder structure should as such be:
@@ -70,12 +128,13 @@ You can either immediately start with the tutorial below, or read more documenta
    example_run
    |-- config_ns3.properties
    |-- topology.properties
-   |-- schedule.csv
+   |-- flow_schedule.csv
+   |-- udp_burst_schedule.csv
    ```
 
-3. Into your ns-3 `scratch/` folder create a file named `main_flows.cc`
+3. Into your ns-3 `scratch/` folder create a file named `my_main.cc`
 
-4. The following is an example code for `scratch/main_flows.cc`:
+4. The following is an example code for `scratch/my_main.cc`:
 
     ```c++
     #include <map>
@@ -92,6 +151,8 @@ You can either immediately start with the tutorial below, or read more documenta
     #include <stdexcept>
     #include "ns3/basic-simulation.h"
     #include "ns3/flow-scheduler.h"
+    #include "ns3/udp-burst-scheduler.h"
+    #include "ns3/pingmesh-scheduler.h"
     #include "ns3/topology-ptop.h"
     #include "ns3/tcp-optimizer.h"
     #include "ns3/arbiter-ecmp-helper.h"
@@ -104,15 +165,15 @@ You can either immediately start with the tutorial below, or read more documenta
     
         // No buffering of printf
         setbuf(stdout, nullptr);
-        
+    
         // Retrieve run directory
         CommandLine cmd;
         std::string run_dir = "";
-        cmd.Usage("Usage: ./waf --run=\"main_flows --run_dir='<path/to/run/directory>'\"");
+        cmd.Usage("Usage: ./waf --run=\"basic-sim-main-full --run_dir='<path/to/run/directory>'\"");
         cmd.AddValue("run_dir",  "Run directory", run_dir);
         cmd.Parse(argc, argv);
         if (run_dir.compare("") == 0) {
-            printf("Usage: ./waf --run=\"main_flows --run_dir='<path/to/run/directory>'\"");
+            printf("Usage: ./waf --run=\"basic-sim-main-full --run_dir='<path/to/run/directory>'\"");
             return 0;
         }
     
@@ -124,21 +185,33 @@ You can either immediately start with the tutorial below, or read more documenta
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
     
         // Install utilization trackers
-        PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
+        PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
     
         // Optimize TCP
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
     
         // Schedule flows
-        FlowScheduler flowScheduler(basicSimulation, topology); // Requires flow_schedule_filename to be present in the configuration
+        FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_flow_scheduler=true
+    
+        // Schedule UDP bursts
+        UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true
+    
+        // Schedule pings
+        PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
     
         // Run simulation
         basicSimulation->Run();
     
-        // Write result
+        // Write flow results
         flowScheduler.WriteResults();
     
-        // Write utilization result
+        // Write UDP burst results
+        udpBurstScheduler.WriteResults();
+    
+        // Write pingmesh results
+        pingmeshScheduler.WriteResults();
+    
+        // Write utilization results
         utilTrackerHelper.WriteResults();
     
         // Finalize the simulation
@@ -152,14 +225,14 @@ You can either immediately start with the tutorial below, or read more documenta
 5. Run it by executing in your ns-3 folder:
 
    ```
-   ./waf --run="main_flows --run_dir='/your/path/to/example_run'"
+   ./waf --run="my_main --run_dir='/your/path/to/example_run'"
    ```
    
    ... or if you also want to save the console output:
    
    ```
    mkdir -p /your/path/to/example_run/logs_ns3
-   ./waf --run="main_flows --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
+   ./waf --run="my_main --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
    ```
    
 6. Within `/your/path/to/example_run/logs_ns3` you should find the following output:
@@ -170,32 +243,51 @@ You can either immediately start with the tutorial below, or read more documenta
    |-- timing_results.txt
    |-- flows.txt
    |-- flows.csv
+   |-- flow_{0, 1, 2}_{cwnd, progress, rtt}.csv
    |-- utilization.csv
    |-- utilization_compressed.{csv, txt}
    |-- utilization_summary.txt
-   |-- flow_{0, 1, 2, 3}_{cwnd, progress, rtt}.csv
+   |-- udp_bursts_{incoming, outgoing}.{csv, txt}
+   |-- udp_burst_{0, 1}_{incoming, outgoing}.csv
    ```
    
 7. For example, `flows.txt` will contain:
 
    ```
    Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
-   0           1         3         80.00 Mbit      0                 1008391170        1008.39 ms      80.00 Mbit      100.0%       79.3 Mbit/s     YES           
-   1           2         3         56.00 Mbit      10000             1892039818        1892.03 ms      56.00 Mbit      100.0%       29.6 Mbit/s     YES           
-   2           3         1         2.40 Mbit       138953            80843116          80.70 ms        2.40 Mbit       100.0%       29.7 Mbit/s     YES           
-   3           2         1         62.40 Mbit      3738832           1615935742        1612.20 ms      62.40 Mbit      100.0%       38.7 Mbit/s     YES           
-   4           2         1         62.40 Mbit      3738832           1683533740        1679.79 ms      62.40 Mbit      100.0%       37.1 Mbit/s     YES           
+   0           1         3         100.00 Mbit     0                 2096381122        2096.38 ms      100.00 Mbit     100.0%       47.7 Mbit/s     YES           
+   1           2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      96.08 Mbit      96.1%        27.5 Mbit/s     NO_ONGOING    
+   2           2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      71.41 Mbit      71.4%        20.4 Mbit/s     NO_ONGOING             
    ```
 
-8. You could also plot a flow (e.g., flow 1):
+8. For example, `udp_bursts_incoming.txt` will contain:
 
    ```
-   cd build/plot_helpers/flow_plot
-   python flow_plot.py /path/to/example_run/logs_ns3 /path/to/example_run/logs_ns3/data /path/to/example_run/logs_ns3/pdf 1 10000000
+   UDP burst ID    From      To        Target rate         Start time      Duration        Incoming rate (w/ headers)  Incoming rate (payload)     Packets received   Metadata
+   1               2         1         50.00 Mbit/s        0.00 ms         5000.00 ms      49.83 Mbit/s                48.90 Mbit/s                16611              
+   0               1         2         50.00 Mbit/s        0.00 ms         5000.00 ms      49.99 Mbit/s                49.06 Mbit/s                16665                         
    ```
    
-   ... and then you can for example look at the congestion window of flow 1 over its runtime:
-   
-   **/path/to/example_run/logs_ns3/pdf/plot_tcp_time_vs_cwnd_1.pdf**
-   
-   [![Flow 1: time vs. cwnd](images/tutorial_plot_tcp_time_vs_cwnd_1.png)](images/tutorial_plot_tcp_time_vs_cwnd_1.pdf)
+9. For example, `pingmesh.txt` will contain:
+
+   ```
+   Source    Target    Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival
+   1         2         4.35 ms               7.76 ms               0.50 ms         12.11 ms        21.70 ms        4.90 ms         399/400 (100%)
+   1         3         5.83 ms               0.07 ms               0.05 ms         5.90 ms         16.41 ms        5.97 ms         398/400 (100%)
+   2         1         7.73 ms               4.33 ms               0.50 ms         12.05 ms        21.76 ms        4.89 ms         397/400 (99%)
+   2         3         9.15 ms               0.06 ms               0.07 ms         9.20 ms         16.74 ms        4.31 ms         398/400 (100%)
+   3         1         0.06 ms               5.83 ms               0.05 ms         5.89 ms         16.25 ms        6.00 ms         397/400 (99%)
+   3         2         0.07 ms               9.14 ms               0.05 ms         9.20 ms         17.05 ms        4.33 ms         396/400 (99%)                      
+   ```
+
+10. For example, `utilization_summary.txt` will contain:
+
+   ```
+   From     To       Utilization
+   0        1        50.56%
+   1        0        76.38%
+   0        2        51.08%
+   2        0        93.77%
+   0        3        70.05%
+   3        0        1.54%                       
+   ```
