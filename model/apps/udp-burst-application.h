@@ -27,6 +27,7 @@
 #include "ns3/address.h"
 #include "ns3/traced-callback.h"
 #include "ns3/seq-ts-header.h"
+#include "ns3/udp-burst-info.h"
 
 namespace ns3 {
 
@@ -39,14 +40,7 @@ namespace ns3 {
         static TypeId GetTypeId (void);
         UdpBurstApplication ();
         virtual ~UdpBurstApplication ();
-        void RegisterBurst(
-                InetSocketAddress targetAddress,
-                int64_t udp_burst_id,
-                int64_t rate_byte_per_s,
-                int64_t start_time_ns,
-                int64_t duration_ns,
-                std::string additional_parameters
-        );
+        void RegisterBurst(InetSocketAddress targetAddress, UdpBurstInfo burstInfo);
 
     protected:
         virtual void DoDispose (void);
@@ -61,8 +55,8 @@ namespace ns3 {
         Address m_local;      //!< local multicast address
 //
 //        std::vector<Address> node_id_to_remote_address;
-//        std::vector<UdpBurstScheduleEntry> m_burst_schedule; // Hops from one burst to the next (Event numero uno)
-//        std::vector<UdpBurstScheduleEntry> m_active_bursts; // Each time finds the burst which has the least amount of time remaining, and then plans that (Event numero dos)
+//        std::vector<UdpBurstInfo> m_burst_schedule; // Hops from one burst to the next (Event numero uno)
+//        std::vector<UdpBurstInfo> m_active_bursts; // Each time finds the burst which has the least amount of time remaining, and then plans that (Event numero dos)
 
     };
 

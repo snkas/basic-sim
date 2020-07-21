@@ -48,7 +48,7 @@ namespace ns3 {
             m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
             // Read schedule
-            std::vector<UdpBurstScheduleEntry> complete_schedule = read_udp_burst_schedule(
+            std::vector<UdpBurstInfo> complete_schedule = read_udp_burst_schedule(
                     m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("udp_burst_schedule_filename"),
                     m_topology,
                     m_simulation_end_time_ns
@@ -56,8 +56,8 @@ namespace ns3 {
 
             // Filter the schedule to only have UDP bursts from a node this system controls
             if (m_enable_distributed) {
-                std::vector<UdpBurstScheduleEntry> filtered_schedule;
-                for (UdpBurstScheduleEntry &entry : complete_schedule) {
+                std::vector<UdpBurstInfo> filtered_schedule;
+                for (UdpBurstInfo &entry : complete_schedule) {
                     if (m_distributed_node_system_id_assignment[entry.GetFromNodeId()] == m_system_id) {
                         filtered_schedule.push_back(entry);
                     }
@@ -98,14 +98,10 @@ namespace ns3 {
 
                     // Plan all burst originating from there
                     Ptr<UdpBurstApplication> udpBurstApp = app.Get(0)->GetObject<UdpBurstApplication>();
-                    for (UdpBurstScheduleEntry &entry : m_schedule) {
+                    for (UdpBurstInfo entry : m_schedule) {
                         udpBurstApp->RegisterBurst(
                                 InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
-                                entry.GetUdpBurstId(),
-                                entry.GetRateBytePerSec(),
-                                entry.GetStartTimeNs(),
-                                entry.GetDurationNs(),
-                                entry.GetAdditionalParameters()
+                                entry
                         );
                     }
 

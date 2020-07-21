@@ -48,6 +48,7 @@
 
 #include "ns3/udp-burst-schedule-reader.h"
 #include "ns3/udp-burst-helper.h"
+#include "ns3/udp-burst-info.h"
 
 namespace ns3 {
 
@@ -68,7 +69,7 @@ namespace ns3 {
         bool m_enable_distributed;
         std::vector<int64_t> m_distributed_node_system_id_assignment;
 
-        std::vector<UdpBurstScheduleEntry> m_schedule;
+        std::vector<UdpBurstInfo> m_schedule;
         NodeContainer m_nodes;
         std::vector<ApplicationContainer> m_apps;
         std::set<int64_t> m_enable_logging_for_ids;
