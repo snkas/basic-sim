@@ -37,8 +37,6 @@ public:
   static TypeId GetTypeId (void);
   UdpRttClient ();
   virtual ~UdpRttClient ();
-  void SetRemote (Address ip, uint16_t port);
-  void SetRemote (Address addr);
 
   uint32_t GetFromNodeId();
   uint32_t GetToNodeId();
