@@ -146,9 +146,9 @@ namespace ns3 {
             // Header
             std::cout << "  > Writing udp_bursts_{incoming, outgoing}.txt headers" << std::endl;
             fprintf(
-                    file_outgoing_txt, "%-16s%-10s%-10s%-16s%-16s%-20s%-22s%-22s%-16s%s\n",
-                    "UDP burst ID", "Source", "Target", "Start time", "Duration",
-                    "Target rate", "Rate (incl. headers)", "Rate (payload only)", "Packets out", "Metadata"
+                    file_outgoing_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-22s%-22s%-16s%s\n",
+                    "UDP burst ID", "From", "To", "Target rate", "Start time", "Duration",
+                    "Rate (incl. headers)", "Rate (payload only)", "Packets out", "Metadata"
             );
 
             // Go over each application
@@ -174,25 +174,25 @@ namespace ns3 {
                     );
 
                     // Write nicely formatted to the text
+                    char str_target_rate[100];
+                    sprintf(str_target_rate, "%.2f Mbit/s", info.GetTargetRateMegabitPerSec());
                     char str_start_time[100];
                     sprintf(str_start_time, "%.2f ms", nanosec_to_millisec(info.GetStartTimeNs()));
                     char str_duration_ms[100];
                     sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(info.GetDurationNs()));
-                    char str_target_rate[100];
-                    sprintf(str_target_rate, "%.2f Mbit/s", info.GetTargetRateMegabitPerSec());
                     char str_eff_rate_incl_headers[100];
                     sprintf(str_eff_rate_incl_headers, "%.2f Mbit/s", rate_incl_headers_megabit_per_s);
                     char str_eff_rate_payload_only[100];
                     sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", rate_payload_only_megabit_per_s);
                     fprintf(
                             file_outgoing_txt,
-                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-16s%-20s%-22s%-22s%-16" PRIu64 "%s\n",
+                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-22s%-22s%-16" PRIu64 "%s\n",
                             info.GetUdpBurstId(),
                             info.GetFromNodeId(),
                             info.GetToNodeId(),
+                            str_target_rate,
                             str_start_time,
                             str_duration_ms,
-                            str_target_rate,
                             str_eff_rate_incl_headers,
                             str_eff_rate_payload_only,
                             sent_out_counter,
