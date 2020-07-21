@@ -57,6 +57,18 @@ namespace ns3 {
         NS_LOG_FUNCTION(this);
         m_socket = 0;
     }
+
+    void
+    UdpBurstApplication::RegisterBurst(
+            InetSocketAddress targetAddress,
+            int64_t udp_burst_id,
+            int64_t rate_byte_per_s,
+            int64_t start_time_ns,
+            int64_t duration_ns,
+            std::string additional_parameters
+    ) {
+        // TODO: Something!
+    }
 //
 //    void
 //    UdpBurstApplication::InitializeSchedule(std::vector<Address> node_id_to_remote_address, std::vector<UdpBurstScheduleEntry> burst_schedule) {

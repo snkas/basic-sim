@@ -29,6 +29,7 @@
 #include "ns3/object-factory.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
+#include "ns3/udp-burst-application.h"
 
 namespace ns3 {
 

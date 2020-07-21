@@ -19,6 +19,8 @@
 #ifndef UDP_BURST_APPLICATION_H
 #define UDP_BURST_APPLICATION_H
 
+#include "ns3/network-module.h"
+#include "ns3/internet-module.h"
 #include "ns3/application.h"
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
@@ -37,12 +39,19 @@ namespace ns3 {
         static TypeId GetTypeId (void);
         UdpBurstApplication ();
         virtual ~UdpBurstApplication ();
+        void RegisterBurst(
+                InetSocketAddress targetAddress,
+                int64_t udp_burst_id,
+                int64_t rate_byte_per_s,
+                int64_t start_time_ns,
+                int64_t duration_ns,
+                std::string additional_parameters
+        );
 
     protected:
         virtual void DoDispose (void);
 
     private:
-
         virtual void StartApplication (void);
         virtual void StopApplication (void);
         void HandleRead (Ptr<Socket> socket);

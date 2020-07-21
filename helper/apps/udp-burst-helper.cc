@@ -21,7 +21,6 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 #include "udp-burst-helper.h"
-#include "ns3/udp-burst-application.h"
 #include "ns3/uinteger.h"
 #include "ns3/names.h"
 
