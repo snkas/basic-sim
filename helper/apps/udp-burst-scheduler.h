@@ -47,7 +47,7 @@
 #include "ns3/topology.h"
 
 #include "ns3/udp-burst-schedule-reader.h"
-// #include "ns3/udp-burst-application-helper.h"
+#include "ns3/udp-burst-helper.h"
 
 namespace ns3 {
 
@@ -71,7 +71,7 @@ namespace ns3 {
         std::vector<UdpBurstScheduleEntry> m_schedule;
         NodeContainer m_nodes;
         std::vector<ApplicationContainer> m_apps;
-        std::set<int64_t> m_enableUdpBurstLoggingToFileForUdpBurstIds;
+        std::set<int64_t> m_enable_logging_for_ids;
 
         std::string m_udp_bursts_csv_filename;
         std::string m_udp_bursts_txt_filename;

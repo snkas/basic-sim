@@ -40,8 +40,7 @@ namespace ns3 {
             // Properties we will use often
             m_nodes = m_topology->GetNodes();
             m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
-            m_enableUdpBurstLoggingToFileForUdpBurstIds = parse_set_positive_int64(
-                    m_basicSimulation->GetConfigParamOrDefault("udp_burst_enable_logging_for_ids", "set()"));
+            m_enable_logging_for_ids = parse_set_positive_int64(m_basicSimulation->GetConfigParamOrDefault("udp_burst_enable_logging_for_ids", "set()"));
 
             // Distributed run information
             m_system_id = m_basicSimulation->GetSystemId();
@@ -87,23 +86,25 @@ namespace ns3 {
             printf("  > Removed previous UDP burst log files if present\n");
             m_basicSimulation->RegisterTimestamp("Remove previous UDP burst log files");
 
-//            // Install sink on each endpoint node
-//            std::cout << "  > Setting up flow sinks" << std::endl;
-//            for (int64_t endpoint : m_topology->GetEndpoints()) {
-//                if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
-//                    FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
-//                    ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
-//                    app.Start(Seconds(0.0));
-//                }
-//            }
-//            m_basicSimulation->RegisterTimestamp("Setup flow sinks");
-//
-//            // Setup start of first source application
-//            std::cout << "  > Setting up traffic flow starter" << std::endl;
-//            if (m_schedule.size() > 0) {
-//                Simulator::Schedule(NanoSeconds(m_schedule[0].GetStartTimeNs()), &UdpBurstScheduler::StartNextFlow, this, 0);
-//            }
-//            m_basicSimulation->RegisterTimestamp("Setup traffic flow starter");
+            // Install sink on each endpoint node
+            std::cout << "  > Setting up UDP burst applications on all endpoint nodes" << std::endl;
+            for (int64_t endpoint : m_topology->GetEndpoints()) {
+                if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
+
+                    // Setup the application
+                    UdpBurstHelper udpBurstHelper(1026);
+                    ApplicationContainer app = udpBurstHelper.Install(m_nodes.Get(endpoint));
+                    app.Start(Seconds(0.0));
+
+                    // Plan all burst originating from there
+//                    Ptr<UdpBurstApplication> udpBurstApp = app.Get(0)->GetObject<UdpBurstApplication>();
+//                    for (UdpBurstScheduleEntry &entry : m_schedule) {
+//                        udpBurstApp->RegisterBurst(entry);
+//                    }
+
+                }
+            }
+            m_basicSimulation->RegisterTimestamp("Setup UDP burst applications");
 
         }
 
