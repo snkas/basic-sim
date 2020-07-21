@@ -59,7 +59,10 @@ namespace ns3 {
     }
 
     void
-    UdpBurstApplication::RegisterBurst(InetSocketAddress targetAddress, UdpBurstInfo burstInfo) {
+    UdpBurstApplication::RegisterBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress) {
+        if (m_bursts.size() >= 1 && burstInfo.GetStartTimeNs() < std::get<0>(m_bursts[m_bursts.size() - 1]).GetStartTimeNs()) {
+            throw std::runtime_error("Bursts must be added weakly ascending on start time");
+        }
         m_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
     }
 

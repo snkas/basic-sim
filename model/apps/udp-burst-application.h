@@ -40,7 +40,7 @@ namespace ns3 {
         static TypeId GetTypeId (void);
         UdpBurstApplication ();
         virtual ~UdpBurstApplication ();
-        void RegisterBurst(InetSocketAddress targetAddress, UdpBurstInfo burstInfo);
+        void RegisterBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress);
 
     protected:
         virtual void DoDispose (void);

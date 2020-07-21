@@ -100,8 +100,8 @@ namespace ns3 {
                     Ptr<UdpBurstApplication> udpBurstApp = app.Get(0)->GetObject<UdpBurstApplication>();
                     for (UdpBurstInfo entry : m_schedule) {
                         udpBurstApp->RegisterBurst(
-                                InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
-                                entry
+                                entry,
+                                InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026)
                         );
                     }
 
