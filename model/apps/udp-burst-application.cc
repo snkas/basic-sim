@@ -126,12 +126,18 @@ namespace ns3 {
     void
     UdpBurstApplication::BurstSendOut(size_t internal_burst_idx)
     {
+
         // Send out the packet as desired
         TransmitFullPacket(internal_burst_idx);
 
-        // For now, let's not send out one-by-one, just to verify correctness
-        // int64_t next_packet_send_ns = 1000;
-        // Simulator::Schedule(NanoSeconds(next_packet_send_ns), &UdpBurstApplication::BurstSendOut, this, internal_burst_idx);
+        // Schedule the next if the packet gap would not exceed the rate
+        uint64_t now_ns = Simulator::Now().GetNanoSeconds();
+        UdpBurstInfo info = std::get<0>(m_bursts[internal_burst_idx]);
+        uint64_t packet_gap_nanoseconds = std::ceil(1500.0 / (info.GetRateBytePerSec() / 1e9));
+        if (now_ns + packet_gap_nanoseconds < (uint64_t) (info.GetStartTimeNs() + info.GetDurationNs())) {
+            Simulator::Schedule(NanoSeconds(packet_gap_nanoseconds), &UdpBurstApplication::BurstSendOut, this, internal_burst_idx);
+        }
+
     }
 
     void
@@ -160,6 +166,7 @@ namespace ns3 {
         if (m_socket != 0) {
             m_socket->Close();
             m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
+            // TODO: Cancel any running events
         }
     }
 
@@ -174,10 +181,25 @@ namespace ns3 {
             IdSeqHeader incomingIdSeq;
             packet->RemoveHeader (incomingIdSeq);
 
+            // Count packets from incoming bursts
+            if (m_incoming_bursts_received_counter.find(incomingIdSeq.GetId()) == m_incoming_bursts_received_counter.end()) {
+                m_incoming_bursts_received_counter[incomingIdSeq.GetId()] = 0;
+            }
+            m_incoming_bursts_received_counter[incomingIdSeq.GetId()] += 1;
+
             // Print
-            std::cout << "Burst " << incomingIdSeq.GetId() << " sequence " << incomingIdSeq.GetSeq() << std::endl;
+            // std::cout << "Burst " << incomingIdSeq.GetId() << " sequence " << incomingIdSeq.GetSeq() << std::endl;
 
         }
+    }
+
+    std::vector<std::tuple<UdpBurstInfo, uint64_t>>
+    UdpBurstApplication::GetOutgoingBurstsInformation() {
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> result;
+        for (size_t i = 0; i < m_bursts.size(); i++) {
+            result.push_back(std::make_tuple(std::get<0>(m_bursts[i]), m_bursts_packets_sent_counter[i]));
+        }
+        return result;
     }
 
 } // Namespace ns3

@@ -95,6 +95,7 @@ namespace ns3 {
                     UdpBurstHelper udpBurstHelper(1026);
                     ApplicationContainer app = udpBurstHelper.Install(m_nodes.Get(endpoint));
                     app.Start(Seconds(0.0));
+                    m_apps.push_back(app);
 
                     // Plan all burst originating from there
                     Ptr<UdpBurstApplication> udpBurstApp = app.Get(0)->GetObject<UdpBurstApplication>();
@@ -134,73 +135,50 @@ namespace ns3 {
 
             // Header
             std::cout << "  > Writing udp_bursts.txt header" << std::endl;
-            fprintf(
-                    file_txt, "%-16s%-10s%-10s%-16s%-18s%-18s%-16s%s\n",
-                    "UDP burst ID", "Source", "Target", "Rate (Mbit/s)", "Start time (ns)",
-                    "Duration", "Arrival", "Metadata"
-            );
+//            fprintf(
+//                    file_txt, "%-16s%-10s%-10s%-16s%-18s%-18s%-16s%s\n",
+//                    "UDP burst ID", "Source", "Target", "Start time (ns)", "Duration",
+//                    "Target rate", "Rate (incl. headers)", "Rate (payload only)", "Packets out", "Metadata"
+//            );
 
-//            // Go over the schedule, write each flow's result
-//            std::cout << "  > Writing log files line-by-line" << std::endl;
-//            std::vector<ApplicationContainer>::iterator it = m_apps.begin();
-//            for (FlowScheduleEntry& entry : m_schedule) {
-//
-//                // Retrieve statistics
-//                ApplicationContainer app = *it;
-//                Ptr<FlowSendApplication> flowSendApp = ((it->Get(0))->GetObject<FlowSendApplication>());
-//                bool is_completed = flowSendApp->IsCompleted();
-//                bool is_conn_failed = flowSendApp->IsConnFailed();
-//                bool is_closed_err = flowSendApp->IsClosedByError();
-//                bool is_closed_normal = flowSendApp->IsClosedNormally();
-//                int64_t sent_byte = flowSendApp->GetAckedBytes();
-//                int64_t fct_ns;
-//                if (is_completed) {
-//                    fct_ns = flowSendApp->GetCompletionTimeNs() - entry.GetStartTimeNs();
-//                } else {
-//                    fct_ns = m_simulation_end_time_ns - entry.GetStartTimeNs();
-//                }
-//                std::string finished_state;
-//                if (is_completed) {
-//                    finished_state = "YES";
-//                } else if (is_conn_failed) {
-//                    finished_state = "NO_CONN_FAIL";
-//                } else if (is_closed_normal) {
-//                    finished_state = "NO_BAD_CLOSE";
-//                } else if (is_closed_err) {
-//                    finished_state = "NO_ERR_CLOSE";
-//                } else {
-//                    finished_state = "NO_ONGOING";
-//                }
-//
-//                // Write plain to the csv
-//                fprintf(
-//                        file_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%s,%s\n",
-//                        entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), entry.GetSizeByte(), entry.GetStartTimeNs(),
-//                        entry.GetStartTimeNs() + fct_ns, fct_ns, sent_byte, finished_state.c_str(), entry.GetMetadata().c_str()
-//                );
-//
-//                // Write nicely formatted to the text
-//                char str_size_megabit[100];
-//                sprintf(str_size_megabit, "%.2f Mbit", byte_to_megabit(entry.GetSizeByte()));
-//                char str_duration_ms[100];
-//                sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(fct_ns));
-//                char str_sent_megabit[100];
-//                sprintf(str_sent_megabit, "%.2f Mbit", byte_to_megabit(sent_byte));
-//                char str_progress_perc[100];
-//                sprintf(str_progress_perc, "%.1f%%", ((double) sent_byte) / ((double) entry.GetSizeByte()) * 100.0);
-//                char str_avg_rate_megabit_per_s[100];
-//                sprintf(str_avg_rate_megabit_per_s, "%.1f Mbit/s", byte_to_megabit(sent_byte) / nanosec_to_sec(fct_ns));
-//                fprintf(
-//                        file_txt, "%-12" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-18" PRId64 "%-18" PRId64 "%-16s%-16s%-13s%-16s%-14s%s\n",
-//                        entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), str_size_megabit, entry.GetStartTimeNs(),
-//                        entry.GetStartTimeNs() + fct_ns, str_duration_ms, str_sent_megabit, str_progress_perc, str_avg_rate_megabit_per_s,
-//                        finished_state.c_str(), entry.GetMetadata().c_str()
-//                );
-//
-//                // Move on iterator
-//                it++;
-//
-//            }
+            // Go over each application
+            std::cout << "  > Writing log files" << std::endl;
+            for (size_t i = 0; i < m_apps.size(); i++) {
+                Ptr<UdpBurstApplication> udpBurstApp = m_apps[i].Get(0)->GetObject<UdpBurstApplication>();
+
+                std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_bursts = udpBurstApp->GetOutgoingBurstsInformation();
+                for (size_t j = 0; j < outgoing_bursts.size(); j++) {
+                    UdpBurstInfo info = std::get<0>(outgoing_bursts[j]);
+                    uint64_t sent_out_counter = std::get<1>(outgoing_bursts[j]);
+
+                    // Write plain to the csv
+                    fprintf(
+                            file_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRIu64 ",%s\n",
+                            info.GetUdpBurstId(), info.GetFromNodeId(), info.GetToNodeId(), info.GetRateBytePerSec(), info.GetStartTimeNs(),
+                            info.GetDurationNs(), sent_out_counter, info.GetMetadata().c_str()
+                    );
+
+//                    // Write nicely formatted to the text
+//                    char str_size_megabit[100];
+//                    sprintf(str_size_megabit, "%.2f Mbit", byte_to_megabit(entry.GetSizeByte()));
+//                    char str_duration_ms[100];
+//                    sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(fct_ns));
+//                    char str_sent_megabit[100];
+//                    sprintf(str_sent_megabit, "%.2f Mbit", byte_to_megabit(sent_byte));
+//                    char str_progress_perc[100];
+//                    sprintf(str_progress_perc, "%.1f%%", ((double) sent_byte) / ((double) entry.GetSizeByte()) * 100.0);
+//                    char str_avg_rate_megabit_per_s[100];
+//                    sprintf(str_avg_rate_megabit_per_s, "%.1f Mbit/s", byte_to_megabit(sent_byte) / nanosec_to_sec(fct_ns));
+//                    fprintf(
+//                            file_txt, "%-12" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-18" PRId64 "%-18" PRId64 "%-16s%-16s%-13s%-16s%-14s%s\n",
+//                            entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), str_size_megabit, entry.GetStartTimeNs(),
+//                            entry.GetStartTimeNs() + fct_ns, str_duration_ms, str_sent_megabit, str_progress_perc, str_avg_rate_megabit_per_s,
+//                            finished_state.c_str(), entry.GetMetadata().c_str()
+//                    );
+
+                }
+
+            }
 
             // Close files
             std::cout << "  > Closing UDP burst log files:" << std::endl;

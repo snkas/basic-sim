@@ -45,6 +45,7 @@ namespace ns3 {
         void StartNextBurst();
         void BurstSendOut(size_t internal_burst_idx);
         void TransmitFullPacket(size_t internal_burst_idx);
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> GetOutgoingBurstsInformation();
 
     protected:
         virtual void DoDispose (void);
@@ -64,7 +65,7 @@ namespace ns3 {
         size_t m_next_internal_burst_idx; //!< Next burst index to send out
 
         // Incoming bursts
-
+        std::map<int64_t, uint64_t> m_incoming_bursts_received_counter;
 
     };
 
