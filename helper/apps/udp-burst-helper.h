@@ -20,8 +20,8 @@
  * Adapted from UdpEchoHelper by:
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-#ifndef UDP_BURST_HELPER
-#define UDP_BURST_HELPER
+#ifndef UDP_BURST_HELPER_H
+#define UDP_BURST_HELPER_H
 
 #include <stdint.h>
 #include "ns3/application-container.h"
@@ -36,7 +36,7 @@ namespace ns3 {
 class UdpBurstHelper
 {
 public:
-  UdpBurstHelper (uint16_t port);
+  UdpBurstHelper (uint16_t port, std::string baseLogsDir);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
   ApplicationContainer Install (NodeContainer c) const;
@@ -48,4 +48,4 @@ private:
 
 } // namespace ns3
 
-#endif /* UDP_BURST_HELPER */
+#endif /* UDP_BURST_HELPER_H */

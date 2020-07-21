@@ -72,7 +72,7 @@ namespace ns3 {
         std::vector<UdpBurstInfo> m_schedule;
         NodeContainer m_nodes;
         std::vector<ApplicationContainer> m_apps;
-        std::set<int64_t> m_enable_logging_for_ids;
+        std::set<int64_t> m_enable_logging_for_udp_burst_ids;
 
         std::string m_udp_bursts_outgoing_csv_filename;
         std::string m_udp_bursts_outgoing_txt_filename;

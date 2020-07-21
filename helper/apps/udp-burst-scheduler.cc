@@ -40,7 +40,7 @@ namespace ns3 {
             // Properties we will use often
             m_nodes = m_topology->GetNodes();
             m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
-            m_enable_logging_for_ids = parse_set_positive_int64(m_basicSimulation->GetConfigParamOrDefault("udp_burst_enable_logging_for_ids", "set()"));
+            m_enable_logging_for_udp_burst_ids = parse_set_positive_int64(m_basicSimulation->GetConfigParamOrDefault("udp_burst_enable_logging_for_udp_burst_ids", "set()"));
 
             // Distributed run information
             m_system_id = m_basicSimulation->GetSystemId();
@@ -85,7 +85,7 @@ namespace ns3 {
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
 
                     // Setup the application
-                    UdpBurstHelper udpBurstHelper(1026);
+                    UdpBurstHelper udpBurstHelper(1026, m_basicSimulation->GetLogsDir());
                     ApplicationContainer app = udpBurstHelper.Install(m_nodes.Get(endpoint));
                     app.Start(Seconds(0.0));
                     m_apps.push_back(app);
@@ -96,11 +96,15 @@ namespace ns3 {
                         if (entry.GetFromNodeId() == endpoint) {
                             udpBurstApp->RegisterOutgoingBurst(
                                     entry,
-                                    InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026)
+                                    InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
+                                    m_enable_logging_for_udp_burst_ids.find(entry.GetUdpBurstId()) != m_enable_logging_for_udp_burst_ids.end()
                             );
                         }
                         if (entry.GetToNodeId() == endpoint) {
-                            udpBurstApp->RegisterIncomingBurst(entry);
+                            udpBurstApp->RegisterIncomingBurst(
+                                    entry,
+                                    m_enable_logging_for_udp_burst_ids.find(entry.GetUdpBurstId()) != m_enable_logging_for_udp_burst_ids.end()
+                            );
                         }
                     }
 
@@ -141,7 +145,7 @@ namespace ns3 {
                     "Outgoing rate (w/ headers)", "Outgoing rate (payload)", "Packets sent", "Metadata"
             );
             fprintf(
-                    file_incoming_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-18s%s\n",
+                    file_incoming_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-19s%s\n",
                     "UDP burst ID", "From", "To", "Target rate", "Start time", "Duration",
                     "Incoming rate (w/ headers)", "Incoming rate (payload)", "Packets received", "Metadata"
             );
@@ -228,7 +232,7 @@ namespace ns3 {
                     sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", rate_payload_only_megabit_per_s);
                     fprintf(
                             file_incoming_txt,
-                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-18" PRIu64 "%s\n",
+                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-19" PRIu64 "%s\n",
                             info.GetUdpBurstId(),
                             info.GetFromNodeId(),
                             info.GetToNodeId(),

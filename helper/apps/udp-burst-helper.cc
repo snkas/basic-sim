@@ -23,13 +23,15 @@
 #include "udp-burst-helper.h"
 #include "ns3/uinteger.h"
 #include "ns3/names.h"
+#include "ns3/string.h"
 
 namespace ns3 {
 
-UdpBurstHelper::UdpBurstHelper (uint16_t port)
+UdpBurstHelper::UdpBurstHelper (uint16_t port, std::string baseLogsDir)
 {
   m_factory.SetTypeId (UdpBurstApplication::GetTypeId ());
   SetAttribute ("Port", UintegerValue (port));
+  SetAttribute ("BaseLogsDir", StringValue (baseLogsDir));
 }
 
 void 

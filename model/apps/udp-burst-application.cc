@@ -46,6 +46,11 @@ namespace ns3 {
                               UintegerValue(9),
                               MakeUintegerAccessor(&UdpBurstApplication::m_port),
                               MakeUintegerChecker<uint16_t>())
+                .AddAttribute ("BaseLogsDir",
+                               "Base logging directory (flow logging will be placed here, i.e. logs_dir/flow_[flow id]_{progress, cwnd, rtt}.csv",
+                               StringValue (""),
+                               MakeStringAccessor (&UdpBurstApplication::m_baseLogsDir),
+                               MakeStringChecker ())
                 .AddAttribute("MaxUdpPayloadSizeByte", "Total UDP payload size (byte) before it gets fragmented.",
                               UintegerValue(1472), // 1500 (point-to-point default) - 20 (IP) - 8 (UDP) = 1472
                               MakeUintegerAccessor(&UdpBurstApplication::m_max_udp_payload_size_byte),
@@ -64,18 +69,30 @@ namespace ns3 {
     }
 
     void
-    UdpBurstApplication::RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress) {
+    UdpBurstApplication::RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress, bool enable_precise_logging) {
         if (m_bursts.size() >= 1 && burstInfo.GetStartTimeNs() < std::get<0>(m_bursts[m_bursts.size() - 1]).GetStartTimeNs()) {
             throw std::runtime_error("Bursts must be added weakly ascending on start time");
         }
         m_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
         m_bursts_packets_sent_counter.push_back(0);
+        m_bursts_enable_precise_logging.push_back(enable_precise_logging);
+        if (enable_precise_logging) {
+            std::ofstream ofs;
+            ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_outgoing.csv", burstInfo.GetUdpBurstId()));
+            ofs.close();
+        }
     }
 
     void
-    UdpBurstApplication::RegisterIncomingBurst(UdpBurstInfo burstInfo) {
+    UdpBurstApplication::RegisterIncomingBurst(UdpBurstInfo burstInfo, bool enable_precise_logging) {
         m_incoming_bursts.push_back(burstInfo);
         m_incoming_bursts_received_counter[burstInfo.GetUdpBurstId()] = 0;
+        m_incoming_bursts_enable_precise_logging[burstInfo.GetUdpBurstId()] = enable_precise_logging;
+        if (enable_precise_logging) {
+            std::ofstream ofs;
+            ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_incoming.csv", burstInfo.GetUdpBurstId()));
+            ofs.close();
+        }
     }
 
     void
@@ -157,6 +174,14 @@ namespace ns3 {
         // One more packet will be sent out
         m_bursts_packets_sent_counter[internal_burst_idx] += 1;
 
+        // Log precise timestamp sent away of the sequence packet if needed
+        if (m_bursts_enable_precise_logging[internal_burst_idx]) {
+            std::ofstream ofs;
+            ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_outgoing.csv", idSeq.GetId()), std::ofstream::out | std::ofstream::app);
+            ofs << idSeq.GetId() << "," << idSeq.GetSeq() << "," << Simulator::Now().GetNanoSeconds() << std::endl;
+            ofs.close();
+        }
+
         // A full payload packet
         Ptr<Packet> p = Create<Packet>(m_max_udp_payload_size_byte - idSeq.GetSerializedSize());
         p->AddHeader(idSeq);
@@ -192,6 +217,14 @@ namespace ns3 {
                 throw std::runtime_error("Incoming burst was not registered");
             }
             m_incoming_bursts_received_counter[incomingIdSeq.GetId()] += 1;
+
+            // Log precise timestamp received of the sequence packet if needed
+            if (m_incoming_bursts_enable_precise_logging[incomingIdSeq.GetId()]) {
+                std::ofstream ofs;
+                ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_incoming.csv", incomingIdSeq.GetId()), std::ofstream::out | std::ofstream::app);
+                ofs << incomingIdSeq.GetId() << "," << incomingIdSeq.GetSeq() << "," << Simulator::Now().GetNanoSeconds() << std::endl;
+                ofs.close();
+            }
 
         }
     }
