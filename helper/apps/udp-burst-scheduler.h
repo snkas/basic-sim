@@ -74,8 +74,10 @@ namespace ns3 {
         std::vector<ApplicationContainer> m_apps;
         std::set<int64_t> m_enable_logging_for_ids;
 
-        std::string m_udp_bursts_csv_filename;
-        std::string m_udp_bursts_txt_filename;
+        std::string m_udp_bursts_outgoing_csv_filename;
+        std::string m_udp_bursts_outgoing_txt_filename;
+        std::string m_udp_bursts_incoming_csv_filename;
+        std::string m_udp_bursts_incoming_txt_filename;
 
     };
 

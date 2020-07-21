@@ -73,16 +73,22 @@ namespace ns3 {
 
             // Determine filenames
             if (m_enable_distributed) {
-                m_udp_bursts_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts.csv";
-                m_udp_bursts_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts.txt";
+                m_udp_bursts_outgoing_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_outgoing.csv";
+                m_udp_bursts_outgoing_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_outgoing.txt";
+                m_udp_bursts_incoming_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_incoming.csv";
+                m_udp_bursts_incoming_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_incoming.txt";
             } else {
-                m_udp_bursts_csv_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts.csv";
-                m_udp_bursts_txt_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts.txt";
+                m_udp_bursts_outgoing_csv_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts_outgoing.csv";
+                m_udp_bursts_outgoing_txt_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts_outgoing.txt";
+                m_udp_bursts_incoming_csv_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts_incoming.csv";
+                m_udp_bursts_incoming_txt_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts_incoming.txt";
             }
 
             // Remove files if they are there
-            remove_file_if_exists(m_udp_bursts_csv_filename);
-            remove_file_if_exists(m_udp_bursts_txt_filename);
+            remove_file_if_exists(m_udp_bursts_outgoing_csv_filename);
+            remove_file_if_exists(m_udp_bursts_outgoing_txt_filename);
+            remove_file_if_exists(m_udp_bursts_incoming_csv_filename);
+            remove_file_if_exists(m_udp_bursts_incoming_txt_filename);
             printf("  > Removed previous UDP burst log files if present\n");
             m_basicSimulation->RegisterTimestamp("Remove previous UDP burst log files");
 
@@ -128,53 +134,68 @@ namespace ns3 {
 
             // Open files
             std::cout << "  > Opening UDP burst log files:" << std::endl;
-            FILE* file_csv = fopen(m_udp_bursts_csv_filename.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_udp_bursts_csv_filename << std::endl;
-            FILE* file_txt = fopen(m_udp_bursts_txt_filename.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_udp_bursts_txt_filename << std::endl;
+            FILE* file_outgoing_csv = fopen(m_udp_bursts_outgoing_csv_filename.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_udp_bursts_outgoing_csv_filename << std::endl;
+            FILE* file_outgoing_txt = fopen(m_udp_bursts_outgoing_txt_filename.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_udp_bursts_outgoing_txt_filename << std::endl;
+            FILE* file_incoming_csv = fopen(m_udp_bursts_incoming_csv_filename.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_udp_bursts_incoming_csv_filename << std::endl;
+            FILE* file_incoming_txt = fopen(m_udp_bursts_incoming_txt_filename.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_udp_bursts_incoming_txt_filename << std::endl;
 
             // Header
-            std::cout << "  > Writing udp_bursts.txt header" << std::endl;
-//            fprintf(
-//                    file_txt, "%-16s%-10s%-10s%-16s%-18s%-18s%-16s%s\n",
-//                    "UDP burst ID", "Source", "Target", "Start time (ns)", "Duration",
-//                    "Target rate", "Rate (incl. headers)", "Rate (payload only)", "Packets out", "Metadata"
-//            );
+            std::cout << "  > Writing udp_bursts_{incoming, outgoing}.txt headers" << std::endl;
+            fprintf(
+                    file_outgoing_txt, "%-16s%-10s%-10s%-16s%-16s%-20s%-22s%-22s%-16s%s\n",
+                    "UDP burst ID", "Source", "Target", "Start time", "Duration",
+                    "Target rate", "Rate (incl. headers)", "Rate (payload only)", "Packets out", "Metadata"
+            );
 
             // Go over each application
             std::cout << "  > Writing log files" << std::endl;
             for (size_t i = 0; i < m_apps.size(); i++) {
                 Ptr<UdpBurstApplication> udpBurstApp = m_apps[i].Get(0)->GetObject<UdpBurstApplication>();
 
+                // Outgoing bursts
                 std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_bursts = udpBurstApp->GetOutgoingBurstsInformation();
                 for (size_t j = 0; j < outgoing_bursts.size(); j++) {
                     UdpBurstInfo info = std::get<0>(outgoing_bursts[j]);
                     uint64_t sent_out_counter = std::get<1>(outgoing_bursts[j]);
 
-                    // Write plain to the csv
+                    // Write plain to the CSV
                     fprintf(
-                            file_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRIu64 ",%s\n",
+                            file_outgoing_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRIu64 ",%s\n",
                             info.GetUdpBurstId(), info.GetFromNodeId(), info.GetToNodeId(), info.GetRateBytePerSec(), info.GetStartTimeNs(),
                             info.GetDurationNs(), sent_out_counter, info.GetMetadata().c_str()
                     );
 
-//                    // Write nicely formatted to the text
-//                    char str_size_megabit[100];
-//                    sprintf(str_size_megabit, "%.2f Mbit", byte_to_megabit(entry.GetSizeByte()));
-//                    char str_duration_ms[100];
-//                    sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(fct_ns));
-//                    char str_sent_megabit[100];
-//                    sprintf(str_sent_megabit, "%.2f Mbit", byte_to_megabit(sent_byte));
-//                    char str_progress_perc[100];
-//                    sprintf(str_progress_perc, "%.1f%%", ((double) sent_byte) / ((double) entry.GetSizeByte()) * 100.0);
-//                    char str_avg_rate_megabit_per_s[100];
-//                    sprintf(str_avg_rate_megabit_per_s, "%.1f Mbit/s", byte_to_megabit(sent_byte) / nanosec_to_sec(fct_ns));
-//                    fprintf(
-//                            file_txt, "%-12" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-18" PRId64 "%-18" PRId64 "%-16s%-16s%-13s%-16s%-14s%s\n",
-//                            entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), str_size_megabit, entry.GetStartTimeNs(),
-//                            entry.GetStartTimeNs() + fct_ns, str_duration_ms, str_sent_megabit, str_progress_perc, str_avg_rate_megabit_per_s,
-//                            finished_state.c_str(), entry.GetMetadata().c_str()
-//                    );
+                    int64_t effective_duration_ns = info.GetStartTimeNs() + info.GetDurationNs() >= m_simulation_end_time_ns ? m_simulation_end_time_ns - info.GetStartTimeNs() : info.GetDurationNs();
+
+                    // Write nicely formatted to the text
+                    char str_start_time[100];
+                    sprintf(str_start_time, "%.2f ms", nanosec_to_millisec(info.GetStartTimeNs()));
+                    char str_duration_ms[100];
+                    sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(info.GetDurationNs()));
+                    char str_target_rate[100];
+                    sprintf(str_target_rate, "%.2f Mbit/s", info.GetRateBytePerSec() / 125000.0);
+                    char str_eff_rate_incl_headers[100];
+                    sprintf(str_eff_rate_incl_headers, "%.2f Mbit/s", byte_to_megabit(sent_out_counter * 1500) / nanosec_to_sec(effective_duration_ns));
+                    char str_eff_rate_payload_only[100];
+                    sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", byte_to_megabit(sent_out_counter * 1472) / nanosec_to_sec(effective_duration_ns));
+                    fprintf(
+                            file_outgoing_txt,
+                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-16s%-20s%-22s%-22s%-16" PRIu64 "%s\n",
+                            info.GetUdpBurstId(),
+                            info.GetFromNodeId(),
+                            info.GetToNodeId(),
+                            str_start_time,
+                            str_duration_ms,
+                            str_target_rate,
+                            str_eff_rate_incl_headers,
+                            str_eff_rate_payload_only,
+                            sent_out_counter,
+                            info.GetMetadata().c_str()
+                    );
 
                 }
 
@@ -182,10 +203,14 @@ namespace ns3 {
 
             // Close files
             std::cout << "  > Closing UDP burst log files:" << std::endl;
-            fclose(file_csv);
-            std::cout << "    >> Closed: " << m_udp_bursts_csv_filename << std::endl;
-            fclose(file_txt);
-            std::cout << "    >> Closed: " << m_udp_bursts_txt_filename << std::endl;
+            fclose(file_outgoing_csv);
+            std::cout << "    >> Closed: " << m_udp_bursts_outgoing_csv_filename << std::endl;
+            fclose(file_outgoing_txt);
+            std::cout << "    >> Closed: " << m_udp_bursts_outgoing_txt_filename << std::endl;
+            fclose(file_incoming_csv);
+            std::cout << "    >> Closed: " << m_udp_bursts_incoming_csv_filename << std::endl;
+            fclose(file_incoming_txt);
+            std::cout << "    >> Closed: " << m_udp_bursts_incoming_txt_filename << std::endl;
 
             // Register completion
             std::cout << "  > UDP burst log files have been written" << std::endl;
