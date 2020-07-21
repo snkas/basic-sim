@@ -6,7 +6,7 @@ namespace ns3 {
             int64_t udp_burst_id,
             int64_t from_node_id,
             int64_t to_node_id,
-            int64_t rate_byte_per_sec,
+            double target_rate_megabit_per_s,
             int64_t start_time_ns,
             int64_t duration_ns,
             std::string additional_parameters,
@@ -15,7 +15,7 @@ namespace ns3 {
         m_udp_burst_id = udp_burst_id;
         m_from_node_id = from_node_id;
         m_to_node_id = to_node_id;
-        m_rate_byte_per_sec = rate_byte_per_sec;
+        m_target_rate_megabit_per_s = target_rate_megabit_per_s;
         m_start_time_ns = start_time_ns;
         m_duration_ns = duration_ns;
         m_additional_parameters = additional_parameters;
@@ -34,8 +34,8 @@ namespace ns3 {
         return m_to_node_id;
     }
 
-    int64_t UdpBurstInfo::GetRateBytePerSec() {
-        return m_rate_byte_per_sec;
+    double UdpBurstInfo::GetTargetRateMegabitPerSec() {
+        return m_target_rate_megabit_per_s;
     }
 
     int64_t UdpBurstInfo::GetStartTimeNs() {

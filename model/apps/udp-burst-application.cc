@@ -133,7 +133,7 @@ namespace ns3 {
         // Schedule the next if the packet gap would not exceed the rate
         uint64_t now_ns = Simulator::Now().GetNanoSeconds();
         UdpBurstInfo info = std::get<0>(m_bursts[internal_burst_idx]);
-        uint64_t packet_gap_nanoseconds = std::ceil(1500.0 / (info.GetRateBytePerSec() / 1e9));
+        uint64_t packet_gap_nanoseconds = std::ceil(1500.0 / (info.GetTargetRateMegabitPerSec() / 8000.0));
         if (now_ns + packet_gap_nanoseconds < (uint64_t) (info.GetStartTimeNs() + info.GetDurationNs())) {
             Simulator::Schedule(NanoSeconds(packet_gap_nanoseconds), &UdpBurstApplication::BurstSendOut, this, internal_burst_idx);
         }

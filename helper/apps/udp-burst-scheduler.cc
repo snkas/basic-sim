@@ -162,14 +162,16 @@ namespace ns3 {
                     UdpBurstInfo info = std::get<0>(outgoing_bursts[j]);
                     uint64_t sent_out_counter = std::get<1>(outgoing_bursts[j]);
 
+                    int64_t effective_duration_ns = info.GetStartTimeNs() + info.GetDurationNs() >= m_simulation_end_time_ns ? m_simulation_end_time_ns - info.GetStartTimeNs() : info.GetDurationNs();
+                    double rate_incl_headers_megabit_per_s = byte_to_megabit(sent_out_counter * 1500) / nanosec_to_sec(effective_duration_ns);
+                    double rate_payload_only_megabit_per_s = byte_to_megabit(sent_out_counter * 1472) / nanosec_to_sec(effective_duration_ns);
+
                     // Write plain to the CSV
                     fprintf(
-                            file_outgoing_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRIu64 ",%s\n",
-                            info.GetUdpBurstId(), info.GetFromNodeId(), info.GetToNodeId(), info.GetRateBytePerSec(), info.GetStartTimeNs(),
-                            info.GetDurationNs(), sent_out_counter, info.GetMetadata().c_str()
+                            file_outgoing_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%f,%" PRId64 ",%" PRId64 ",%f,%f,%" PRIu64 ",%s\n",
+                            info.GetUdpBurstId(), info.GetFromNodeId(), info.GetToNodeId(), info.GetTargetRateMegabitPerSec(), info.GetStartTimeNs(),
+                            info.GetDurationNs(), rate_incl_headers_megabit_per_s, rate_payload_only_megabit_per_s, sent_out_counter, info.GetMetadata().c_str()
                     );
-
-                    int64_t effective_duration_ns = info.GetStartTimeNs() + info.GetDurationNs() >= m_simulation_end_time_ns ? m_simulation_end_time_ns - info.GetStartTimeNs() : info.GetDurationNs();
 
                     // Write nicely formatted to the text
                     char str_start_time[100];
@@ -177,11 +179,11 @@ namespace ns3 {
                     char str_duration_ms[100];
                     sprintf(str_duration_ms, "%.2f ms", nanosec_to_millisec(info.GetDurationNs()));
                     char str_target_rate[100];
-                    sprintf(str_target_rate, "%.2f Mbit/s", info.GetRateBytePerSec() / 125000.0);
+                    sprintf(str_target_rate, "%.2f Mbit/s", info.GetTargetRateMegabitPerSec());
                     char str_eff_rate_incl_headers[100];
-                    sprintf(str_eff_rate_incl_headers, "%.2f Mbit/s", byte_to_megabit(sent_out_counter * 1500) / nanosec_to_sec(effective_duration_ns));
+                    sprintf(str_eff_rate_incl_headers, "%.2f Mbit/s", rate_incl_headers_megabit_per_s);
                     char str_eff_rate_payload_only[100];
-                    sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", byte_to_megabit(sent_out_counter * 1472) / nanosec_to_sec(effective_duration_ns));
+                    sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", rate_payload_only_megabit_per_s);
                     fprintf(
                             file_outgoing_txt,
                             "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-16s%-20s%-22s%-22s%-16" PRIu64 "%s\n",
