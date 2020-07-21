@@ -76,13 +76,7 @@ namespace ns3 {
                 NS_FATAL_ERROR("Failed to bind socket");
             }
             if (addressUtils::IsMulticast(m_local)) {
-                Ptr <UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
-                if (udpSocket) {
-                    // equivalent to setsockopt (MCAST_JOIN_GROUP)
-                    udpSocket->MulticastJoinGroup(0, m_local);
-                } else {
-                    NS_FATAL_ERROR("Error: Failed to join multicast group");
-                }
+                throw std::runtime_error("Multi-cast is not supported.");
             }
         }
 
