@@ -53,6 +53,9 @@ namespace ns3 {
         uint16_t m_port;      //!< Port on which we listen for incoming packets.
         Ptr<Socket> m_socket; //!< IPv4 Socket
         Address m_local;      //!< local multicast address
+
+        std::vector<std::tuple<UdpBurstInfo, InetSocketAddress>> m_bursts;
+
 //
 //        std::vector<Address> node_id_to_remote_address;
 //        std::vector<UdpBurstInfo> m_burst_schedule; // Hops from one burst to the next (Event numero uno)

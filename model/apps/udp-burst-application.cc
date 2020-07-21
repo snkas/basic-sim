@@ -60,16 +60,8 @@ namespace ns3 {
 
     void
     UdpBurstApplication::RegisterBurst(InetSocketAddress targetAddress, UdpBurstInfo burstInfo) {
-
-        // TODO: Something!
+        m_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
     }
-//
-//    void
-//    UdpBurstApplication::InitializeSchedule(std::vector<Address> node_id_to_remote_address, std::vector<UdpBurstInfo> burst_schedule) {
-//        NS_LOG_FUNCTION(this);
-//        m_node_id_to_remote_addres = node_id_to_remote_address;
-//        m_burst_schedule = burst_schedule;
-//    }
 
     void
     UdpBurstApplication::DoDispose(void) {
