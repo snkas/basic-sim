@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include "ns3/basic-simulation.h"
 #include "ns3/flow-scheduler.h"
+#include "ns3/udp-burst-scheduler.h"
 #include "ns3/pingmesh-scheduler.h"
 #include "ns3/topology-ptop.h"
 #include "ns3/tcp-optimizer.h"
@@ -53,6 +54,9 @@ int main(int argc, char *argv[]) {
     // Schedule flows
     FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_flow_scheduler=true
 
+    // Schedule UDP bursts
+    UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true
+
     // Schedule pings
     PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
 
@@ -61,6 +65,9 @@ int main(int argc, char *argv[]) {
 
     // Write flow results
     flowScheduler.WriteResults();
+
+    // Write UDP burst results
+    udpBurstScheduler.WriteResults();
 
     // Write pingmesh results
     pingmeshScheduler.WriteResults();

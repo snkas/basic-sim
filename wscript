@@ -32,6 +32,7 @@ def build(bld):
         'helper/apps/flow-schedule-reader.cc',
         'helper/apps/udp-burst-schedule-reader.cc',
         'helper/apps/flow-scheduler.cc',
+        'helper/apps/udp-burst-scheduler.cc',
         'helper/apps/pingmesh-scheduler.cc',
         ]
 
@@ -65,6 +66,7 @@ def build(bld):
         'helper/apps/flow-schedule-reader.h',
         'helper/apps/udp-burst-schedule-reader.h',
         'helper/apps/flow-scheduler.h',
+        'helper/apps/udp-burst-scheduler.h',
         'helper/apps/pingmesh-scheduler.h',
         ]
 
