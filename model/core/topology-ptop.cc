@@ -160,7 +160,7 @@ void TopologyPtop::ReadTopology() {
     printf("  > Number of nodes.... %" PRIu64 "\n", m_num_nodes);
     printf("    >> Switches........ %" PRIu64 " (of which %" PRIu64 " are ToRs)\n", m_switches.size(), m_switches_which_are_tors.size());
     printf("    >> Servers......... %" PRIu64 "\n", m_servers.size());
-    printf("  > Undirected edges... %" PRIu64 "\n\n", m_num_undirected_edges);
+    printf("  > Undirected edges... %" PRIu64 "\n", m_num_undirected_edges);
     m_basicSimulation->RegisterTimestamp("Read topology");
 
     // MTU = 1500 byte, +2 with the p2p header.
@@ -174,7 +174,7 @@ void TopologyPtop::ReadTopology() {
     // num_hops * (((n_q + 2) * 1502 byte) / link data rate) + link delay)
     int num_hops = std::min((int64_t) 20, m_num_undirected_edges * 2);
     m_worst_case_rtt_ns = num_hops * (((m_topology_link_max_queue_size_pkt + 2) * 1502) / (m_topology_link_data_rate_megabit_per_s * 125000 / 1000000000) + m_topology_link_delay_ns);
-    printf("Estimated worst-case RTT: %.3f ms\n\n", m_worst_case_rtt_ns / 1e6);
+    printf("  > Estimated worst-case RTT... %.3f ms\n\n", m_worst_case_rtt_ns / 1e6);
 
 }
 
