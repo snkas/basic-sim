@@ -241,14 +241,14 @@ We are going to install three different applications:
    logs_ns3
    |-- finished.txt
    |-- timing_results.txt
-   |-- flows.txt
-   |-- flows.csv
+   |-- flows.{csv, txt}
    |-- flow_{0, 1, 2}_{cwnd, progress, rtt}.csv
    |-- utilization.csv
    |-- utilization_compressed.{csv, txt}
    |-- utilization_summary.txt
    |-- udp_bursts_{incoming, outgoing}.{csv, txt}
    |-- udp_burst_{0, 1}_{incoming, outgoing}.csv
+   |-- pingmesh.{csv, txt}
    ```
    
 7. For example, `flows.txt` will contain:
