@@ -131,7 +131,7 @@ public:
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/schedule.csv");
+        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/flows.csv");

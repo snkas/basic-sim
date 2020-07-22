@@ -34,7 +34,7 @@ public:
         mkdir_if_not_exists(temp_dir);
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/schedule.csv");
+        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
     }
 
     void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed, double topology_link_data_rate_megabit_per_s, int64_t topology_link_delay_ns) {
@@ -49,7 +49,7 @@ public:
         config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=false" << std::endl;
         config_file << "topology_disable_traffic_control_non_endpoint_switches=false" << std::endl;
         config_file << "enable_flow_scheduler=true" << std::endl;
-        config_file << "flow_schedule_filename=\"schedule.csv\"" << std::endl;
+        config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file << "flow_enable_logging_for_flow_ids=set(0)" << std::endl;
         config_file.close();
     }
@@ -75,7 +75,7 @@ public:
 
         // Write schedule file
         std::ofstream schedule_file;
-        schedule_file.open (temp_dir + "/schedule.csv");
+        schedule_file.open (temp_dir + "/flow_schedule.csv");
         for (FlowScheduleEntry entry : write_schedule) {
             schedule_file
                     << entry.GetFlowId() << ","
@@ -172,7 +172,7 @@ public:
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/schedule.csv");
+        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/flows.csv");

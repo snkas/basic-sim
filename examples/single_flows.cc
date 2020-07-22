@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     mkdir_if_not_exists(example_dir);
     remove_file_if_exists(example_dir + "/config_ns3.properties");
     remove_file_if_exists(example_dir + "/topology.properties");
-    remove_file_if_exists(example_dir + "/schedule.csv");
+    remove_file_if_exists(example_dir + "/flow_schedule.csv");
 
     // Write config file
     std::ofstream config_file;
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     config_file << "enable_link_utilization_tracking=true" << std::endl;
     config_file << "link_utilization_tracking_interval_ns=100000000" << std::endl;
     config_file << "enable_flow_scheduler=true" << std::endl;
-    config_file << "flow_schedule_filename=\"schedule.csv\"" << std::endl;
+    config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
     config_file.close();
 
     // Write topology file (0 - 1)
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
      // Write schedule file
     std::ofstream schedule_file;
-    schedule_file.open (example_dir + "/schedule.csv");
+    schedule_file.open (example_dir + "/flow_schedule.csv");
     schedule_file << "0,0,1,100000,0,," << std::endl; // Flow 0 from node 0 to node 1 of size 100000 bytes starting at t=0
     schedule_file.close();
 

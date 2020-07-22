@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     mkdir_if_not_exists(example_dir);
     remove_file_if_exists(example_dir + "/config_ns3.properties");
     remove_file_if_exists(example_dir + "/topology.properties");
-    remove_file_if_exists(example_dir + "/schedule.csv");
+    remove_file_if_exists(example_dir + "/flow_schedule.csv");
 
     // Write config file
     std::ofstream config_file;
