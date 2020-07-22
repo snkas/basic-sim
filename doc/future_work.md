@@ -8,3 +8,4 @@ The backlog of additional work that can be done on the `basic-sim` module:
 * Improve testing:
   * Link utilization log files
   * UDP burst log files
+* Topology individual link settings
