@@ -43,45 +43,57 @@ TopologyPtop::TopologyPtop(Ptr<BasicSimulation> basicSimulation, const Ipv4Routi
 
 void TopologyPtop::ReadRelevantConfig() {
 
-    // Link properties
-    m_topology_link_data_rate_megabit_per_s = parse_positive_double(m_basicSimulation->GetConfigParamOrFail("topology_link_data_rate_megabit_per_s"));
-    m_topology_link_delay_ns = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("topology_link_delay_ns"));
-    m_topology_link_max_queue_size_pkt = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("topology_link_max_queue_size_pkt"));
+    // Read the topology configuration
+    m_topology_config = read_config(m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("topology_filename"));
+    for (auto const& entry : m_topology_config) {
+        if (
+                entry.first != "num_nodes" &&
+                entry.first != "num_undirected_edges" &&
+                entry.first != "switches" &&
+                entry.first != "switches_which_are_tors" &&
+                entry.first != "servers" &&
+                entry.first != "undirected_edges" &&
+                entry.first != "all_nodes_are_endpoints" &&
+                entry.first != "link_channel_delay_ns" &&
+                entry.first != "link_device_data_rate_megabit_per_s" &&
+                entry.first != "link_device_max_queue_size" &&
+                entry.first != "link_interface_traffic_control_qdisc"
+        ) {
+            throw std::runtime_error("Invalid topology property: " + entry.first);
+        }
+    }
 
-    // Qdisc properties
-    m_topology_disable_traffic_control_endpoint_tors_xor_servers = parse_boolean(m_basicSimulation->GetConfigParamOrFail("topology_disable_traffic_control_endpoint_tors_xor_servers"));
-    m_topology_disable_traffic_control_non_endpoint_switches = parse_boolean(m_basicSimulation->GetConfigParamOrFail("topology_disable_traffic_control_non_endpoint_switches"));
+    // If one want to allow applications on all nodes
+    m_all_nodes_are_endpoints = parse_boolean(get_param_or_default("all_nodes_are_endpoints", "false", m_topology_config));
 
 }
 
 void TopologyPtop::ReadTopology() {
 
-    // Read the topology configuration
-    std::map<std::string, std::string> config = read_config(m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("topology_filename"));
-
     // Basic
-    m_num_nodes = parse_positive_int64(get_param_or_fail("num_nodes", config));
-    m_num_undirected_edges = parse_positive_int64(get_param_or_fail("num_undirected_edges", config));
+    m_num_nodes = parse_positive_int64(get_param_or_fail("num_nodes", m_topology_config));
+    m_num_undirected_edges = parse_positive_int64(get_param_or_fail("num_undirected_edges", m_topology_config));
 
     // Node types
     std::string tmp;
-    tmp = get_param_or_fail("switches", config);
+    tmp = get_param_or_fail("switches", m_topology_config);
     m_switches = parse_set_positive_int64(tmp);
     all_items_are_less_than(m_switches, m_num_nodes);
-    tmp = get_param_or_fail("switches_which_are_tors", config);
+    tmp = get_param_or_fail("switches_which_are_tors", m_topology_config);
     m_switches_which_are_tors = parse_set_positive_int64(tmp);
     all_items_are_less_than(m_switches_which_are_tors, m_num_nodes);
-    tmp = get_param_or_fail("servers", config);
+    tmp = get_param_or_fail("servers", m_topology_config);
     m_servers = parse_set_positive_int64(tmp);
     all_items_are_less_than(m_servers, m_num_nodes);
 
     // Adjacency list
     for (int i = 0; i < m_num_nodes; i++) {
+        m_all_node_ids.insert(i);
         m_adjacency_list.push_back(std::set<int64_t>());
     }
 
     // Edges
-    tmp = get_param_or_fail("undirected_edges", config);
+    tmp = get_param_or_fail("undirected_edges", m_topology_config);
     std::set<std::string> string_set = parse_set_string(tmp);
     for (std::string s : string_set) {
         std::vector<std::string> spl = split_string(s, "-", 2);
@@ -96,8 +108,11 @@ void TopologyPtop::ReadTopology() {
         if (b >= m_num_nodes) {
             throw std::invalid_argument(format_string("Right node identifier in edge does not exist: %" PRIu64 "", b));
         }
-        m_undirected_edges.push_back(std::make_pair(a < b ? a : b, a < b ? b : a));
-        m_undirected_edges_set.insert(std::make_pair(a < b ? a : b, a < b ? b : a));
+        if (b < a) {
+            throw std::invalid_argument(format_string("As a convention, the left node id must be smaller than the right node id: %" PRIu64 "-%" PRIu64 "", a, b));
+        }
+        m_undirected_edges.push_back(std::make_pair(a, b));
+        m_undirected_edges_set.insert(std::make_pair(a, b));
         m_adjacency_list[a].insert(b);
         m_adjacency_list[b].insert(a);
     }
@@ -160,21 +175,8 @@ void TopologyPtop::ReadTopology() {
     printf("  > Number of nodes.... %" PRIu64 "\n", m_num_nodes);
     printf("    >> Switches........ %" PRIu64 " (of which %" PRIu64 " are ToRs)\n", m_switches.size(), m_switches_which_are_tors.size());
     printf("    >> Servers......... %" PRIu64 "\n", m_servers.size());
-    printf("  > Undirected edges... %" PRIu64 "\n", m_num_undirected_edges);
+    printf("  > Undirected edges... %" PRIu64 "\n\n", m_num_undirected_edges);
     m_basicSimulation->RegisterTimestamp("Read topology");
-
-    // MTU = 1500 byte, +2 with the p2p header.
-    // There are n_q packets in the queue at most, e.g. n_q + 2 (incl. transmit and within mandatory 1-packet qdisc)
-    // Queueing + transmission delay/hop = (n_q + 2) * 1502 byte / link data rate
-    // Propagation delay/hop = link delay
-    //
-    // If the topology is big, lets assume 10 hops either direction worst case, so 20 hops total
-    // If the topology is not big, < 10 undirected edges, we just use 2 * number of undirected edges as worst-case hop count
-    //
-    // num_hops * (((n_q + 2) * 1502 byte) / link data rate) + link delay)
-    int num_hops = std::min((int64_t) 20, m_num_undirected_edges * 2);
-    m_worst_case_rtt_ns = num_hops * (((m_topology_link_max_queue_size_pkt + 2) * 1502) / (m_topology_link_data_rate_megabit_per_s * 125000 / 1000000000) + m_topology_link_delay_ns);
-    printf("  > Estimated worst-case RTT... %.3f ms\n\n", m_worst_case_rtt_ns / 1e6);
 
 }
 
@@ -190,6 +192,7 @@ void TopologyPtop::SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper) {
     } else {
         m_nodes.Create(m_num_nodes);
     }
+    m_basicSimulation->RegisterTimestamp("Create nodes");
 
     // Install Internet on all nodes
     std::cout << "  > Installing Internet stack on each node" << std::endl;
@@ -198,7 +201,114 @@ void TopologyPtop::SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper) {
     internet.Install(m_nodes);
 
     std::cout << std::endl;
-    m_basicSimulation->RegisterTimestamp("Create and install nodes");
+    m_basicSimulation->RegisterTimestamp("Install Internet stack (incl. routing) on nodes");
+}
+
+std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseUndirectedEdgeMap(std::string value) {
+    std::map<std::pair<int64_t, int64_t>, std::string> result;
+
+    // If it does not start with map, the value cannot possibly be a mapping, as such we set it as a single value
+    if (!starts_with(trim(value), "map")) {
+        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            result[p] = value;
+        }
+        return result;
+    }
+
+    // Go over every entry in the mapping
+    std::vector<std::pair<std::string, std::string>> pair_list = parse_map_string(value);
+    for (std::pair<std::string, std::string> p : pair_list) {
+
+        // Find the a-b
+        std::vector<std::string> dash_split_list = split_string(p.first, "-", 2);
+        int64_t a = parse_positive_int64(dash_split_list[0]);
+        int64_t b = parse_positive_int64(dash_split_list[1]);
+        if (b < a) {
+            throw std::invalid_argument(format_string("As a convention, the left node id must be smaller than the right node id: %" PRIu64 "-%" PRIu64 "", a, b));
+        }
+
+        // No duplicates in the mapping
+        if (result.find(std::make_pair(a, b)) != result.end()) {
+            throw std::runtime_error("Duplicate key in undirected edge mapping: " + p.first);
+        }
+
+        // Must be present
+        if (m_undirected_edges_set.find(std::make_pair(a, b)) == m_undirected_edges_set.end()) {
+            throw std::runtime_error("Unknown undirected edge: " + p.first);
+        }
+
+        // Add to mapping
+        result[std::make_pair(a, b)] = p.second;
+
+    }
+
+    if (m_undirected_edges_set.size() != result.size()) {
+        throw std::runtime_error("Not all undirected edges were covered");
+    }
+
+    return result;
+}
+
+std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseDirectedEdgeMap(std::string value) {
+
+    std::map<std::pair<int64_t, int64_t>, std::string> result;
+
+    // If it does not start with map, the value cannot possibly be a mapping, as such we set it as a single value
+    if (!starts_with(trim(value), "map")) {
+        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            result[p] = value;
+            result[std::make_pair(p.second, p.first)] = value;
+        }
+        return result;
+    }
+
+    // Go over every entry in the mapping
+    std::vector<std::pair<std::string, std::string>> pair_list = parse_map_string(value);
+    for (std::pair<std::string, std::string> p : pair_list) {
+
+        // Find the a -> b
+        std::vector<std::string> dash_split_list = split_string(p.first, "->", 2);
+        int64_t a = parse_positive_int64(dash_split_list[0]);
+        int64_t b = parse_positive_int64(dash_split_list[1]);
+
+        // No duplicates in the mapping
+        if (result.find(std::make_pair(a, b)) != result.end()) {
+            throw std::runtime_error("Duplicate key in directed edge mapping: " + p.first);
+        }
+
+        // Must be present
+        if (m_undirected_edges_set.find(std::make_pair(a < b ? a : b, b > a ? b : a)) == m_undirected_edges_set.end()) {
+            throw std::runtime_error("Does not belong to an undirected edge: " + p.first);
+        }
+
+        // Add to mapping
+        result[std::make_pair(a, b)] = p.second;
+
+    }
+
+    if (m_undirected_edges_set.size() * 2 != result.size()) {
+        throw std::runtime_error("Not all undirected edges were covered");
+    }
+
+    return result;
+}
+
+std::string TopologyPtop::ValidateMaxQueueSizeValue(std::string value) {
+    if (ends_with(value, "p") || ends_with(value, "B")) {
+        parse_positive_int64(value.substr(0, value.size() - 1)); // Nothing else, only 1000p or 1000B for example
+        return value;
+    } else {
+        throw std::runtime_error("Invalid maximum queue size value: " + value);
+    }
+}
+
+TrafficControlHelper TopologyPtop::ParseTrafficControlQdiscValue(std::string value) {
+    if (value == "default") {
+        TrafficControlHelper defaultHelper;
+        return defaultHelper;
+    } else {
+        throw std::runtime_error("Unknown traffic control qdisc value: " + value);
+    }
 }
 
 void TopologyPtop::SetupLinks() {
@@ -208,78 +318,67 @@ void TopologyPtop::SetupLinks() {
     Ipv4AddressHelper address;
     address.SetBase("10.0.0.0", "255.255.255.0");
 
-    // Direct network device attributes
-    std::cout << "  > Point-to-point network device attributes:" << std::endl;
+    // Read in the link mappings
 
-    // Point-to-point network device helper
-    PointToPointHelper p2p;
-    p2p.SetDeviceAttribute("DataRate", StringValue(std::to_string(m_topology_link_data_rate_megabit_per_s) + "Mbps"));
-    p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(m_topology_link_delay_ns)));
-    std::cout << "    >> Data rate......... " << m_topology_link_data_rate_megabit_per_s << " Mbit/s" << std::endl;
-    std::cout << "    >> Delay............. " << m_topology_link_delay_ns << " ns" << std::endl;
-    std::cout << "    >> Max. queue size... " << m_topology_link_max_queue_size_pkt << " packets" << std::endl;
-    std::string p2p_net_device_max_queue_size_pkts_str = format_string("%" PRId64 "p", m_topology_link_max_queue_size_pkt);
+    std::cout << "  > Parsing link channel delay mapping" << std::endl;
+    std::map<std::pair<int64_t, int64_t>, std::string> undirected_edge_to_channel_delay_str = ParseUndirectedEdgeMap(
+        get_param_or_fail("link_channel_delay_ns", m_topology_config)
+    );
 
-    // Notify about topology state
-    if (m_has_zero_servers) {
-        std::cout << "  > Because there are no servers, ToRs are considered valid flow-endpoints" << std::endl;
-    } else {
-        std::cout << "  > Only servers are considered valid flow-endpoints" << std::endl;
-    }
+    std::cout << "  > Parsing link device data rate mapping" << std::endl;
+    std::map<std::pair<int64_t, int64_t>, std::string> directed_edge_to_device_data_rate_str = ParseDirectedEdgeMap(
+        get_param_or_fail("link_device_data_rate_megabit_per_s", m_topology_config)
+    );
 
-    // Queueing disciplines
-    std::cout << "  > Traffic control queueing disciplines:" << std::endl;
+    std::cout << "  > Parsing link device max. queue size mapping" << std::endl;
+    std::map<std::pair<int64_t, int64_t>, std::string> directed_edge_to_device_max_queue_size_str = ParseDirectedEdgeMap(
+        get_param_or_fail("link_device_max_queue_size", m_topology_config)
+    );
 
-    // Queueing discipline for endpoints (i.e., servers if they are defined, else the ToRs)
-    TrafficControlHelper tch_endpoints;
-    if (m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
-        std::cout << "    >> Flow-endpoints....... none (disabled)" << std::endl;
-    } else {
-        std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_ns);
-        std::string target = format_string("%" PRId64 "ns", m_worst_case_rtt_ns / 20);
-        tch_endpoints.SetRootQueueDisc("ns3::FqCoDelQueueDisc", "Interval", StringValue(interval), "Target", StringValue(target));
-        printf("    >> Flow-endpoints....... fq-co-del (interval = %.2f ms, target = %.2f ms)\n", m_worst_case_rtt_ns / 1e6, m_worst_case_rtt_ns / 1e6 / 20);
-    }
-
-    // Queueing discipline for non-endpoints (i.e., if servers are defined, all switches, else the switches which are not ToRs)
-    TrafficControlHelper tch_not_endpoints;
-    if (m_topology_disable_traffic_control_non_endpoint_switches) {
-        std::cout << "    >> Non-flow-endpoints... none (disabled)" << std::endl;
-    } else {
-        std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_ns);
-        std::string target = format_string("%" PRId64 "ns", m_worst_case_rtt_ns / 20);
-        tch_not_endpoints.SetRootQueueDisc("ns3::FqCoDelQueueDisc", "Interval", StringValue(interval), "Target", StringValue(target));
-        printf("    >> Non-flow-endpoints... fq-co-del (interval = %.2f ms, target = %.2f ms)\n", m_worst_case_rtt_ns / 1e6, m_worst_case_rtt_ns / 1e6 / 20);
-    }
+    std::cout << "  > Parsing link interface traffic control queuing discipline mapping" << std::endl;
+    std::map<std::pair<int64_t, int64_t>, std::string> directed_edge_to_interface_traffic_control_qdisc_str = ParseDirectedEdgeMap(
+        get_param_or_fail("link_interface_traffic_control_qdisc", m_topology_config)
+    );
 
     // Create Links
     std::cout << "  > Installing links" << std::endl;
     m_interface_idxs_for_edges.clear();
-    for (std::pair <int64_t, int64_t> link : m_undirected_edges) {
+    for (std::pair<int64_t, int64_t> link : m_undirected_edges) {
 
-        // Install link
+        // Retrieve all relevant details
+        std::pair<int64_t, int64_t> edge_a_to_b = link;
+        std::pair<int64_t, int64_t> edge_b_to_a = std::make_pair(link.second, link.first);
+
+        // Install the point-to-point link
+        PointToPointHelper p2p;
+        double channel_delay_ns = parse_positive_int64(undirected_edge_to_channel_delay_str[link]);
+        p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(channel_delay_ns)));
         NetDeviceContainer container = p2p.Install(m_nodes.Get(link.first), m_nodes.Get(link.second));
-        container.Get(0)->GetObject<PointToPointNetDevice>()->GetQueue()->SetMaxSize(p2p_net_device_max_queue_size_pkts_str);
-        container.Get(1)->GetObject<PointToPointNetDevice>()->GetQueue()->SetMaxSize(p2p_net_device_max_queue_size_pkts_str);
 
-        // Install traffic control
-        if (IsValidEndpoint(link.first)) {
-            if (!m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
-                tch_endpoints.Install(container.Get(0));
-            }
-        } else {
-            if (!m_topology_disable_traffic_control_non_endpoint_switches) {
-                tch_not_endpoints.Install(container.Get(0));
-            }
+        // Retrieve the network devices installed on either end of the link
+        Ptr<PointToPointNetDevice> netDeviceA = container.Get(0)->GetObject<PointToPointNetDevice>();
+        Ptr<PointToPointNetDevice> netDeviceB = container.Get(1)->GetObject<PointToPointNetDevice>();
+
+        // Data rate
+        double a_to_b_data_rate_megabit_per_s = parse_positive_double(directed_edge_to_device_data_rate_str[edge_a_to_b]);
+        double b_to_a_data_rate_megabit_per_s = parse_positive_double(directed_edge_to_device_data_rate_str[edge_b_to_a]);
+        netDeviceA->SetDataRate(DataRate(std::to_string(a_to_b_data_rate_megabit_per_s) + "Mbps"));
+        netDeviceB->SetDataRate(DataRate(std::to_string(b_to_a_data_rate_megabit_per_s) + "Mbps"));
+
+        // Queue size
+        netDeviceA->GetQueue()->SetMaxSize(ValidateMaxQueueSizeValue(directed_edge_to_device_max_queue_size_str[edge_a_to_b]));
+        netDeviceB->GetQueue()->SetMaxSize(ValidateMaxQueueSizeValue(directed_edge_to_device_max_queue_size_str[edge_b_to_a]));
+
+        // Traffic control queueing discipline
+        std::string a_to_b_traffic_control_qdisc = trim(directed_edge_to_interface_traffic_control_qdisc_str[edge_a_to_b]);
+        std::string b_to_a_traffic_control_qdisc = trim(directed_edge_to_interface_traffic_control_qdisc_str[edge_b_to_a]);
+        if (a_to_b_traffic_control_qdisc != "disabled") {
+            TrafficControlHelper helper = ParseTrafficControlQdiscValue(a_to_b_traffic_control_qdisc);
+            helper.Install(netDeviceA);
         }
-        if (IsValidEndpoint(link.second)) {
-            if (!m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
-                tch_endpoints.Install(container.Get(1));
-            }
-        } else {
-            if (!m_topology_disable_traffic_control_non_endpoint_switches) {
-                tch_not_endpoints.Install(container.Get(1));
-            }
+        if (b_to_a_traffic_control_qdisc != "disabled") {
+            TrafficControlHelper helper = ParseTrafficControlQdiscValue(b_to_a_traffic_control_qdisc);
+            helper.Install(netDeviceA);
         }
 
         // Assign IP addresses
@@ -288,23 +387,11 @@ void TopologyPtop::SetupLinks() {
 
         // Remove the (default) traffic control layer if undesired
         TrafficControlHelper tch_uninstaller;
-        if (IsValidEndpoint(link.first)) {
-            if (m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
-                tch_uninstaller.Uninstall(container.Get(0));
-            }
-        } else {
-            if (m_topology_disable_traffic_control_non_endpoint_switches) {
-                tch_uninstaller.Uninstall(container.Get(0));
-            }
+        if (a_to_b_traffic_control_qdisc == "disabled") {
+            tch_uninstaller.Uninstall(netDeviceA);
         }
-        if (IsValidEndpoint(link.second)) {
-            if (m_topology_disable_traffic_control_endpoint_tors_xor_servers) {
-                tch_uninstaller.Uninstall(container.Get(1));
-            }
-        } else {
-            if (m_topology_disable_traffic_control_non_endpoint_switches) {
-                tch_uninstaller.Uninstall(container.Get(1));
-            }
+        if (b_to_a_traffic_control_qdisc == "disabled") {
+            tch_uninstaller.Uninstall(netDeviceB);
         }
 
         // Save to mapping
@@ -343,18 +430,26 @@ const std::set<int64_t>& TopologyPtop::GetServers() {
 }
 
 bool TopologyPtop::IsValidEndpoint(int64_t node_id) {
-    if (m_has_zero_servers) {
-        return m_switches_which_are_tors.find(node_id) != m_switches_which_are_tors.end();
+    if (m_all_nodes_are_endpoints) {
+        return true;
     } else {
-        return m_servers.find(node_id) != m_servers.end();
+        if (m_has_zero_servers) {
+            return m_switches_which_are_tors.find(node_id) != m_switches_which_are_tors.end();
+        } else {
+            return m_servers.find(node_id) != m_servers.end();
+        }
     }
 }
 
 const std::set<int64_t>& TopologyPtop::GetEndpoints() {
-    if (m_has_zero_servers) {
-        return m_switches_which_are_tors;
+    if (m_all_nodes_are_endpoints) {
+        return m_all_node_ids;
     } else {
-        return m_servers;
+        if (m_has_zero_servers) {
+            return m_switches_which_are_tors;
+        } else {
+            return m_servers;
+        }
     }
 }
 

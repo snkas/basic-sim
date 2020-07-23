@@ -31,11 +31,6 @@ public:
         config_file << "simulation_end_time_ns=5000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_filename=\"topology.properties\"" << std::endl;
-        config_file << "topology_link_data_rate_megabit_per_s=10000" << std::endl;
-        config_file << "topology_link_delay_ns=50000000" << std::endl;
-        config_file << "topology_link_max_queue_size_pkt=10000" << std::endl;
-        config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=true" << std::endl;
-        config_file << "topology_disable_traffic_control_non_endpoint_switches=true" << std::endl;
         config_file << "enable_pingmesh_scheduler=true" << std::endl;
         config_file << "pingmesh_interval_ns=" << pingmesh_interval_ns << std::endl;
         config_file << "pingmesh_endpoint_pairs=" << pingmesh_endpoint_pairs << std::endl;
@@ -56,6 +51,10 @@ public:
         topology_file << "switches_which_are_tors=set(0,1,2,3,5)" << std::endl;
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1,1-2,3-4,4-5,0-3,1-4,2-5)" << std::endl;
+        topology_file << "link_channel_delay_ns=50000000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=10000" << std::endl;
+        topology_file << "link_device_max_queue_size=10000p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
     }
 

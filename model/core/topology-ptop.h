@@ -71,15 +71,17 @@ private:
     void ReadRelevantConfig();
     void ReadTopology();
     void SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper);
+    std::map<std::pair<int64_t, int64_t>, std::string> ParseUndirectedEdgeMap(std::string value);
+    std::map<std::pair<int64_t, int64_t>, std::string> ParseDirectedEdgeMap(std::string value);
+    std::string ValidateMaxQueueSizeValue(std::string value);
+    TrafficControlHelper ParseTrafficControlQdiscValue(std::string value);
+
     void SetupLinks();
 
     // Configuration properties
-    double m_topology_link_data_rate_megabit_per_s;
-    int64_t m_topology_link_delay_ns;
-    int64_t m_topology_link_max_queue_size_pkt;
-    int64_t m_worst_case_rtt_ns;
-    bool m_topology_disable_traffic_control_endpoint_tors_xor_servers;
-    bool m_topology_disable_traffic_control_non_endpoint_switches;
+    std::map<std::string, std::string> m_topology_config;
+    int64_t m_worst_case_rtt_ns = 1000000000;
+    bool m_all_nodes_are_endpoints;
 
     // Graph properties
     int64_t m_num_nodes;
@@ -87,6 +89,7 @@ private:
     std::set<int64_t> m_switches;
     std::set<int64_t> m_switches_which_are_tors;
     std::set<int64_t> m_servers;
+    std::set<int64_t> m_all_node_ids;
     std::vector<std::pair<int64_t, int64_t>> m_undirected_edges;
     std::set<std::pair<int64_t, int64_t>> m_undirected_edges_set;
     std::vector<std::set<int64_t>> m_adjacency_list;

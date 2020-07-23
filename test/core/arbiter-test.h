@@ -14,14 +14,9 @@ void prepare_arbiter_test_config() {
     mkdir_if_not_exists(arbiter_test_dir);
 
     std::ofstream config_file(arbiter_test_dir + "/config_ns3.properties");
-    config_file << "topology_filename=\"topology.properties.temp\"" << std::endl;
     config_file << "simulation_end_time_ns=10000000000" << std::endl;
     config_file << "simulation_seed=123456789" << std::endl;
-    config_file << "topology_link_data_rate_megabit_per_s=100.0" << std::endl;
-    config_file << "topology_link_delay_ns=10000" << std::endl;
-    config_file << "topology_link_max_queue_size_pkt=100" << std::endl;
-    config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=true" << std::endl;
-    config_file << "topology_disable_traffic_control_non_endpoint_switches=true" << std::endl;
+    config_file << "topology_filename=\"topology.properties.temp\"" << std::endl;
     config_file.close();
 }
 
@@ -34,6 +29,10 @@ void prepare_arbiter_test_default_topology() {
     topology_file << "switches_which_are_tors=set(0,1,2,3)" << std::endl;
     topology_file << "servers=set()" << std::endl;
     topology_file << "undirected_edges=set(0-1,1-2,2-3,0-3)" << std::endl;
+    topology_file << "link_channel_delay_ns=10000" << std::endl;
+    topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+    topology_file << "link_device_max_queue_size=100p" << std::endl;
+    topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
     topology_file.close();
 }
 
@@ -468,6 +467,10 @@ public:
         topology_file << "switches_which_are_tors=set()" << std::endl;
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set()" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
         // Create topology

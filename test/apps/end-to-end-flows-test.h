@@ -37,24 +37,19 @@ public:
         remove_file_if_exists(temp_dir + "/flow_schedule.csv");
     }
 
-    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed, double topology_link_data_rate_megabit_per_s, int64_t topology_link_delay_ns) {
+    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed) {
         std::ofstream config_file;
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_filename=\"topology.properties\"" << std::endl;
-        config_file << "topology_link_data_rate_megabit_per_s=" << topology_link_data_rate_megabit_per_s << std::endl;
-        config_file << "topology_link_delay_ns=" << topology_link_delay_ns << std::endl;
-        config_file << "topology_link_max_queue_size_pkt=100" << std::endl;
-        config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=false" << std::endl;
-        config_file << "topology_disable_traffic_control_non_endpoint_switches=false" << std::endl;
         config_file << "enable_flow_scheduler=true" << std::endl;
         config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file << "flow_enable_logging_for_flow_ids=set(0)" << std::endl;
         config_file.close();
     }
 
-    void write_single_topology() {
+    void write_single_topology(double topology_link_data_rate_megabit_per_s, int64_t topology_link_delay_ns) {
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
@@ -63,6 +58,10 @@ public:
         topology_file << "switches_which_are_tors=set(0,1)" << std::endl;
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1)" << std::endl;
+        topology_file << "link_channel_delay_ns=" << topology_link_delay_ns << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=" << topology_link_data_rate_megabit_per_s << std::endl;
+        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
     }
 
@@ -170,18 +169,18 @@ public:
         }
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flows.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flows.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_rtt.csv");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+//        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+//        remove_file_if_exists(temp_dir + "/topology.properties");
+//        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/flows.csv");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/flows.txt");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_progress.csv");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_rtt.csv");
+//        remove_dir_if_exists(temp_dir + "/logs_ns3");
+//        remove_dir_if_exists(temp_dir);
 
     }
 
@@ -198,8 +197,8 @@ public:
         int64_t simulation_end_time_ns = 5000000000;
 
         // One-to-one, 5s, 10.0 Mbit/s, 100 microseconds delay
-        write_basic_config(simulation_end_time_ns, 123456, 10.0, 100000);
-        write_single_topology();
+        write_basic_config(simulation_end_time_ns, 123456);
+        write_single_topology(10.0, 100000);
 
         // A flow each way
         std::vector<FlowScheduleEntry> schedule;
@@ -230,8 +229,8 @@ public:
         int64_t simulation_end_time_ns = 5000000000;
 
         // One-to-one, 5s, 100.0 Mbit/s, 10 microseconds delay
-        write_basic_config(simulation_end_time_ns, 123456, 100.0, 10000);
-        write_single_topology();
+        write_basic_config(simulation_end_time_ns, 123456);
+        write_single_topology(100.0, 10000);
 
         // One flow
         std::vector<FlowScheduleEntry> schedule;
@@ -271,8 +270,8 @@ public:
         int64_t simulation_end_time_ns = 10000000000;
 
         // One-to-one, 10s, 10.0 Mbit/s, 100 microseconds delay
-        write_basic_config(simulation_end_time_ns, 654321, 10.0, 100000);
-        write_single_topology();
+        write_basic_config(simulation_end_time_ns, 654321);
+        write_single_topology(10.0, 100000);
 
         // A flow each way
         std::vector<FlowScheduleEntry> schedule;
@@ -303,7 +302,7 @@ public:
         int64_t simulation_end_time_ns = 100000000;
 
         // One-to-one, 5s, 30.0 Mbit/s, 200 microsec delay
-        write_basic_config(simulation_end_time_ns, 123456, 30.0, 200000);
+        write_basic_config(simulation_end_time_ns, 123456);
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
@@ -311,13 +310,17 @@ public:
         topology_file << "switches=set(0,1,2,3)" << std::endl;
         topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
         topology_file << "servers=set()" << std::endl;
-        topology_file << "undirected_edges=set(0-1,0-2,1-3,3-2)" << std::endl;
+        topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=200000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=30.0" << std::endl;
+        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
         // A flow each way
         std::vector<FlowScheduleEntry> schedule;
-        for (int i = 0; i < 30; i++) {
-            schedule.push_back(FlowScheduleEntry(i, 0, 3, 100000000, 0, "", ""));
+        for (int i = 0; i < 8; i++) {
+            schedule.push_back(FlowScheduleEntry(i, 0, 3, 1000000000, 0, "", ""));
         }
 
         // Perform the run
@@ -328,11 +331,13 @@ public:
 
         // All are too large to end, and they must consume bandwidth of both links
         int64_t byte_sum = 0;
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 8; i++) {
             ASSERT_EQUAL(end_time_ns_list[i], simulation_end_time_ns);
             byte_sum += sent_byte_list[i];
         }
-        ASSERT_TRUE(byte_to_megabit(byte_sum) / nanosec_to_sec(simulation_end_time_ns) >= 45.0); // At least 45 Mbit/s, given that probability of all of them going up is 0.5^30
+        std::cout << "Megabit: " << byte_to_megabit(byte_sum) << std::endl;
+        std::cout << "Time: " << nanosec_to_sec(simulation_end_time_ns) << std::endl;
+        ASSERT_TRUE(byte_to_megabit(byte_sum) / nanosec_to_sec(simulation_end_time_ns) >= 45.0); // At least 45 Mbit/s, given that probability of all of them going up is 0.5^8
 
     }
 };
@@ -348,7 +353,7 @@ public:
         int64_t simulation_end_time_ns = 100000000;
 
         // One-to-one, 5s, 30.0 Mbit/s, 200 microsec delay
-        write_basic_config(simulation_end_time_ns, 123456, 30.0, 200000);
+        write_basic_config(simulation_end_time_ns, 123456);
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
@@ -356,7 +361,11 @@ public:
         topology_file << "switches=set(0,1,2,3)" << std::endl;
         topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
         topology_file << "servers=set()" << std::endl;
-        topology_file << "undirected_edges=set(0-1,0-2,1-3,3-2)" << std::endl;
+        topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=200000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
+        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
         // A flow each way
@@ -431,7 +440,7 @@ public:
         int64_t simulation_end_time_ns = 100000000;
 
         // One-to-one, 5s, 30.0 Mbit/s, 200 microsec delay
-        write_basic_config(simulation_end_time_ns, 123456, 30.0, 200000);
+        write_basic_config(simulation_end_time_ns, 123456);
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
@@ -440,6 +449,10 @@ public:
         topology_file << "switches_which_are_tors=set(2)" << std::endl;
         topology_file << "servers=set(0, 1, 3)" << std::endl;
         topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=200000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
+        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
         // Two flows

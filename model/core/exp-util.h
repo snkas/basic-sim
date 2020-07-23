@@ -30,6 +30,7 @@
 #include <cinttypes>
 #include <vector>
 #include <set>
+#include <string>
 #include <regex>
 #include <cstring>
 #include <fstream>
@@ -80,6 +81,7 @@ std::set<std::string> parse_set_string(const std::string line);
 std::set<int64_t> parse_set_positive_int64(const std::string line);
 std::vector<std::string> parse_list_string(const std::string line);
 std::vector<int64_t> parse_list_positive_int64(const std::string line);
+std::vector<std::pair<std::string, std::string>> parse_map_string(const std::string str);
 
 // Sets
 void all_items_are_less_than(const std::set<int64_t>& s, const int64_t number);

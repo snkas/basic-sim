@@ -39,15 +39,10 @@ public:
         // Normal
 
         std::ofstream config_file(flow_schedule_reader_test_dir + "/config_ns3.properties");
-        config_file << "topology_filename=\"topology.properties\"" << std::endl;
-        config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_link_data_rate_megabit_per_s=100.0" << std::endl;
-        config_file << "topology_link_delay_ns=10000" << std::endl;
-        config_file << "topology_link_max_queue_size_pkt=100" << std::endl;
-        config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=true" << std::endl;
-        config_file << "topology_disable_traffic_control_non_endpoint_switches=true" << std::endl;
+        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file.close();
 
         std::ofstream schedule_file(flow_schedule_reader_test_dir + "/flow_schedule.csv");
@@ -63,6 +58,10 @@ public:
         topology_file << "switches_which_are_tors=set(0,1,2,3,4,5,6,7)" << std::endl;
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1,1-2,2-3,3-4,4-5,5-6,6-7)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(flow_schedule_reader_test_dir);
@@ -112,15 +111,10 @@ public:
         std::vector<FlowScheduleEntry> schedule;
 
         std::ofstream config_file(flow_schedule_reader_test_dir + "/config_ns3.properties");
-        config_file << "topology_filename=\"topology.properties\"" << std::endl;
-        config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_link_data_rate_megabit_per_s=100.0" << std::endl;
-        config_file << "topology_link_delay_ns=10000" << std::endl;
-        config_file << "topology_link_max_queue_size_pkt=100" << std::endl;
-        config_file << "topology_disable_traffic_control_endpoint_tors_xor_servers=true" << std::endl;
-        config_file << "topology_disable_traffic_control_non_endpoint_switches=true" << std::endl;
+        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file.close();
 
         std::ofstream topology_file;
@@ -131,6 +125,10 @@ public:
         topology_file << "switches_which_are_tors=set(0,1,3,4)" << std::endl; // Only 2 cannot be endpoint
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1,1-2,2-3,3-4)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(flow_schedule_reader_test_dir);

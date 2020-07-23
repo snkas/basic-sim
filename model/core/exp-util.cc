@@ -99,34 +99,30 @@ std::string remove_start_end_double_quote_if_present(std::string s) {
 /**
  * Split a string by the delimiter(s).
  *
- * @param line          Line (e.g., "a;b;c")
- * @param delimiter     Delimiter(s) (e.g., ";")
+ * @param line          Line (e.g., "a->b->c")
+ * @param delimiter     Delimiter string (e.g., "->")
  *
  * @return Split vector (e.g., [a, b, c])
  */
 std::vector<std::string> split_string(const std::string line, const std::string delimiter) {
-
-    // Split by delimiter
-    char *cline = (char*) line.c_str();
-    char * pch;
-    pch = strsep(&cline, delimiter.c_str());
-    size_t i = 0;
-    std::vector<std::string> the_split;
-    while (pch != nullptr) {
-        the_split.emplace_back(pch);
-        pch = strsep(&cline, delimiter.c_str());
-        i++;
+    std::vector<std::string> result;
+    std::string remainder = line;
+    size_t idx = remainder.find(delimiter);
+    while (idx != std::string::npos) {
+        result.push_back(remainder.substr(0, idx));
+        remainder = remainder.substr(idx + delimiter.size(), remainder.size());
+        idx = remainder.find(delimiter);
     }
-
-    return the_split;
+    result.push_back(remainder);
+    return result;
 }
 
 /**
  * Split a string by the delimiter(s) and check that the split size is of expected size.
  * If it is not of expected size, throw an exception.
  *
- * @param line          Line (e.g., "a;b;c")
- * @param delimiter     Delimiter(s) (e.g., ";")
+ * @param line          Line (e.g., "a->b->c")
+ * @param delimiter     Delimiter string (e.g., "->")
  * @param expected      Expected number (e.g., 3)
  *
  * @return Split vector (e.g., [a, b, c])
@@ -383,6 +379,51 @@ std::vector<int64_t> parse_list_positive_int64(const std::string str) {
 }
 
 /**
+ * Parse map string (i.e., map(...)) into key-value pair list (which can be converted into a map later on).
+ * If it is incorrect format, throw an exception.
+ *
+ * @param str  Input string (e.g., "map(a:b,c:d)"
+ *
+ * @return List of key-value pairs (e.g., [(a, b), (c, d))])
+ */
+std::vector<std::pair<std::string, std::string>> parse_map_string(const std::string str) {
+
+    // Check for encasing map(...)
+    if (!starts_with(str, "map(") || !ends_with(str, ")")) {
+        throw std::invalid_argument(format_string( "Map %s is not encased in map(...)", str.c_str()));
+    }
+    std::string only_inside = str.substr(4, str.size() - 5);
+
+    // If it is empty, just return an empty vector
+    if (trim(only_inside).empty()) {
+        std::vector<std::pair<std::string, std::string>> final;
+        return final;
+    }
+
+    // Split by comma to find all elements
+    std::vector<std::string> comma_split_list = split_string(only_inside, ",");
+
+    // Add the elements one-by-one
+    std::vector<std::pair<std::string, std::string>> result;
+    std::set<std::string> key_set;
+    for (std::string& s : comma_split_list) {
+
+        // Split by colon and insert into result
+        std::vector<std::string> colon_split_list = split_string(s, ":", 2);
+        result.push_back(std::make_pair(trim(colon_split_list[0]), trim(colon_split_list[1])));
+
+        // Check if it was a duplicate key
+        key_set.insert(trim(colon_split_list[0]));
+        if (result.size() != key_set.size()) {
+            throw std::invalid_argument(format_string("Duplicate key: %s", trim(colon_split_list[0]).c_str()));
+        }
+
+    }
+
+    return result;
+}
+
+/**
  * Throw an exception if not all items are less than a number.
  *
  * @param s         Set of int64s
@@ -463,8 +504,17 @@ std::map<std::string, std::string> read_config(const std::string& filename) {
             // Split on =
             std::vector<std::string> equals_split = split_string(line, "=", 2);
 
+            // Trim whitespace
+            std::string key = trim(equals_split[0]);
+            std::string value = remove_start_end_double_quote_if_present(trim(equals_split[1]));
+
+            // Check key does not exist yet
+            if (config.find(key) != config.end()) {
+                throw std::runtime_error(format_string("Duplicate property key: %s", key.c_str()));
+            }
+
             // Save into config
-            config[equals_split[0]] = remove_start_end_double_quote_if_present(equals_split[1]);
+            config[key] = value;
 
         }
         config_file.close();
