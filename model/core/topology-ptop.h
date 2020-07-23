@@ -74,8 +74,12 @@ private:
     std::map<std::pair<int64_t, int64_t>, std::string> ParseUndirectedEdgeMap(std::string value);
     std::map<std::pair<int64_t, int64_t>, std::string> ParseDirectedEdgeMap(std::string value);
     std::string ValidateMaxQueueSizeValue(std::string value);
+    std::string ValidateTrafficControlQdiscValue(std::string value);
     TrafficControlHelper ParseTrafficControlQdiscValue(std::string value);
-
+    std::map<std::pair<int64_t, int64_t>, int64_t> ParseLinkChannelDelayNsProperty();
+    std::map<std::pair<int64_t, int64_t>, double> ParseLinkDeviceDataRateMegabitPerSecProperty();
+    std::map<std::pair<int64_t, int64_t>, std::string> ParseLinkDeviceMaxQueueSizeProperty();
+    std::map<std::pair<int64_t, int64_t>, std::string> ParseLinkInterfaceTrafficControlQdiscProperty();
     void SetupLinks();
 
     // Configuration properties

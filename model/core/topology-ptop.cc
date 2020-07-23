@@ -41,6 +41,9 @@ TopologyPtop::TopologyPtop(Ptr<BasicSimulation> basicSimulation, const Ipv4Routi
     SetupLinks();
 }
 
+/**
+ * Read in the topology configuration.
+ */
 void TopologyPtop::ReadRelevantConfig() {
 
     // Read the topology configuration
@@ -68,6 +71,9 @@ void TopologyPtop::ReadRelevantConfig() {
 
 }
 
+/**
+ * Read the topological layout.
+ */
 void TopologyPtop::ReadTopology() {
 
     // Basic
@@ -180,6 +186,11 @@ void TopologyPtop::ReadTopology() {
 
 }
 
+/**
+ * Setup nodes by creating them if they are part of this system, and installing the internet stack including routing.
+ *
+ * @param ipv4RoutingHelper     IPv4 routing helper (decides which routing is installed on the node)
+ */
 void TopologyPtop::SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper) {
     std::cout << "SETUP NODES" << std::endl;
 
@@ -204,16 +215,16 @@ void TopologyPtop::SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper) {
     m_basicSimulation->RegisterTimestamp("Install Internet stack (incl. routing) on nodes");
 }
 
+/**
+ * Parse an undirected edge mapping. It checks that exactly for every undirected edge is covered.
+ * In an edge definition, the first node identifier must always be lower than the second.
+ *
+ * @param value     String in the format of "map(a-b: c, ...)"
+ *
+ * @return Mapping (e.g., { (a, b) : c, ... })
+ */
 std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseUndirectedEdgeMap(std::string value) {
     std::map<std::pair<int64_t, int64_t>, std::string> result;
-
-    // If it does not start with map, the value cannot possibly be a mapping, as such we set it as a single value
-    if (!starts_with(trim(value), "map")) {
-        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            result[p] = value;
-        }
-        return result;
-    }
 
     // Go over every entry in the mapping
     std::vector<std::pair<std::string, std::string>> pair_list = parse_map_string(value);
@@ -249,18 +260,15 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseUndirected
     return result;
 }
 
+/**
+ * Parse a directed edge mapping. It checks that exactly for every directed edge (meaning link) is covered.
+ *
+ * @param value     String in the format of "map(a->b: c, ...)"
+ *
+ * @return Mapping (e.g., { (a, b) : c, ... })
+ */
 std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseDirectedEdgeMap(std::string value) {
-
     std::map<std::pair<int64_t, int64_t>, std::string> result;
-
-    // If it does not start with map, the value cannot possibly be a mapping, as such we set it as a single value
-    if (!starts_with(trim(value), "map")) {
-        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            result[p] = value;
-            result[std::make_pair(p.second, p.first)] = value;
-        }
-        return result;
-    }
 
     // Go over every entry in the mapping
     std::vector<std::pair<std::string, std::string>> pair_list = parse_map_string(value);
@@ -293,6 +301,13 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseDirectedEd
     return result;
 }
 
+/**
+ * Validate that the maximum queue size is permitted: only packets (e.g., 100p) or bytes (e.g., 100000B) are allowed.
+ *
+ * @param value     String value (e.g., "100p", "100000B")
+ *
+ * @return The same value if the parsing was successful, else it will have thrown an exception.
+ */
 std::string TopologyPtop::ValidateMaxQueueSizeValue(std::string value) {
     if (ends_with(value, "p") || ends_with(value, "B")) {
         parse_positive_int64(value.substr(0, value.size() - 1)); // Nothing else, only 1000p or 1000B for example
@@ -302,15 +317,167 @@ std::string TopologyPtop::ValidateMaxQueueSizeValue(std::string value) {
     }
 }
 
+/**
+ * Validate that the traffic control queueing discipline is permitted.
+ * Only the values "default" and "disabled" are permitted.
+ *
+ * @param value     String value (e.g., "disabled", "default")
+ *
+ * @return The same value if the parsing was successful, else it will have thrown an exception.
+ */
+std::string TopologyPtop::ValidateTrafficControlQdiscValue(std::string value) {
+    if (value == "default") {
+        return value;
+    } else if (value == "disabled") {
+        return value;
+    } else {
+        throw std::runtime_error("Invalid traffic control qdisc value: " + value);
+    }
+}
+
+/**
+ * Parse the traffic control queueing discipline value into a traffic control helper which
+ * can generate that.
+ *
+ * @param value     String value (e.g., "default")
+ *
+ * @return Traffic control helper (or an exception if invalid)
+ */
 TrafficControlHelper TopologyPtop::ParseTrafficControlQdiscValue(std::string value) {
     if (value == "default") {
         TrafficControlHelper defaultHelper;
         return defaultHelper;
     } else {
-        throw std::runtime_error("Unknown traffic control qdisc value: " + value);
+        throw std::runtime_error("Invalid traffic control qdisc value: " + value);
     }
 }
 
+/**
+ * Parse the link_channel_delay_ns from the topology configuration.
+ *
+ * @return Mapping of undirected edge (a, b) to channel delay in nanoseconds
+ */
+std::map<std::pair<int64_t, int64_t>, int64_t>  TopologyPtop::ParseLinkChannelDelayNsProperty() {
+    std::string value = get_param_or_fail("link_channel_delay_ns", m_topology_config);
+    std::map<std::pair<int64_t, int64_t>, int64_t> result;
+
+    // Universal value
+    if (!starts_with(trim(value), "map")) {
+
+        // Create default mapping
+        int64_t link_channel_delay_ns = parse_positive_int64(value);
+        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            result[p] = link_channel_delay_ns;
+        }
+        std::cout << "    >> Single global value... " << link_channel_delay_ns << " ns" << std::endl;
+
+    } else { // Mapping
+        std::map <std::pair<int64_t, int64_t>, std::string> undirected_edge_mapping = ParseUndirectedEdgeMap(value);
+        for (auto const& entry : undirected_edge_mapping) {
+            result[entry.first] = parse_positive_int64(entry.second);
+        }
+        std::cout << "    >> Per link channel mapping was read" << std::endl;
+    }
+
+    return result;
+}
+
+/**
+ * Parse the link_device_data_rate_megabit_per_s from the topology configuration.
+ *
+ * @return Mapping of directed edge (a, b) (i.e., link) to its device's data rate in Mbit/s
+ */
+std::map<std::pair<int64_t, int64_t>, double>  TopologyPtop::ParseLinkDeviceDataRateMegabitPerSecProperty() {
+    std::string value = get_param_or_fail("link_device_data_rate_megabit_per_s", m_topology_config);
+    std::map<std::pair<int64_t, int64_t>, double> result;
+
+    // Default value
+    if (!starts_with(trim(value), "map")) {
+
+        // Create default mapping
+        double link_device_data_rate_megabit_per_s = parse_positive_double(value);
+        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            result[p] = link_device_data_rate_megabit_per_s;
+            result[std::make_pair(p.second, p.first)] = link_device_data_rate_megabit_per_s;
+        }
+        std::cout << "    >> Single global value... " << link_device_data_rate_megabit_per_s << " Mbit/s" << std::endl;
+
+    } else { // Mapping
+        std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
+        for (auto const& entry : directed_edge_mapping) {
+            result[entry.first] = parse_positive_double(entry.second);
+        }
+        std::cout << "    >> Per link device mapping was read" << std::endl;
+    }
+
+    return result;
+}
+
+/**
+ * Parse the link_device_max_queue_size from the topology configuration.
+ *
+ * @return Mapping of directed edge (a, b) (i.e., link) to its device's maximum queue size in either packets or bytes
+ */
+std::map<std::pair<int64_t, int64_t>, std::string>  TopologyPtop::ParseLinkDeviceMaxQueueSizeProperty() {
+    std::string value = get_param_or_fail("link_device_max_queue_size", m_topology_config);
+    std::map<std::pair<int64_t, int64_t>, std::string> result;
+
+    // Default value
+    if (!starts_with(trim(value), "map")) {
+
+        // Create default mapping
+        std::string link_device_max_queue_size = ValidateMaxQueueSizeValue(value);
+        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            result[p] = link_device_max_queue_size;
+            result[std::make_pair(p.second, p.first)] = link_device_max_queue_size;
+        }
+        std::cout << "    >> Single global value... " << link_device_max_queue_size << std::endl;
+
+    } else { // Mapping
+        std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
+        for (auto const& entry : directed_edge_mapping) {
+            result[entry.first] = ValidateMaxQueueSizeValue(entry.second);
+        }
+        std::cout << "    >> Per link device mapping was read" << std::endl;
+    }
+
+    return result;
+}
+
+/**
+ * Parse the link_interface_traffic_control_qdisc from the topology configuration.
+ *
+ * @return Mapping of directed edge (a, b) (i.e., link) to its interface's traffic control queueing discipline
+ */
+std::map<std::pair<int64_t, int64_t>, std::string>  TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
+    std::string value = get_param_or_fail("link_interface_traffic_control_qdisc", m_topology_config);
+    std::map<std::pair<int64_t, int64_t>, std::string> result;
+
+    // Default value
+    if (!starts_with(trim(value), "map")) {
+
+        // Create default mapping
+        std::string link_interface_traffic_control_qdisc = ValidateTrafficControlQdiscValue(value);
+        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            result[p] = link_interface_traffic_control_qdisc;
+            result[std::make_pair(p.second, p.first)] = link_interface_traffic_control_qdisc;
+        }
+        std::cout << "    >> Single global value... " << link_interface_traffic_control_qdisc << std::endl;
+
+    } else { // Mapping
+        std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
+        for (auto const& entry : directed_edge_mapping) {
+            result[entry.first] = ValidateTrafficControlQdiscValue(entry.second);
+        }
+        std::cout << "    >> Per link interface mapping was read" << std::endl;
+    }
+
+    return result;
+}
+
+/**
+ * Setup all the links based on the topological layout and the link mappings.
+ */
 void TopologyPtop::SetupLinks() {
     std::cout << "SETUP LINKS" << std::endl;
 
@@ -321,24 +488,20 @@ void TopologyPtop::SetupLinks() {
     // Read in the link mappings
 
     std::cout << "  > Parsing link channel delay mapping" << std::endl;
-    std::map<std::pair<int64_t, int64_t>, std::string> undirected_edge_to_channel_delay_str = ParseUndirectedEdgeMap(
-        get_param_or_fail("link_channel_delay_ns", m_topology_config)
-    );
+    std::map<std::pair<int64_t, int64_t>, int64_t> link_channel_delay_ns_mapping = ParseLinkChannelDelayNsProperty();
+    m_basicSimulation->RegisterTimestamp("Parse link-to-channel-delay mapping");
 
     std::cout << "  > Parsing link device data rate mapping" << std::endl;
-    std::map<std::pair<int64_t, int64_t>, std::string> directed_edge_to_device_data_rate_str = ParseDirectedEdgeMap(
-        get_param_or_fail("link_device_data_rate_megabit_per_s", m_topology_config)
-    );
+    std::map<std::pair<int64_t, int64_t>, double> link_device_data_rate_megabit_per_s_mapping = ParseLinkDeviceDataRateMegabitPerSecProperty();
+    m_basicSimulation->RegisterTimestamp("Parse link-to-device-data-rate mapping");
 
     std::cout << "  > Parsing link device max. queue size mapping" << std::endl;
-    std::map<std::pair<int64_t, int64_t>, std::string> directed_edge_to_device_max_queue_size_str = ParseDirectedEdgeMap(
-        get_param_or_fail("link_device_max_queue_size", m_topology_config)
-    );
+    std::map<std::pair<int64_t, int64_t>, std::string> link_device_max_queue_size_mapping = ParseLinkDeviceMaxQueueSizeProperty();
+    m_basicSimulation->RegisterTimestamp("Parse link-to-device-max-queue-size mapping");
 
     std::cout << "  > Parsing link interface traffic control queuing discipline mapping" << std::endl;
-    std::map<std::pair<int64_t, int64_t>, std::string> directed_edge_to_interface_traffic_control_qdisc_str = ParseDirectedEdgeMap(
-        get_param_or_fail("link_interface_traffic_control_qdisc", m_topology_config)
-    );
+    std::map<std::pair<int64_t, int64_t>, std::string> link_interface_traffic_control_qdisc_mapping = ParseLinkInterfaceTrafficControlQdiscProperty();
+    m_basicSimulation->RegisterTimestamp("Parse link-to-interface-tc-qdisc mapping");
 
     // Create Links
     std::cout << "  > Installing links" << std::endl;
@@ -351,8 +514,7 @@ void TopologyPtop::SetupLinks() {
 
         // Install the point-to-point link
         PointToPointHelper p2p;
-        double channel_delay_ns = parse_positive_int64(undirected_edge_to_channel_delay_str[link]);
-        p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(channel_delay_ns)));
+        p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(link_channel_delay_ns_mapping.at(link))));
         NetDeviceContainer container = p2p.Install(m_nodes.Get(link.first), m_nodes.Get(link.second));
 
         // Retrieve the network devices installed on either end of the link
@@ -360,25 +522,23 @@ void TopologyPtop::SetupLinks() {
         Ptr<PointToPointNetDevice> netDeviceB = container.Get(1)->GetObject<PointToPointNetDevice>();
 
         // Data rate
-        double a_to_b_data_rate_megabit_per_s = parse_positive_double(directed_edge_to_device_data_rate_str[edge_a_to_b]);
-        double b_to_a_data_rate_megabit_per_s = parse_positive_double(directed_edge_to_device_data_rate_str[edge_b_to_a]);
-        netDeviceA->SetDataRate(DataRate(std::to_string(a_to_b_data_rate_megabit_per_s) + "Mbps"));
-        netDeviceB->SetDataRate(DataRate(std::to_string(b_to_a_data_rate_megabit_per_s) + "Mbps"));
+        netDeviceA->SetDataRate(DataRate(std::to_string(link_device_data_rate_megabit_per_s_mapping.at(edge_a_to_b)) + "Mbps"));
+        netDeviceB->SetDataRate(DataRate(std::to_string(link_device_data_rate_megabit_per_s_mapping.at(edge_b_to_a)) + "Mbps"));
 
         // Queue size
-        netDeviceA->GetQueue()->SetMaxSize(ValidateMaxQueueSizeValue(directed_edge_to_device_max_queue_size_str[edge_a_to_b]));
-        netDeviceB->GetQueue()->SetMaxSize(ValidateMaxQueueSizeValue(directed_edge_to_device_max_queue_size_str[edge_b_to_a]));
+        netDeviceA->GetQueue()->SetMaxSize(link_device_max_queue_size_mapping.at(edge_a_to_b));
+        netDeviceB->GetQueue()->SetMaxSize(link_device_max_queue_size_mapping.at(edge_b_to_a));
 
         // Traffic control queueing discipline
-        std::string a_to_b_traffic_control_qdisc = trim(directed_edge_to_interface_traffic_control_qdisc_str[edge_a_to_b]);
-        std::string b_to_a_traffic_control_qdisc = trim(directed_edge_to_interface_traffic_control_qdisc_str[edge_b_to_a]);
+        std::string a_to_b_traffic_control_qdisc = link_interface_traffic_control_qdisc_mapping.at(edge_a_to_b);
+        std::string b_to_a_traffic_control_qdisc = link_interface_traffic_control_qdisc_mapping.at(edge_b_to_a);
         if (a_to_b_traffic_control_qdisc != "disabled") {
             TrafficControlHelper helper = ParseTrafficControlQdiscValue(a_to_b_traffic_control_qdisc);
             helper.Install(netDeviceA);
         }
         if (b_to_a_traffic_control_qdisc != "disabled") {
             TrafficControlHelper helper = ParseTrafficControlQdiscValue(b_to_a_traffic_control_qdisc);
-            helper.Install(netDeviceA);
+            helper.Install(netDeviceB);
         }
 
         // Assign IP addresses
