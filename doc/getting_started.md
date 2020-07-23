@@ -64,30 +64,25 @@ We are going to install three different applications:
    **config_ns3.properties**
    
    ```
-    simulation_end_time_ns=4000000000
-    simulation_seed=123456789
+   simulation_end_time_ns=4000000000
+   simulation_seed=123456789
     
-    topology_filename="topology.properties"
-    topology_link_data_rate_megabit_per_s=100.0
-    topology_link_delay_ns=10000
-    topology_link_max_queue_size_pkt=100
-    topology_disable_traffic_control_endpoint_tors_xor_servers=true
-    topology_disable_traffic_control_non_endpoint_switches=true
+   topology_filename="topology.properties"
     
-    enable_link_utilization_tracking=true
-    link_utilization_tracking_interval_ns=100000000
+   enable_link_utilization_tracking=true
+   link_utilization_tracking_interval_ns=100000000
     
-    enable_pingmesh_scheduler=true
-    pingmesh_interval_ns=10000000
-    pingmesh_endpoint_pairs=all
+   enable_pingmesh_scheduler=true
+   pingmesh_interval_ns=10000000
+   pingmesh_endpoint_pairs=all
     
-    enable_flow_scheduler=true
-    flow_schedule_filename="flow_schedule.csv"
-    flow_enable_logging_for_flow_ids=set(0,1)
+   enable_flow_scheduler=true
+   flow_schedule_filename="flow_schedule.csv"
+   flow_enable_logging_for_flow_ids=set(0,1,2)
     
-    enable_udp_burst_scheduler=true
-    udp_burst_schedule_filename="udp_burst_schedule.csv"
-    udp_burst_enable_logging_for_udp_burst_ids=set(0,1,2)
+   enable_udp_burst_scheduler=true
+   udp_burst_schedule_filename="udp_burst_schedule.csv"
+   udp_burst_enable_logging_for_udp_burst_ids=set(0,1)
    ```
    
    **topology.properties**
@@ -105,6 +100,12 @@ We are going to install three different applications:
    switches_which_are_tors=set(0)
    servers=set(1,2,3)
    undirected_edges=set(0-1,0-2,0-3)
+   
+   # 10 microseconds delay, 100 Mbit/s, 100 packet queue for all links
+   link_channel_delay_ns=map(0-1:10000,0-2:10000,0-3:10000)
+   link_device_data_rate_megabit_per_s=map(0->1: 100.0, 1->0: 100.0, 0->2: 100.0, 2->0: 100.0, 0->3: 100.0, 3->0: 100.0)
+   link_device_max_queue_size=100p
+   link_interface_traffic_control_qdisc=disabled
    ```
    
    **flow_schedule.csv**
