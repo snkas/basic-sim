@@ -31,9 +31,9 @@ namespace ns3 {
          *
          * @param value     String value (e.g., "drop_tail(100p)", "drop_tail(100000B)")
          *
-         * @return Queue object factory if success, else throws an exception
+         * @return Pair of (Queue object factory, Maximum queue size) if success, else throws an exception
          */
-        static ObjectFactory Parse(std::string value) {
+        static std::pair<ObjectFactory, QueueSize> Parse(std::string value) {
 
             // First-in-first-out = drop-tail
             if (starts_with(value, "drop_tail(") && ends_with(value, ")")) {
@@ -52,7 +52,7 @@ namespace ns3 {
                 ObjectFactory queueFactory;
                 queueFactory.SetTypeId("ns3::DropTailQueue<Packet>");
                 queueFactory.Set("MaxSize", QueueSizeValue(QueueSize(fifo_max_queue_size_value)));
-                return queueFactory;
+                return std::make_pair(queueFactory, QueueSize(fifo_max_queue_size_value));
 
             } else {
                 throw std::runtime_error("Invalid queue value: " + value);

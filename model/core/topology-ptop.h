@@ -72,24 +72,28 @@ public:
 
 private:
 
+    // Handle to basic simulation
     Ptr<BasicSimulation> m_basicSimulation;
-
-    // Construction
-    void ReadRelevantConfig();
-    void ReadTopology();
-    void SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper);
-    std::map<std::pair<int64_t, int64_t>, int64_t> ParseLinkChannelDelayNsProperty();
-    std::map<std::pair<int64_t, int64_t>, double> ParseLinkDeviceDataRateMegabitPerSecProperty();
-    std::map<std::pair<int64_t, int64_t>, ObjectFactory> ParseLinkDeviceQueueProperty();
-    std::map<std::pair<int64_t, int64_t>, std::string> ParseLinkInterfaceTrafficControlQdiscProperty();
-    void SetupLinks();
-
-    // Configuration properties
     std::map<std::string, std::string> m_topology_config;
-    int64_t m_worst_case_rtt_ns = 1000000000;
     bool m_all_nodes_are_endpoints;
 
-    // Graph properties
+    // Reading
+    void ReadTopologyConfig();
+    void ParseTopologyGraph();
+    void ParseLinkChannelDelayNsProperty();
+    void ParseLinkDeviceDataRateMegabitPerSecProperty();
+    void ParseLinkDeviceQueueProperty();
+    void ParseLinkInterfaceTrafficControlQdiscProperty();
+    void ParseTopologyLinkProperties();
+
+    // Estimations
+    void EstimateWorstCaseRtt();
+
+    // Ns-3 construction
+    void SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper);
+    void SetupLinks();
+
+    // Topology layout properties
     int64_t m_num_nodes;
     int64_t m_num_undirected_edges;
     std::set<int64_t> m_switches;
@@ -101,7 +105,16 @@ private:
     std::vector<std::set<int64_t>> m_adjacency_list;
     bool m_has_zero_servers;
 
-    // From generating ns3 objects
+    // Topology link properties
+    std::map<std::pair<int64_t, int64_t>, int64_t> m_link_channel_delay_ns_mapping;
+    std::map<std::pair<int64_t, int64_t>, double> m_link_device_data_rate_megabit_per_s_mapping;
+    std::map<std::pair<int64_t, int64_t>, std::pair<ObjectFactory, QueueSize>> m_link_device_queue_mapping;
+    std::map<std::pair<int64_t, int64_t>, std::string> m_link_interface_traffic_control_qdisc_mapping;
+
+    // Estimations
+    int64_t m_worst_case_rtt_estimate_ns;
+
+    // From generating ns-3 objects
     NodeContainer m_nodes;
     std::vector<std::pair<uint32_t, uint32_t>> m_interface_idxs_for_edges;
 
