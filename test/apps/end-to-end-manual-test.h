@@ -44,7 +44,7 @@ public:
         topology_file << "undirected_edges=set(0-1)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 

@@ -8,4 +8,8 @@ The backlog of additional work that can be done on the `basic-sim` module:
 * Improve testing:
   * Link utilization log files
   * UDP burst log files
-* Topology individual link settings
+* topology_ptop_filename instead of topology_filename
+
+When upgrading to a new version of ns-3, be sure to check:
+
+* `PointToPointAbHelper` still consistent with the code in `PointToPointHelper`

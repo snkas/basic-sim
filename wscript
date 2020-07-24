@@ -20,6 +20,7 @@ def build(bld):
         'helper/core/ipv4-arbiter-routing-helper.cc',
         'helper/core/ptop-utilization-tracker-helper.cc',
         'helper/core/tcp-optimizer.cc',
+        'helper/core/point-to-point-ab-helper.cc',
 
         'model/apps/flow-send-application.cc',
         'model/apps/flow-sink.cc',
@@ -47,6 +48,8 @@ def build(bld):
         'model/core/basic-simulation.h',
         'model/core/exp-util.h',
         'model/core/topology.h',
+        'model/core/topology-ptop-queue-selector.h',
+        'model/core/topology-ptop-tc-qdisc-selector.h',
         'model/core/topology-ptop.h',
         'model/core/arbiter.h',
         'model/core/arbiter-ptop.h',
@@ -58,6 +61,7 @@ def build(bld):
         'helper/core/ipv4-arbiter-routing-helper.h',
         'helper/core/ptop-utilization-tracker-helper.h',
         'helper/core/tcp-optimizer.h',
+        'helper/core/point-to-point-ab-helper.h',
 
         'model/apps/flow-send-application.h',
         'model/apps/flow-sink.h',

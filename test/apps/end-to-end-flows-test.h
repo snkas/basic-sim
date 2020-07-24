@@ -60,7 +60,7 @@ public:
         topology_file << "undirected_edges=set(0-1)" << std::endl;
         topology_file << "link_channel_delay_ns=" << topology_link_delay_ns << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=" << topology_link_data_rate_megabit_per_s << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
     }
@@ -313,7 +313,7 @@ public:
         topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=200000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30.0" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
@@ -364,7 +364,7 @@ public:
         topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=200000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
@@ -451,7 +451,7 @@ public:
         topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=200000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 

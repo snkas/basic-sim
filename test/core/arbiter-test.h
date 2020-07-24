@@ -31,7 +31,7 @@ void prepare_arbiter_test_default_topology() {
     topology_file << "undirected_edges=set(0-1,1-2,2-3,0-3)" << std::endl;
     topology_file << "link_channel_delay_ns=10000" << std::endl;
     topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-    topology_file << "link_device_max_queue_size=100p" << std::endl;
+    topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
     topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
     topology_file.close();
 }
@@ -469,7 +469,7 @@ public:
         topology_file << "undirected_edges=set()" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 

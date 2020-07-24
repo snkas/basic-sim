@@ -104,7 +104,7 @@ We are going to install three different applications:
    # 10 microseconds delay, 100 Mbit/s, 100 packet queue for all links
    link_channel_delay_ns=map(0-1:10000,0-2:10000,0-3:10000)
    link_device_data_rate_megabit_per_s=map(0->1: 100.0, 1->0: 100.0, 0->2: 100.0, 2->0: 100.0, 0->3: 100.0, 3->0: 100.0)
-   link_device_max_queue_size=100p
+   link_device_queue=drop_tail(100p)
    link_interface_traffic_control_qdisc=disabled
    ```
    

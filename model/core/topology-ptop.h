@@ -36,6 +36,9 @@
 #include "ns3/random-variable-stream.h"
 #include "ns3/command-line.h"
 #include "ns3/traffic-control-helper.h"
+#include "ns3/point-to-point-ab-helper.h"
+#include "ns3/topology-ptop-queue-selector.h"
+#include "ns3/topology-ptop-tc-qdisc-selector.h"
 
 namespace ns3 {
 
@@ -46,6 +49,10 @@ public:
     // Constructors
     static TypeId GetTypeId (void);
     TopologyPtop(Ptr<BasicSimulation> basicSimulation, const Ipv4RoutingHelper& ipv4RoutingHelper);
+
+    // Parsers to assist
+    std::map<std::pair<int64_t, int64_t>, std::string> ParseUndirectedEdgeMap(std::string value);
+    std::map<std::pair<int64_t, int64_t>, std::string> ParseDirectedEdgeMap(std::string value);
 
     // Accessors
     const NodeContainer& GetNodes();
@@ -71,14 +78,9 @@ private:
     void ReadRelevantConfig();
     void ReadTopology();
     void SetupNodes(const Ipv4RoutingHelper& ipv4RoutingHelper);
-    std::map<std::pair<int64_t, int64_t>, std::string> ParseUndirectedEdgeMap(std::string value);
-    std::map<std::pair<int64_t, int64_t>, std::string> ParseDirectedEdgeMap(std::string value);
-    std::string ValidateMaxQueueSizeValue(std::string value);
-    std::string ValidateTrafficControlQdiscValue(std::string value);
-    TrafficControlHelper ParseTrafficControlQdiscValue(std::string value);
     std::map<std::pair<int64_t, int64_t>, int64_t> ParseLinkChannelDelayNsProperty();
     std::map<std::pair<int64_t, int64_t>, double> ParseLinkDeviceDataRateMegabitPerSecProperty();
-    std::map<std::pair<int64_t, int64_t>, std::string> ParseLinkDeviceMaxQueueSizeProperty();
+    std::map<std::pair<int64_t, int64_t>, ObjectFactory> ParseLinkDeviceQueueProperty();
     std::map<std::pair<int64_t, int64_t>, std::string> ParseLinkInterfaceTrafficControlQdiscProperty();
     void SetupLinks();
 

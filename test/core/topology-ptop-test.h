@@ -49,7 +49,7 @@ public:
         topology_file << "all_nodes_are_endpoints=true" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         
@@ -89,7 +89,7 @@ public:
         topology_file << "all_nodes_are_endpoints=false" << std::endl;
         topology_file << "link_channel_delay_ns=map(0-1: 10000)" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=map(0->1: 100, 1->0: 100)" << std::endl;
-        topology_file << "link_device_max_queue_size=map(0->1: 100p, 1->0: 100p)" << std::endl;
+        topology_file << "link_device_queue=map(0->1: drop_tail(100p), 1->0: drop_tail(100p))" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=map(0->1: disabled, 1->0: disabled)" << std::endl;
         topology_file.close();
         
@@ -149,7 +149,7 @@ public:
         topology_file << "all_nodes_are_endpoints=false" << std::endl;
         topology_file << "link_channel_delay_ns=map(0-4: 10000,1-4: 10000,2-4: 10000,3-4: 10000,4-5: 10000,4-6: 7000,4-7: 10000)" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=50" << std::endl;
-        topology_file << "link_device_max_queue_size=100000B" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100000B)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=map(0->4: default,1->4: default,2->4: default,3->4: default,4->5: default,4->6: default,4->7: default,4->0: default,4->1: default,4->2: disabled,4->3: disabled,5->4: disabled,6->4: disabled,7->4: disabled)" << std::endl;
         topology_file.close();
         
@@ -219,7 +219,7 @@ public:
         topology_file << "undirected_edges=set(0-9,0-10,0-11,0-12,0-13,0-14,0-15,0-16,1-9,1-10,1-11,1-12,1-17,1-18,1-19,1-20,2-9,2-10,2-11,2-12,2-21,2-22,2-23,2-24,3-9,3-10,3-11,3-12,3-25,3-26,3-27,3-28,4-9,4-10,4-11,4-12,4-29,4-30,4-31,4-32,5-9,5-10,5-11,5-12,5-33,5-34,5-35,5-36,6-9,6-10,6-11,6-12,6-37,6-38,6-39,6-40,7-9,7-10,7-11,7-12,7-41,7-42,7-43,7-44,8-9,8-10,8-11,8-12,8-45,8-46,8-47,8-48)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
@@ -305,7 +305,7 @@ public:
         topology_file << "undirected_edges=set(0-1,1-3,0-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=100000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=0.1" << std::endl;
-        topology_file << "link_device_max_queue_size=1p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(1p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=default" << std::endl;
         topology_file.close();
         
@@ -380,7 +380,7 @@ public:
         topology_file << "undirected_edges=set(1-0)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -396,7 +396,7 @@ public:
         topology_file << "undirected_edges=set(1-0,1-2)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -412,7 +412,7 @@ public:
         topology_file << "undirected_edges=set(1-0)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -428,7 +428,7 @@ public:
         topology_file << "undirected_edges=set(1-0)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -444,7 +444,7 @@ public:
         topology_file << "undirected_edges=set(1-0,0-1)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -460,7 +460,7 @@ public:
         topology_file << "undirected_edges=set(1-0)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -476,7 +476,7 @@ public:
         topology_file << "undirected_edges=set(1-0,2-1,3-0)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -492,7 +492,7 @@ public:
         topology_file << "undirected_edges=set(1-0,2-1,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -508,7 +508,7 @@ public:
         topology_file << "undirected_edges=set(0-1,1-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -524,7 +524,7 @@ public:
         topology_file << "undirected_edges=set(0-1,1-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -540,7 +540,7 @@ public:
         topology_file << "undirected_edges=set(0-1,1-2,2-2)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -556,7 +556,7 @@ public:
         topology_file << "undirected_edges=set(0-1,1-2,2-4)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -572,7 +572,7 @@ public:
         topology_file << "undirected_edges=set(0-1,1-2,4-3)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
@@ -588,7 +588,7 @@ public:
         topology_file << "undirected_edges=set(0-1,1-2,2-3,2 -3)" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_max_queue_size=100p" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));

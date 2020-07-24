@@ -28,7 +28,7 @@ It encompasses the following files:
    
    link_channel_delay_ns=10000
    link_device_data_rate_megabit_per_s=100.0
-   link_device_max_queue_size=100p
+   link_device_queue=drop_tail(100p)
    link_interface_traffic_control_qdisc=disabled
    ```
 
@@ -86,7 +86,7 @@ undirected_edges=set(0-1,0-2,0-3)
 
 link_channel_delay_ns=map(0-1: 10000, 0-2: 10000, 0-3: 10000)
 link_device_data_rate_megabit_per_s=100.0
-link_device_max_queue_size=map(0->1: 50p, 1->0: 100p, 0->2: 100000B, 2->0: 50p, 0->3: 100p, 3->0: 100p)
+link_device_queue=map(0->1: drop_tail(50p), 1->0: drop_tail(100p), 0->2: drop_tail(100000B), 2->0: drop_tail(50p), 0->3: drop_tail(100p), 3->0: drop_tail(100p))
 link_interface_traffic_control_qdisc=disabled
 ```
 
@@ -128,9 +128,9 @@ link_interface_traffic_control_qdisc=disabled
 
   Data rate set for links (Mbit/s). 
  
-* `link_device_max_queue_size` (type: directed edge (link) mapping or a global value; `<integer>p` or `<integer>B`  for respectively packets or bytes)
+* `link_device` (type: directed edge (link) mapping or a global value; `drop_tail(<integer>p)` or `drop_tail(<integer>B)`  for respectively packets or bytes)
 
-  Maximum queue size for links (no. of packets).
+  Queue implementation for link devices. Only DropTail is right now implemented.
   
 * `link_interface_traffic_control_qdisc` (type: directed edge (link) mapping or a global value; string of `default` or `disabled`)
 

@@ -59,7 +59,7 @@ void TopologyPtop::ReadRelevantConfig() {
                 entry.first != "all_nodes_are_endpoints" &&
                 entry.first != "link_channel_delay_ns" &&
                 entry.first != "link_device_data_rate_megabit_per_s" &&
-                entry.first != "link_device_max_queue_size" &&
+                entry.first != "link_device_queue" &&
                 entry.first != "link_interface_traffic_control_qdisc"
         ) {
             throw std::runtime_error("Invalid topology property: " + entry.first);
@@ -301,56 +301,7 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseDirectedEd
     return result;
 }
 
-/**
- * Validate that the maximum queue size is permitted: only packets (e.g., 100p) or bytes (e.g., 100000B) are allowed.
- *
- * @param value     String value (e.g., "100p", "100000B")
- *
- * @return The same value if the parsing was successful, else it will have thrown an exception.
- */
-std::string TopologyPtop::ValidateMaxQueueSizeValue(std::string value) {
-    if (ends_with(value, "p") || ends_with(value, "B")) {
-        parse_positive_int64(value.substr(0, value.size() - 1)); // Nothing else, only 1000p or 1000B for example
-        return value;
-    } else {
-        throw std::runtime_error("Invalid maximum queue size value: " + value);
-    }
-}
 
-/**
- * Validate that the traffic control queueing discipline is permitted.
- * Only the values "default" and "disabled" are permitted.
- *
- * @param value     String value (e.g., "disabled", "default")
- *
- * @return The same value if the parsing was successful, else it will have thrown an exception.
- */
-std::string TopologyPtop::ValidateTrafficControlQdiscValue(std::string value) {
-    if (value == "default") {
-        return value;
-    } else if (value == "disabled") {
-        return value;
-    } else {
-        throw std::runtime_error("Invalid traffic control qdisc value: " + value);
-    }
-}
-
-/**
- * Parse the traffic control queueing discipline value into a traffic control helper which
- * can generate that.
- *
- * @param value     String value (e.g., "default")
- *
- * @return Traffic control helper (or an exception if invalid)
- */
-TrafficControlHelper TopologyPtop::ParseTrafficControlQdiscValue(std::string value) {
-    if (value == "default") {
-        TrafficControlHelper defaultHelper;
-        return defaultHelper;
-    } else {
-        throw std::runtime_error("Invalid traffic control qdisc value: " + value);
-    }
-}
 
 /**
  * Parse the link_channel_delay_ns from the topology configuration.
@@ -414,29 +365,29 @@ std::map<std::pair<int64_t, int64_t>, double>  TopologyPtop::ParseLinkDeviceData
 }
 
 /**
- * Parse the link_device_max_queue_size from the topology configuration.
+ * Parse the link_device_queue from the topology configuration.
  *
- * @return Mapping of directed edge (a, b) (i.e., link) to its device's maximum queue size in either packets or bytes
+ * @return Mapping of directed edge (a, b) (i.e., link) to its device's queue
  */
-std::map<std::pair<int64_t, int64_t>, std::string>  TopologyPtop::ParseLinkDeviceMaxQueueSizeProperty() {
-    std::string value = get_param_or_fail("link_device_max_queue_size", m_topology_config);
-    std::map<std::pair<int64_t, int64_t>, std::string> result;
+std::map<std::pair<int64_t, int64_t>, ObjectFactory>  TopologyPtop::ParseLinkDeviceQueueProperty() {
+    std::string value = get_param_or_fail("link_device_queue", m_topology_config);
+    std::map<std::pair<int64_t, int64_t>, ObjectFactory> result;
 
     // Default value
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::string link_device_max_queue_size = ValidateMaxQueueSizeValue(value);
+        ObjectFactory link_device_queue = TopologyPtopQueueSelector::Parse(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            result[p] = link_device_max_queue_size;
-            result[std::make_pair(p.second, p.first)] = link_device_max_queue_size;
+            result[p] = link_device_queue;
+            result[std::make_pair(p.second, p.first)] = link_device_queue;
         }
-        std::cout << "    >> Single global value... " << link_device_max_queue_size << std::endl;
+        std::cout << "    >> Single global value... " << link_device_queue << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            result[entry.first] = ValidateMaxQueueSizeValue(entry.second);
+            result[entry.first] = TopologyPtopQueueSelector::Parse(entry.second);
         }
         std::cout << "    >> Per link device mapping was read" << std::endl;
     }
@@ -457,7 +408,7 @@ std::map<std::pair<int64_t, int64_t>, std::string>  TopologyPtop::ParseLinkInter
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::string link_interface_traffic_control_qdisc = ValidateTrafficControlQdiscValue(value);
+        std::string link_interface_traffic_control_qdisc = TopologyPtopTcQdiscSelector::Validate(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
             result[p] = link_interface_traffic_control_qdisc;
             result[std::make_pair(p.second, p.first)] = link_interface_traffic_control_qdisc;
@@ -467,7 +418,7 @@ std::map<std::pair<int64_t, int64_t>, std::string>  TopologyPtop::ParseLinkInter
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            result[entry.first] = ValidateTrafficControlQdiscValue(entry.second);
+            result[entry.first] = TopologyPtopTcQdiscSelector::Validate(entry.second);
         }
         std::cout << "    >> Per link interface mapping was read" << std::endl;
     }
@@ -495,9 +446,9 @@ void TopologyPtop::SetupLinks() {
     std::map<std::pair<int64_t, int64_t>, double> link_device_data_rate_megabit_per_s_mapping = ParseLinkDeviceDataRateMegabitPerSecProperty();
     m_basicSimulation->RegisterTimestamp("Parse link-to-device-data-rate mapping");
 
-    std::cout << "  > Parsing link device max. queue size mapping" << std::endl;
-    std::map<std::pair<int64_t, int64_t>, std::string> link_device_max_queue_size_mapping = ParseLinkDeviceMaxQueueSizeProperty();
-    m_basicSimulation->RegisterTimestamp("Parse link-to-device-max-queue-size mapping");
+    std::cout << "  > Parsing link device queue mapping" << std::endl;
+    std::map<std::pair<int64_t, int64_t>, ObjectFactory> link_device_queue_mapping = ParseLinkDeviceQueueProperty();
+    m_basicSimulation->RegisterTimestamp("Parse link-to-device-queue mapping");
 
     std::cout << "  > Parsing link interface traffic control queuing discipline mapping" << std::endl;
     std::map<std::pair<int64_t, int64_t>, std::string> link_interface_traffic_control_qdisc_mapping = ParseLinkInterfaceTrafficControlQdiscProperty();
@@ -506,38 +457,34 @@ void TopologyPtop::SetupLinks() {
     // Create Links
     std::cout << "  > Installing links" << std::endl;
     m_interface_idxs_for_edges.clear();
-    for (std::pair<int64_t, int64_t> link : m_undirected_edges) {
+    for (std::pair<int64_t, int64_t> undirected_edge : m_undirected_edges) {
 
         // Retrieve all relevant details
-        std::pair<int64_t, int64_t> edge_a_to_b = link;
-        std::pair<int64_t, int64_t> edge_b_to_a = std::make_pair(link.second, link.first);
+        std::pair<int64_t, int64_t> edge_a_to_b = undirected_edge;
+        std::pair<int64_t, int64_t> edge_b_to_a = std::make_pair(undirected_edge.second, undirected_edge.first);
 
-        // Install the point-to-point link
-        PointToPointHelper p2p;
-        p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(link_channel_delay_ns_mapping.at(link))));
-        NetDeviceContainer container = p2p.Install(m_nodes.Get(link.first), m_nodes.Get(link.second));
+        // Point-to-point helper
+        PointToPointAbHelper p2p;
+        p2p.SetDeviceAttributeA("DataRate", DataRateValue(DataRate(std::to_string(link_device_data_rate_megabit_per_s_mapping.at(edge_a_to_b)) + "Mbps")));
+        p2p.SetDeviceAttributeB("DataRate", DataRateValue(DataRate(std::to_string(link_device_data_rate_megabit_per_s_mapping.at(edge_b_to_a)) + "Mbps")));
+        p2p.SetQueueFactoryA(link_device_queue_mapping.at(edge_a_to_b));
+        p2p.SetQueueFactoryB(link_device_queue_mapping.at(edge_b_to_a));
+        p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(link_channel_delay_ns_mapping.at(undirected_edge))));
+        NetDeviceContainer container = p2p.Install(m_nodes.Get(undirected_edge.first), m_nodes.Get(undirected_edge.second));
 
         // Retrieve the network devices installed on either end of the link
         Ptr<PointToPointNetDevice> netDeviceA = container.Get(0)->GetObject<PointToPointNetDevice>();
         Ptr<PointToPointNetDevice> netDeviceB = container.Get(1)->GetObject<PointToPointNetDevice>();
 
-        // Data rate
-        netDeviceA->SetDataRate(DataRate(std::to_string(link_device_data_rate_megabit_per_s_mapping.at(edge_a_to_b)) + "Mbps"));
-        netDeviceB->SetDataRate(DataRate(std::to_string(link_device_data_rate_megabit_per_s_mapping.at(edge_b_to_a)) + "Mbps"));
-
-        // Queue size
-        netDeviceA->GetQueue()->SetMaxSize(link_device_max_queue_size_mapping.at(edge_a_to_b));
-        netDeviceB->GetQueue()->SetMaxSize(link_device_max_queue_size_mapping.at(edge_b_to_a));
-
         // Traffic control queueing discipline
         std::string a_to_b_traffic_control_qdisc = link_interface_traffic_control_qdisc_mapping.at(edge_a_to_b);
         std::string b_to_a_traffic_control_qdisc = link_interface_traffic_control_qdisc_mapping.at(edge_b_to_a);
         if (a_to_b_traffic_control_qdisc != "disabled") {
-            TrafficControlHelper helper = ParseTrafficControlQdiscValue(a_to_b_traffic_control_qdisc);
+            TrafficControlHelper helper = TopologyPtopTcQdiscSelector::Parse(a_to_b_traffic_control_qdisc);
             helper.Install(netDeviceA);
         }
         if (b_to_a_traffic_control_qdisc != "disabled") {
-            TrafficControlHelper helper = ParseTrafficControlQdiscValue(b_to_a_traffic_control_qdisc);
+            TrafficControlHelper helper = TopologyPtopTcQdiscSelector::Parse(b_to_a_traffic_control_qdisc);
             helper.Install(netDeviceB);
         }
 
@@ -558,6 +505,7 @@ void TopologyPtop::SetupLinks() {
         uint32_t a = container.Get(0)->GetIfIndex();
         uint32_t b = container.Get(1)->GetIfIndex();
         m_interface_idxs_for_edges.push_back(std::make_pair(a, b));
+        // TODO: Add other mappings?
 
     }
 
