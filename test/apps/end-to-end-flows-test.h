@@ -49,7 +49,7 @@ public:
         config_file.close();
     }
 
-    void write_single_topology(double topology_link_data_rate_megabit_per_s, int64_t topology_link_delay_ns) {
+    void write_single_topology(double link_device_data_rate_megabit_per_s, int64_t link_channel_delay_ns) {
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
@@ -58,8 +58,8 @@ public:
         topology_file << "switches_which_are_tors=set(0,1)" << std::endl;
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1)" << std::endl;
-        topology_file << "link_channel_delay_ns=" << topology_link_delay_ns << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=" << topology_link_data_rate_megabit_per_s << std::endl;
+        topology_file << "link_channel_delay_ns=" << link_channel_delay_ns << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=" << link_device_data_rate_megabit_per_s << std::endl;
         topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
