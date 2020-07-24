@@ -41,7 +41,7 @@ namespace ns3 {
                 throw std::runtime_error(
                         "Invalid maximum drop-tail queue size value: " + fifo_max_queue_size_value);
             }
-            parse_positive_int64(fifo_max_queue_size_value.substr(0, fifo_max_queue_size_value.size() - 1));
+            parse_geq_one_int64(fifo_max_queue_size_value.substr(0, fifo_max_queue_size_value.size() - 1));
 
             // Finally create the queue factory
             ObjectFactory queueFactory;

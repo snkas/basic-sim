@@ -564,12 +564,12 @@ void TopologyPtop::SetupLinks() {
         }
 
         // Save to mapping
-        uint32_t a = container.Get(0)->GetIfIndex();
-        uint32_t b = container.Get(1)->GetIfIndex();
-        m_interface_idxs_for_edges.push_back(std::make_pair(a, b));
+        uint32_t a_if_idx = container.Get(0)->GetIfIndex();
+        uint32_t b_if_idx = container.Get(1)->GetIfIndex();
+        m_interface_idxs_for_edges.push_back(std::make_pair(a_if_idx, b_if_idx));
         m_net_devices_for_edges.push_back(std::make_pair(netDeviceA, netDeviceB));
-        m_link_to_net_device[std::make_pair(a, b)] = netDeviceA;
-        m_link_to_net_device[std::make_pair(b, a)] = netDeviceB;
+        m_link_to_net_device[edge_a_to_b] = netDeviceA;
+        m_link_to_net_device[edge_b_to_a] = netDeviceB;
 
     }
 

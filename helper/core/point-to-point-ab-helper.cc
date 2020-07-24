@@ -30,6 +30,8 @@
 #include "ns3/config.h"
 #include "ns3/packet.h"
 #include "ns3/names.h"
+#include "ns3/drop-tail-queue.h"
+#include "ns3/pointer.h"
 
 #ifdef NS3_MPI
 #include "ns3/mpi-interface.h"
@@ -62,7 +64,7 @@ namespace ns3 {
 
     void
     PointToPointAbHelper::SetQueueFactoryB(ObjectFactory queueFactoryB) {
-        m_queueFactoryB = m_queueFactoryB;
+        m_queueFactoryB = queueFactoryB;
     }
 
     void

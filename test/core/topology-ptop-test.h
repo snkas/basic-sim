@@ -147,10 +147,10 @@ public:
         topology_file << "servers=set(0,1,2,3,5,6,7)" << std::endl;
         topology_file << "undirected_edges=set(0-4,1-4,2-4,3-4,4-5,4-6,4-7)" << std::endl;
         topology_file << "all_nodes_are_endpoints=false" << std::endl;
-        topology_file << "link_channel_delay_ns=map(0-4: 10000,1-4: 10000,2-4: 10000,3-4: 10000,4-5: 10000,4-6: 7000,4-7: 10000)" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=50" << std::endl;
-        topology_file << "link_device_queue=drop_tail(100000B)" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=map(0->4: default,1->4: default,2->4: default,3->4: default,4->5: default,4->6: default,4->7: default,4->0: default,4->1: default,4->2: disabled,4->3: disabled,5->4: disabled,6->4: disabled,7->4: disabled)" << std::endl;
+        topology_file << "link_channel_delay_ns=map(0-4: 400,1-4: 500,2-4: 600,3-4: 700,4-5: 900,4-6: 10000,4-7: 11000)" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=map(0->4: 2.8,1->4: 3.1,2->4: 3.4,3->4: 3.7,4->5: 4.7,4->6: 5.4,4->7: 6.1,4->0: 1.2,4->1: 1.9,4->2: 2.6,4->3: 3.3,5->4: 4.3,6->4: 4.6,7->4: 4.9)" << std::endl;
+        topology_file << "link_device_queue=map(0->4: drop_tail(4p),1->4: drop_tail(4B),2->4: drop_tail(4p),3->4: drop_tail(4B),4->5: drop_tail(5p),4->6: drop_tail(6p),4->7: drop_tail(7p),4->0: drop_tail(77p),4->1: drop_tail(1p),4->2: drop_tail(2p),4->3: drop_tail(3p),5->4: drop_tail(4B),6->4: drop_tail(4p),7->4: drop_tail(4B))" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->4: fq_co_del_better_rtt,1->4: default,2->4: fq_co_del_better_rtt,3->4: default,4->5: default,4->6: default,4->7: default,4->0: default,4->1: default,4->2: disabled,4->3: disabled,5->4: disabled,6->4: disabled,7->4: disabled)" << std::endl;
         topology_file.close();
         
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
@@ -194,6 +194,51 @@ public:
                 int b = i > 4 ? i : 4;
                 ASSERT_TRUE(set_pair_int64_contains(topology->GetUndirectedEdgesSet(), std::make_pair<int64_t, int64_t>(a, b)));
             }
+        }
+
+        // And now we are going to go test all the network devices installed and their channels in-between
+        for (const std::pair<int64_t, int64_t>& edge : topology->GetUndirectedEdges()) {
+            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetNetDeviceForLink(edge);
+            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetNetDeviceForLink(std::make_pair(edge.second, edge.first));
+            std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PointToPointNetDevice>>> links_with_devices;
+            links_with_devices.push_back(std::make_pair(edge, deviceAtoB));
+            links_with_devices.push_back(std::make_pair(std::make_pair(edge.second, edge.first), deviceBtoA));
+            for (std::pair<std::pair<int64_t, int64_t>, Ptr<PointToPointNetDevice>> link_and_device : links_with_devices) {
+
+                // Under investigation
+                std::pair<int64_t, int64_t> link = link_and_device.first;
+                Ptr<PointToPointNetDevice> device = link_and_device.second;
+
+                // Channel delay
+                // In this test, the link delay is the two node identifiers
+                // added together times 100, unless it's more than 10, then it's times 1000
+                TimeValue delay_of_channel;
+                device->GetChannel()->GetObject<PointToPointChannel>()->GetAttribute("Delay", delay_of_channel);
+                ASSERT_EQUAL(delay_of_channel.Get().GetNanoSeconds(), (link.first + link.second >= 10 ? (link.first + link.second) * 10 : (link.first + link.second)) * 100);
+
+                // Data rate
+                // In this test, the data rate is the (first node identifier * 3 + second node identifier * 7) * 0.1
+                DataRateValue data_rate;
+                device->GetAttribute("DataRate", data_rate);
+                ASSERT_EQUAL((int64_t) data_rate.Get().GetBitRate(), (link.first * 3 + link.second * 7) * 100000);
+
+                // Queue
+                // In this test, the even queue have packets as max size, the uneven have bytes
+                // The max size is 77 if the second node identifier is 0, else the second node identifier
+                PointerValue ptr;
+                device->GetAttribute ("TxQueue", ptr);
+                Ptr<Queue<Packet>> txQueue = ptr.Get<Queue<Packet>>();
+                Ptr<QueueBase> abcQueue = txQueue->GetObject<QueueBase>();
+                if (link.first % 2 == 0) {
+                    ASSERT_EQUAL(abcQueue->GetMaxSize().GetUnit(), PACKETS);
+                    NS_TEST_ASSERT_MSG_EQ(abcQueue->GetMaxSize().GetValue(), (link.second == 0 ? 77 : link.second), "For link: " + std::to_string(link.first) + " -> " + std::to_string(link.second));
+                } else {
+                    ASSERT_EQUAL(abcQueue->GetMaxSize().GetUnit(), BYTES);
+                    ASSERT_EQUAL(abcQueue->GetMaxSize().GetValue(), (link.second == 0 ? 77 : link.second));
+                }
+
+            }
+
         }
 
         basicSimulation->Finalize();
