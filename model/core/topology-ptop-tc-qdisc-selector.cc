@@ -25,7 +25,7 @@ namespace ns3 {
      * Validate that the traffic control queueing discipline is permitted.
      * Only the values "default" and "disabled" are permitted.
      *
-     * @param value     String value (e.g., "disabled", "default", "fq_co_del_better_rtt")
+     * @param value     String value (e.g., "disabled", "default", "fq_codel_better_rtt")
      *
      * @return The same value if the parsing was successful, else it will have thrown an exception.
      */
@@ -34,7 +34,7 @@ namespace ns3 {
             return value;
         } else if (value == "disabled") {
             return value;
-        } else if (value == "fq_co_del_better_rtt") {
+        } else if (value == "fq_codel_better_rtt") {
             return value;
         } else {
             throw std::runtime_error("Invalid traffic control qdisc value: " + value);
@@ -46,7 +46,7 @@ namespace ns3 {
      * can generate that.
      *
      * @param topology  Handle to the topology (might have relevant information)
-     * @param value     String value (e.g., "default", "fq_co_del_better_rtt")
+     * @param value     String value (e.g., "default", "fq_codel_better_rtt")
      *
      * @return Traffic control helper (or an exception if invalid)
      */
@@ -55,7 +55,7 @@ namespace ns3 {
             TrafficControlHelper defaultHelper;
             return defaultHelper;
 
-        } else if (value == "fq_co_del_better_rtt") {
+        } else if (value == "fq_codel_better_rtt") {
             TrafficControlHelper fqCoDelBetterRttHelper;
             std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_estimate_ns);
             std::string target = format_string("%" PRId64 "ns", m_worst_case_rtt_estimate_ns / 20);

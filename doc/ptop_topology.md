@@ -132,7 +132,7 @@ link_interface_traffic_control_qdisc=disabled
 
   Queue implementation for link devices. Only DropTail is right now implemented.
   
-* `link_interface_traffic_control_qdisc` (type: directed edge (link) mapping or a global value; string of `default` or `disabled`)
+* `link_interface_traffic_control_qdisc` (type: directed edge (link) mapping or a global value; string of `default`,  `disabled`, `fq_codel_better_rtt`)
 
    Interface traffic control queueing discipline for links.
 
