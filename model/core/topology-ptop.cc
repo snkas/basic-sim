@@ -340,7 +340,7 @@ void TopologyPtop::ParseLinkDeviceQueueProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::pair<ObjectFactory, QueueSize> link_device_queue = TopologyPtopQueueSelector::Parse(value);
+        std::pair<ObjectFactory, QueueSize> link_device_queue = ParseQueueValue(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
             m_link_device_queue_mapping[p] = link_device_queue;
             m_link_device_queue_mapping[std::make_pair(p.second, p.first)] = link_device_queue;
@@ -350,7 +350,7 @@ void TopologyPtop::ParseLinkDeviceQueueProperty() {
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_queue_mapping[entry.first] = TopologyPtopQueueSelector::Parse(entry.second);
+            m_link_device_queue_mapping[entry.first] = ParseQueueValue(entry.second);
         }
         std::cout << "    >> Per link device mapping was read" << std::endl;
     }
@@ -426,7 +426,7 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::string link_interface_traffic_control_qdisc = TopologyPtopTcQdiscSelector::Validate(value);
+        std::string link_interface_traffic_control_qdisc = ValidateTcQdiscValue(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
             m_link_interface_traffic_control_qdisc_mapping[p] = link_interface_traffic_control_qdisc;
             m_link_interface_traffic_control_qdisc_mapping[std::make_pair(p.second, p.first)] = link_interface_traffic_control_qdisc;
@@ -436,7 +436,7 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_interface_traffic_control_qdisc_mapping[entry.first] = TopologyPtopTcQdiscSelector::Validate(entry.second);
+            m_link_interface_traffic_control_qdisc_mapping[entry.first] = ValidateTcQdiscValue(entry.second);
         }
         std::cout << "    >> Per link interface mapping was read" << std::endl;
     }
@@ -542,11 +542,11 @@ void TopologyPtop::SetupLinks() {
         std::string a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_a_to_b);
         std::string b_to_a_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_b_to_a);
         if (a_to_b_traffic_control_qdisc != "disabled") {
-            TrafficControlHelper helper = TopologyPtopTcQdiscSelector::Parse(a_to_b_traffic_control_qdisc);
+            TrafficControlHelper helper = ParseTcQdiscValue(a_to_b_traffic_control_qdisc);
             helper.Install(netDeviceA);
         }
         if (b_to_a_traffic_control_qdisc != "disabled") {
-            TrafficControlHelper helper = TopologyPtopTcQdiscSelector::Parse(b_to_a_traffic_control_qdisc);
+            TrafficControlHelper helper = ParseTcQdiscValue(b_to_a_traffic_control_qdisc);
             helper.Install(netDeviceB);
         }
 

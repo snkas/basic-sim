@@ -37,8 +37,6 @@
 #include "ns3/command-line.h"
 #include "ns3/traffic-control-helper.h"
 #include "ns3/point-to-point-ab-helper.h"
-#include "ns3/topology-ptop-queue-selector.h"
-#include "ns3/topology-ptop-tc-qdisc-selector.h"
 
 namespace ns3 {
 
@@ -87,6 +85,9 @@ private:
     void ParseLinkDeviceQueueProperty();
     void ParseLinkInterfaceTrafficControlQdiscProperty();
     void ParseTopologyLinkProperties();
+    std::string ValidateTcQdiscValue(std::string value);
+    TrafficControlHelper ParseTcQdiscValue(std::string value);
+    std::pair<ObjectFactory, QueueSize> ParseQueueValue(std::string value);
 
     // Estimations
     void EstimateWorstCaseRtt();
