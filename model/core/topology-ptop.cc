@@ -267,7 +267,7 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseDirectedEd
     }
 
     if (m_undirected_edges_set.size() * 2 != result.size()) {
-        throw std::runtime_error("Not all undirected edges were covered");
+        throw std::runtime_error("Not all directed edges were covered");
     }
 
     return result;
