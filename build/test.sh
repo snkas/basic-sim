@@ -2,7 +2,7 @@ NS3_VERSION="ns-3.31"
 
 # Usage help
 if [ "$1" == "--help" ]; then
-  echo "Usage: bash test.sh [--help, --no_coverage]"
+  echo "Usage: bash test.sh [--help, --only_tests, --no_coverage]"
   exit 0
 fi
 
@@ -24,6 +24,15 @@ lcov --directory build/debug_all --zerocounters
 echo "Performing tests for coverage"
 python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
 python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
+
+# Show test results in the middle as well
+cat ../test_results/test_results_core.txt
+cat ../test_results/test_results_apps.txt
+
+# Stop if we don't want a coverage report
+if [ "$1" == "--only_tests" ]; then
+  exit 0
+fi
 
 # Back to build/ directory
 cd .. || exit 1

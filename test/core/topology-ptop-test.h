@@ -5,6 +5,8 @@
 #include "ns3/topology-ptop.h"
 #include "../test-helpers.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
+#include "ns3/traffic-control-layer.h"
+#include "ns3/fq-codel-queue-disc.h"
 
 using namespace ns3;
 
@@ -150,7 +152,7 @@ public:
         topology_file << "link_channel_delay_ns=map(0-4: 400,1-4: 500,2-4: 600,3-4: 700,4-5: 900,4-6: 10000,4-7: 11000)" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=map(0->4: 2.8,1->4: 3.1,2->4: 3.4,3->4: 3.7,4->5: 4.7,4->6: 5.4,4->7: 6.1,4->0: 1.2,4->1: 1.9,4->2: 2.6,4->3: 3.3,5->4: 4.3,6->4: 4.6,7->4: 4.9)" << std::endl;
         topology_file << "link_device_queue=map(0->4: drop_tail(4p),1->4: drop_tail(4B),2->4: drop_tail(4p),3->4: drop_tail(4B),4->5: drop_tail(5p),4->6: drop_tail(6p),4->7: drop_tail(7p),4->0: drop_tail(77p),4->1: drop_tail(1p),4->2: drop_tail(2p),4->3: drop_tail(3p),5->4: drop_tail(4B),6->4: drop_tail(4p),7->4: drop_tail(4B))" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=map(0->4: fq_co_del_better_rtt,1->4: default,2->4: fq_co_del_better_rtt,3->4: default,4->5: default,4->6: default,4->7: default,4->0: default,4->1: default,4->2: disabled,4->3: disabled,5->4: disabled,6->4: disabled,7->4: disabled)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->4: default, 1->4: fq_co_del_better_rtt, 2->4: disabled, 3->4: default, 5->4:disabled, 6->4:default, 7->4:fq_co_del_better_rtt, 4->0: disabled, 4->1: fq_co_del_better_rtt, 4->2: default, 4->3: disabled, 4->5: default, 4->6: disabled, 4->7: fq_co_del_better_rtt)" << std::endl;
         topology_file.close();
         
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
@@ -236,6 +238,39 @@ public:
                     ASSERT_EQUAL(abcQueue->GetMaxSize().GetUnit(), BYTES);
                     ASSERT_EQUAL(abcQueue->GetMaxSize().GetValue(), (link.second == 0 ? 77 : link.second));
                 }
+
+                // Traffic control queueing discipline (based on formula (a * 2 + b * 7) % 3 = {0, 1, 2} = {fq_codel_better_rtt, default, disabled)
+                Ptr<QueueDisc> queueDisc = topology->GetNodes().Get(link.first)->GetObject<TrafficControlLayer>()->GetRootQueueDiscOnDevice(device);
+                if ((link.first * 2 + link.second * 7) % 3 == 0) {
+                    // fq_co_del_better_rtt
+                    Ptr<FqCoDelQueueDisc> realDisc = queueDisc->GetObject<FqCoDelQueueDisc>();
+                    ASSERT_NOT_EQUAL(realDisc, 0);
+
+                    // Improved interval (= RTT estimate)
+                    StringValue interval_att;
+                    realDisc->GetAttribute ("Interval", interval_att);
+                    ASSERT_EQUAL(interval_att.Get(), std::to_string(topology->GetWorstCaseRttEstimateNs()) + "ns");
+
+                    // Improved target (= RTT estimate / 20)
+                    StringValue target_att;
+                    realDisc->GetAttribute ("Target", target_att);
+                    ASSERT_EQUAL(target_att.Get(), std::to_string(topology->GetWorstCaseRttEstimateNs() / 20) + "ns");
+
+                } else if ((link.first * 2 + link.second * 7) % 3 == 1) {
+                    // default (currently, fq codel is default)
+                    ASSERT_NOT_EQUAL(queueDisc->GetObject<FqCoDelQueueDisc>(), 0);
+
+                } else {
+                    // disabled
+                    ASSERT_EQUAL(queueDisc, 0);
+                }
+
+                // Check if the node identifiers here and on the other side match up
+                ASSERT_EQUAL(device->GetNode()->GetId(), link.first);
+                int64_t node_id_one = device->GetChannel()->GetObject<PointToPointChannel>()->GetDevice(0)->GetNode()->GetId();
+                int64_t node_id_two = device->GetChannel()->GetObject<PointToPointChannel>()->GetDevice(1)->GetNode()->GetId();
+                ASSERT_EQUAL(device->GetChannel()->GetObject<PointToPointChannel>()->GetNDevices(), 2);
+                ASSERT_TRUE((node_id_one == link.first && node_id_two == link.second) || (node_id_one == link.second && node_id_two == link.first));
 
             }
 
