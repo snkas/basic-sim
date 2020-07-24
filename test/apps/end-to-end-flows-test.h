@@ -42,7 +42,7 @@ public:
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
-        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "enable_flow_scheduler=true" << std::endl;
         config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file << "flow_enable_logging_for_flow_ids=set(0)" << std::endl;

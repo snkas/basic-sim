@@ -13,7 +13,7 @@ It encompasses the following files:
 1. Add the following to the `config_ns3.properties` in your run folder:
 
    ```
-   topology_filename="topology.properties"
+   topology_ptop_filename="topology.properties"
    ```
 
 2. Add the following topology file `topology.properties` to your run folder for a 3-ToR:
@@ -68,7 +68,7 @@ It encompasses the following files:
 ## Configuration properties
 
 If one uses the default point-to-point topology, the following properties MUST also be defined in `config_ns3.properties`:
-* `topology_filename` : Topology filename (relative to run folder)
+* `topology_ptop_filename` : Topology filename (relative to run folder)
 
 ## Topology file: topology.properties
 

@@ -41,7 +41,7 @@ public:
         std::ofstream config_file(flow_schedule_reader_test_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file.close();
 
@@ -113,7 +113,7 @@ public:
         std::ofstream config_file(flow_schedule_reader_test_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
         config_file.close();
 

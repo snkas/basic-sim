@@ -30,7 +30,7 @@ public:
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=5000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_filename=\"topology.properties\"" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "enable_pingmesh_scheduler=true" << std::endl;
         config_file << "pingmesh_interval_ns=" << pingmesh_interval_ns << std::endl;
         config_file << "pingmesh_endpoint_pairs=" << pingmesh_endpoint_pairs << std::endl;

@@ -67,7 +67,7 @@ We are going to install three different applications:
    simulation_end_time_ns=4000000000
    simulation_seed=123456789
     
-   topology_filename="topology.properties"
+   topology_ptop_filename="topology.properties"
     
    enable_link_utilization_tracking=true
    link_utilization_tracking_interval_ns=100000000

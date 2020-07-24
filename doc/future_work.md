@@ -8,7 +8,7 @@ The backlog of additional work that can be done on the `basic-sim` module:
 * Improve testing:
   * Link utilization log files
   * UDP burst log files
-* topology_ptop_filename instead of topology_filename
+* topology_ptop_filename instead of topology_ptop_filename
 
 When upgrading to a new version of ns-3, be sure to check:
 

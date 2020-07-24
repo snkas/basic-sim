@@ -47,7 +47,7 @@ TopologyPtop::TopologyPtop(Ptr<BasicSimulation> basicSimulation, const Ipv4Routi
 void TopologyPtop::ReadRelevantConfig() {
 
     // Read the topology configuration
-    m_topology_config = read_config(m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("topology_filename"));
+    m_topology_config = read_config(m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("topology_ptop_filename"));
     for (auto const& entry : m_topology_config) {
         if (
                 entry.first != "num_nodes" &&

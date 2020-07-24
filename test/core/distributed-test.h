@@ -14,7 +14,7 @@ void prepare_arbiter_test_config(std::string k, std::string lp_assignment) {
     mkdir_if_not_exists(arbiter_test_dir);
 
     std::ofstream config_file(arbiter_test_dir + "/config_ns3.properties");
-    config_file << "topology_filename=\"topology.properties.temp\"" << std::endl;
+    config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
     config_file << "simulation_end_time_ns=10000000000" << std::endl;
     config_file << "simulation_seed=123456789" << std::endl;
     config_file << "topology_link_data_rate_megabit_per_s=100.0" << std::endl;
