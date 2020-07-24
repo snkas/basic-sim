@@ -567,7 +567,9 @@ void TopologyPtop::SetupLinks() {
         uint32_t a = container.Get(0)->GetIfIndex();
         uint32_t b = container.Get(1)->GetIfIndex();
         m_interface_idxs_for_edges.push_back(std::make_pair(a, b));
-        // TODO: Add other mappings?
+        m_net_devices_for_edges.push_back(std::make_pair(netDeviceA, netDeviceB));
+        m_link_to_net_device[std::make_pair(a, b)] = netDeviceA;
+        m_link_to_net_device[std::make_pair(b, a)] = netDeviceB;
 
     }
 
@@ -645,6 +647,14 @@ int64_t TopologyPtop::GetWorstCaseRttEstimateNs() {
 
 const std::vector<std::pair<uint32_t, uint32_t>>& TopologyPtop::GetInterfaceIdxsForEdges() {
     return m_interface_idxs_for_edges;
+}
+
+const std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>>& TopologyPtop::GetNetDevicesForEdges() {
+    return m_net_devices_for_edges;
+}
+
+Ptr<PointToPointNetDevice> TopologyPtop::GetNetDeviceForLink(std::pair<int64_t, int64_t> link) {
+    return m_link_to_net_device.at(link);
 }
 
 }

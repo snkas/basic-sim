@@ -52,20 +52,18 @@ namespace ns3 {
 
                 // Edge a -- b
                 std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
-                std::pair<uint32_t, uint32_t> edge_if_idxs = m_topology->GetInterfaceIdxsForEdges()[i];
+                std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges()[i];
 
                 // One tracker a -> b
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
-                    Ptr<PointToPointNetDevice> networkDevice_a_b = m_topology->GetNodes().Get(edge.first)->GetObject<Ipv4>()->GetNetDevice(edge_if_idxs.first)->GetObject<PointToPointNetDevice>();
-                    Ptr<PtopUtilizationTracker> tracker_a_b = CreateObject<PtopUtilizationTracker>(networkDevice_a_b, m_utilization_interval_ns);
+                    Ptr<PtopUtilizationTracker> tracker_a_b = CreateObject<PtopUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
                     m_utilization_trackers.push_back(tracker_a_b);
                     m_installed_edges.push_back(edge);
                 }
 
                 // One tracker b -> a
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
-                    Ptr<PointToPointNetDevice> networkDevice_b_a = m_topology->GetNodes().Get(edge.second)->GetObject<Ipv4>()->GetNetDevice(edge_if_idxs.second)->GetObject<PointToPointNetDevice>();
-                    Ptr<PtopUtilizationTracker> tracker_b_a = CreateObject<PtopUtilizationTracker>(networkDevice_b_a, m_utilization_interval_ns);
+                    Ptr<PtopUtilizationTracker> tracker_b_a = CreateObject<PtopUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
                     m_utilization_trackers.push_back(tracker_b_a);
                     m_installed_edges.push_back(std::make_pair(edge.second, edge.first));
                 }
