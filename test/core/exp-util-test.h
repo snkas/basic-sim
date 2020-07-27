@@ -286,7 +286,6 @@ public:
         ASSERT_EXCEPTION(get_param_or_fail("8", config));
         remove_file_if_exists("temp.file");
 
-
         // Empty
         config_file.open("temp.file");
         config_file << "" << std::endl;
@@ -295,7 +294,15 @@ public:
         ASSERT_EQUAL(config.size(), 0);
         remove_file_if_exists("temp.file");
 
+        // Duplicate key
+        config_file.open("temp.file");
+        config_file << "a=b" << std::endl;
+        config_file << "a =b" << std::endl;
+        config_file.close();
+        ASSERT_EXCEPTION(read_config("temp.file"));
+
         // Non-existent file
+        remove_file_if_exists("temp.file");
         ASSERT_EXCEPTION(read_config("temp.file"));
 
     }

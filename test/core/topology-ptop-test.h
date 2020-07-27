@@ -14,7 +14,6 @@ const std::string topology_ptop_test_dir = ".tmp-topology-ptop-test";
 
 void prepare_topology_ptop_test_config() {
     mkdir_if_not_exists(topology_ptop_test_dir);
-
     std::ofstream config_file(topology_ptop_test_dir + "/config_ns3.properties");
     config_file << "simulation_end_time_ns=10000000000" << std::endl;
     config_file << "simulation_seed=123456789" << std::endl;
@@ -33,10 +32,10 @@ void cleanup_topology_ptop_test() {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TopologyEmptyTestCase : public TestCase
+class TopologyPtopEmptyTestCase : public TestCase
 {
 public:
-    TopologyEmptyTestCase () : TestCase ("topology empty") {};
+    TopologyPtopEmptyTestCase () : TestCase ("topology-ptop empty") {};
     void DoRun () {
         prepare_topology_ptop_test_config();
         
@@ -73,10 +72,10 @@ public:
     }
 };
 
-class TopologySingleTestCase : public TestCase
+class TopologyPtopSingleTestCase : public TestCase
 {
 public:
-    TopologySingleTestCase () : TestCase ("topology single") {};
+    TopologyPtopSingleTestCase () : TestCase ("topology-ptop single") {};
     void DoRun () {
         prepare_topology_ptop_test_config();
 
@@ -133,10 +132,10 @@ public:
     }
 };
 
-class TopologyTorTestCase : public TestCase
+class TopologyPtopTorTestCase : public TestCase
 {
 public:
-    TopologyTorTestCase () : TestCase ("topology tor") {};
+    TopologyPtopTorTestCase () : TestCase ("topology-ptop tor") {};
     void DoRun () {
         prepare_topology_ptop_test_config();
         
@@ -282,10 +281,10 @@ public:
     }
 };
 
-class TopologyLeafSpineTestCase : public TestCase
+class TopologyPtopLeafSpineTestCase : public TestCase
 {
 public:
-    TopologyLeafSpineTestCase () : TestCase ("topology leaf-spine") {};
+    TopologyPtopLeafSpineTestCase () : TestCase ("topology-ptop leaf-spine") {};
     void DoRun () {
         prepare_topology_ptop_test_config();
 
@@ -368,10 +367,10 @@ public:
     }
 };
 
-class TopologyRingTestCase : public TestCase
+class TopologyPtopRingTestCase : public TestCase
 {
 public:
-    TopologyRingTestCase () : TestCase ("topology ring") {};
+    TopologyPtopRingTestCase () : TestCase ("topology-ptop ring") {};
     void DoRun () {
         prepare_topology_ptop_test_config();
 
@@ -439,10 +438,10 @@ public:
     }
 };
 
-class TopologyInvalidTestCase : public TestCase
+class TopologyPtopInvalidTestCase : public TestCase
 {
 public:
-    TopologyInvalidTestCase () : TestCase ("topology invalid") {};
+    TopologyPtopInvalidTestCase () : TestCase ("topology-ptop invalid") {};
     void DoRun () {
         
         std::ofstream topology_file;
@@ -918,6 +917,82 @@ public:
         topology_file << "link_device_data_rate_megabit_per_s=map(0->1:100, 2->3: 100, 1->0: 100, 2->1: 80, 3->2: 10)" << std::endl;
         topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+        ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
+        basicSimulation->Finalize();
+        cleanup_topology_ptop_test();
+
+        // Invalid queue type
+        prepare_topology_ptop_test_config();
+        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_queue=non_existent_queue(100p)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+        ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
+        basicSimulation->Finalize();
+        cleanup_topology_ptop_test();
+
+        // Invalid drop tail queue size
+        prepare_topology_ptop_test_config();
+        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_queue=drop_tail(-8p)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+        ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
+        basicSimulation->Finalize();
+        cleanup_topology_ptop_test();
+
+        // Invalid drop tail queue size
+        prepare_topology_ptop_test_config();
+        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100abc)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+        ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
+        basicSimulation->Finalize();
+        cleanup_topology_ptop_test();
+
+        // Invalid traffic control queue disc
+        prepare_topology_ptop_test_config();
+        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=some_invalid_qdisc_value_which_does_not_exist" << std::endl;
         topology_file.close();
         ASSERT_EXCEPTION(CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper()));
         basicSimulation->Finalize();

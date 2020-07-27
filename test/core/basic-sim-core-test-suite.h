@@ -11,24 +11,27 @@ using namespace ns3;
 class BasicSimTestSuite : public TestSuite {
 public:
     BasicSimTestSuite() : TestSuite("basic-sim-core", UNIT) {
+
+        // Experiment utilities
         AddTestCase(new ExpUtilStringsTestCase, TestCase::QUICK);
         AddTestCase(new ExpUtilParsingTestCase, TestCase::QUICK);
         AddTestCase(new ExpUtilSetsTestCase, TestCase::QUICK);
         AddTestCase(new ExpUtilConfigurationReadingTestCase, TestCase::QUICK);
         AddTestCase(new ExpUtilUnitConversionTestCase, TestCase::QUICK);
         AddTestCase(new ExpUtilFileSystemTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyEmptyTestCase, TestCase::QUICK);
-        AddTestCase(new TopologySingleTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyTorTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyLeafSpineTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyRingTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyInvalidTestCase, TestCase::QUICK);
+
+        // Point-to-point topology
+        AddTestCase(new TopologyPtopEmptyTestCase, TestCase::QUICK);
+        AddTestCase(new TopologyPtopSingleTestCase, TestCase::QUICK);
+        AddTestCase(new TopologyPtopTorTestCase, TestCase::QUICK);
+        AddTestCase(new TopologyPtopLeafSpineTestCase, TestCase::QUICK);
+        AddTestCase(new TopologyPtopRingTestCase, TestCase::QUICK);
+        AddTestCase(new TopologyPtopInvalidTestCase, TestCase::QUICK);
+
         AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpHashTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
-        // Disabled because it takes too long for a quick test:
-        // AddTestCase(new ArbiterEcmpTooBigFailTestCase, TestCase::QUICK);
     }
 };
 static BasicSimTestSuite basicSimTestSuite;

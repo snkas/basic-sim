@@ -12,7 +12,6 @@ const std::string arbiter_test_dir = ".tmp-arbiter-test";
 
 void prepare_arbiter_test_config() {
     mkdir_if_not_exists(arbiter_test_dir);
-
     std::ofstream config_file(arbiter_test_dir + "/config_ns3.properties");
     config_file << "simulation_end_time_ns=10000000000" << std::endl;
     config_file << "simulation_seed=123456789" << std::endl;
@@ -433,50 +432,6 @@ public:
         create_headered_packet(p1, {1, Ipv4Address("10.0.2.1").Get(), Ipv4Address("10.0.3.2").Get(), true, false, 4663, 8888});
         p1->RemoveHeader(p1header);
         ASSERT_EXCEPTION(arbiterBad.BaseDecide(p1, p1header));
-
-        // Clean-up
-        basicSimulation->Finalize();
-        cleanup_arbiter_test();
-
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-// Currently disabled because it takes too long for a quick test
-class ArbiterEcmpTooBigFailTestCase : public TestCase
-{
-public:
-    ArbiterEcmpTooBigFailTestCase () : TestCase ("routing-arbiter-ecmp too-big-fail") {};
-    void DoRun () {
-        prepare_arbiter_test_config();
-
-        std::ofstream topology_file;
-        topology_file.open (arbiter_test_dir + "topology.properties.temp");
-        topology_file << "num_nodes=40001" << std::endl;
-        topology_file << "num_undirected_edges=0" << std::endl;
-        topology_file << "switches=set(";
-        for (int i = 0; i < 40001; i++) {
-            if (i == 0) {
-                topology_file << i;
-            } else {
-                topology_file << "," << i;
-            }
-        }
-        topology_file << ")" << std::endl;
-        topology_file << "switches_which_are_tors=set()" << std::endl;
-        topology_file << "servers=set()" << std::endl;
-        topology_file << "undirected_edges=set()" << std::endl;
-        topology_file << "link_channel_delay_ns=10000" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
-        topology_file.close();
-
-        // Create topology
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(arbiter_test_dir);
-        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        ASSERT_EXCEPTION(ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology)); // > 40000 nodes is not allowed
 
         // Clean-up
         basicSimulation->Finalize();
