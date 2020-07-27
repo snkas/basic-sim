@@ -426,17 +426,17 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::string link_interface_traffic_control_qdisc = ValidateTcQdiscValue(value);
+        std::pair<bool, TrafficControlHelper> link_interface_traffic_control_qdisc = ParseTcQdiscValue(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
             m_link_interface_traffic_control_qdisc_mapping[p] = link_interface_traffic_control_qdisc;
             m_link_interface_traffic_control_qdisc_mapping[std::make_pair(p.second, p.first)] = link_interface_traffic_control_qdisc;
         }
-        std::cout << "    >> Single global value... " << link_interface_traffic_control_qdisc << std::endl;
+        std::cout << "    >> Single global value... " << value << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_interface_traffic_control_qdisc_mapping[entry.first] = ValidateTcQdiscValue(entry.second);
+            m_link_interface_traffic_control_qdisc_mapping[entry.first] = ParseTcQdiscValue(entry.second);
         }
         std::cout << "    >> Per link interface mapping was read" << std::endl;
     }
@@ -539,15 +539,13 @@ void TopologyPtop::SetupLinks() {
         Ptr<PointToPointNetDevice> netDeviceB = container.Get(1)->GetObject<PointToPointNetDevice>();
 
         // Traffic control queueing discipline
-        std::string a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_a_to_b);
-        std::string b_to_a_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_b_to_a);
-        if (a_to_b_traffic_control_qdisc != "disabled") {
-            TrafficControlHelper helper = ParseTcQdiscValue(a_to_b_traffic_control_qdisc);
-            helper.Install(netDeviceA);
+        std::pair<bool, TrafficControlHelper> a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_a_to_b);
+        std::pair<bool, TrafficControlHelper> b_to_a_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_b_to_a);
+        if (a_to_b_traffic_control_qdisc.first) {
+            a_to_b_traffic_control_qdisc.second.Install(netDeviceA);
         }
-        if (b_to_a_traffic_control_qdisc != "disabled") {
-            TrafficControlHelper helper = ParseTcQdiscValue(b_to_a_traffic_control_qdisc);
-            helper.Install(netDeviceB);
+        if (b_to_a_traffic_control_qdisc.first) {
+            b_to_a_traffic_control_qdisc.second.Install(netDeviceB);
         }
 
         // Assign IP addresses
@@ -556,10 +554,10 @@ void TopologyPtop::SetupLinks() {
 
         // Remove the (default) traffic control layer if undesired
         TrafficControlHelper tch_uninstaller;
-        if (a_to_b_traffic_control_qdisc == "disabled") {
+        if (!a_to_b_traffic_control_qdisc.first) {
             tch_uninstaller.Uninstall(netDeviceA);
         }
-        if (b_to_a_traffic_control_qdisc == "disabled") {
+        if (!b_to_a_traffic_control_qdisc.first) {
             tch_uninstaller.Uninstall(netDeviceB);
         }
 

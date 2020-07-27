@@ -85,8 +85,7 @@ private:
     void ParseLinkDeviceQueueProperty();
     void ParseLinkInterfaceTrafficControlQdiscProperty();
     void ParseTopologyLinkProperties();
-    std::string ValidateTcQdiscValue(std::string value);
-    TrafficControlHelper ParseTcQdiscValue(std::string value);
+    std::pair<bool, TrafficControlHelper> ParseTcQdiscValue(std::string value);
     std::pair<ObjectFactory, QueueSize> ParseQueueValue(std::string value);
 
     // Estimations
@@ -112,7 +111,7 @@ private:
     std::map<std::pair<int64_t, int64_t>, int64_t> m_link_channel_delay_ns_mapping;
     std::map<std::pair<int64_t, int64_t>, double> m_link_device_data_rate_megabit_per_s_mapping;
     std::map<std::pair<int64_t, int64_t>, std::pair<ObjectFactory, QueueSize>> m_link_device_queue_mapping;
-    std::map<std::pair<int64_t, int64_t>, std::string> m_link_interface_traffic_control_qdisc_mapping;
+    std::map<std::pair<int64_t, int64_t>, std::pair<bool, TrafficControlHelper>> m_link_interface_traffic_control_qdisc_mapping;
 
     // Estimations
     int64_t m_worst_case_rtt_estimate_ns;

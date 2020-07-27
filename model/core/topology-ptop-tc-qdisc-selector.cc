@@ -22,38 +22,22 @@
 namespace ns3 {
 
     /**
-     * Validate that the traffic control queueing discipline is permitted.
-     * Only the values "default" and "disabled" are permitted.
-     *
-     * @param value     String value (e.g., "disabled", "default", "fq_codel_better_rtt")
-     *
-     * @return The same value if the parsing was successful, else it will have thrown an exception.
-     */
-    std::string TopologyPtop::ValidateTcQdiscValue(std::string value) {
-        if (value == "default") {
-            return value;
-        } else if (value == "disabled") {
-            return value;
-        } else if (value == "fq_codel_better_rtt") {
-            return value;
-        } else {
-            throw std::runtime_error("Invalid traffic control qdisc value: " + value);
-        }
-    }
-
-    /**
      * Parse the traffic control queueing discipline value into a traffic control helper which
      * can generate that.
      *
      * @param topology  Handle to the topology (might have relevant information)
-     * @param value     String value (e.g., "default", "fq_codel_better_rtt")
+     * @param value     String value (e.g., "disabled", "default", "fq_codel_better_rtt")
      *
-     * @return Traffic control helper (or an exception if invalid)
+     * @return Pair(True iff enabled, traffic control helper instance) (or an exception if invalid)
      */
-    TrafficControlHelper TopologyPtop::ParseTcQdiscValue(std::string value) {
-        if (value == "default") {
-            TrafficControlHelper defaultHelper;
-            return defaultHelper;
+    std::pair<bool, TrafficControlHelper> TopologyPtop::ParseTcQdiscValue(std::string value) {
+        if (value == "disabled") {
+            TrafficControlHelper unusedHelper; // We have to create some instance, but it is not used
+            return std::make_pair(false, unusedHelper);
+
+        } else if (value == "default") {
+            TrafficControlHelper defaultHelper; // Default is actually fq_codel with some high RTT value
+            return std::make_pair(true, defaultHelper);
 
         } else if (value == "fq_codel_better_rtt") {
             TrafficControlHelper fqCoDelBetterRttHelper;
@@ -64,7 +48,7 @@ namespace ns3 {
                     "Interval", StringValue(interval),
                     "Target", StringValue(target)
             );
-            return fqCoDelBetterRttHelper;
+            return std::make_pair(true, fqCoDelBetterRttHelper);
 
         } else {
             throw std::runtime_error("Invalid traffic control qdisc value: " + value);
