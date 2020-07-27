@@ -1,9 +1,9 @@
-#include "flow-schedule-reader.h"
+#include "tcp-flow-schedule-reader.h"
 
 namespace ns3 {
 
-FlowScheduleEntry::FlowScheduleEntry(
-        int64_t flow_id,
+TcpFlowScheduleEntry::TcpFlowScheduleEntry(
+        int64_t tcp_flow_id,
         int64_t from_node_id,
         int64_t to_node_id,
         int64_t size_byte,
@@ -11,7 +11,7 @@ FlowScheduleEntry::FlowScheduleEntry(
         std::string additional_parameters,
         std::string metadata
 ) {
-    m_flow_id = flow_id;
+    m_tcp_flow_id = tcp_flow_id;
     m_from_node_id = from_node_id;
     m_to_node_id = to_node_id;
     m_size_byte = size_byte;
@@ -20,31 +20,31 @@ FlowScheduleEntry::FlowScheduleEntry(
     m_metadata = metadata;
 }
 
-int64_t FlowScheduleEntry::GetFlowId() {
-    return m_flow_id;
+int64_t TcpFlowScheduleEntry::GetFlowId() {
+    return m_tcp_flow_id;
 }
 
-int64_t FlowScheduleEntry::GetFromNodeId() {
+int64_t TcpFlowScheduleEntry::GetFromNodeId() {
     return m_from_node_id;
 }
 
-int64_t FlowScheduleEntry::GetToNodeId() {
+int64_t TcpFlowScheduleEntry::GetToNodeId() {
     return m_to_node_id;
 }
 
-int64_t FlowScheduleEntry::GetSizeByte() {
+int64_t TcpFlowScheduleEntry::GetSizeByte() {
     return m_size_byte;
 }
 
-int64_t FlowScheduleEntry::GetStartTimeNs() {
+int64_t TcpFlowScheduleEntry::GetStartTimeNs() {
     return m_start_time_ns;
 }
 
-std::string FlowScheduleEntry::GetAdditionalParameters() {
+std::string TcpFlowScheduleEntry::GetAdditionalParameters() {
     return m_additional_parameters;
 }
 
-std::string FlowScheduleEntry::GetMetadata() {
+std::string TcpFlowScheduleEntry::GetMetadata() {
     return m_metadata;
 }
 
@@ -55,10 +55,10 @@ std::string FlowScheduleEntry::GetMetadata() {
  * @param topology                  Topology
  * @param simulation_end_time_ns    Simulation end time (ns) : all flows must start less than this value
 */
-std::vector<FlowScheduleEntry> read_flow_schedule(const std::string& filename, Ptr<Topology> topology, const int64_t simulation_end_time_ns) {
+std::vector<TcpFlowScheduleEntry> read_tcp_flow_schedule(const std::string& filename, Ptr<Topology> topology, const int64_t simulation_end_time_ns) {
 
     // Schedule to put in the data
-    std::vector<FlowScheduleEntry> schedule;
+    std::vector<TcpFlowScheduleEntry> schedule;
 
     // Check that the file exists
     if (!file_exists(filename)) {
@@ -79,9 +79,9 @@ std::vector<FlowScheduleEntry> read_flow_schedule(const std::string& filename, P
             std::vector<std::string> comma_split = split_string(line, ",", 7);
 
             // Fill entry
-            int64_t flow_id = parse_positive_int64(comma_split[0]);
-            if (flow_id != (int64_t) line_counter) {
-                throw std::invalid_argument(format_string("Flow ID is not ascending by one each line (violation: %" PRId64 ")\n", flow_id));
+            int64_t tcp_flow_id = parse_positive_int64(comma_split[0]);
+            if (tcp_flow_id != (int64_t) line_counter) {
+                throw std::invalid_argument(format_string("TCP Flow ID is not ascending by one each line (violation: %" PRId64 ")\n", tcp_flow_id));
             }
             int64_t from_node_id = parse_positive_int64(comma_split[1]);
             int64_t to_node_id = parse_positive_int64(comma_split[2]);
@@ -92,7 +92,7 @@ std::vector<FlowScheduleEntry> read_flow_schedule(const std::string& filename, P
 
             // Must be weakly ascending start time
             if (prev_start_time_ns > start_time_ns) {
-                throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with flow ID: %" PRId64 ", violation: %" PRId64 ")\n", flow_id, start_time_ns));
+                throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with flow ID: %" PRId64 ", violation: %" PRId64 ")\n", tcp_flow_id, start_time_ns));
             }
             prev_start_time_ns = start_time_ns;
 
@@ -113,12 +113,12 @@ std::vector<FlowScheduleEntry> read_flow_schedule(const std::string& filename, P
             if (start_time_ns >= simulation_end_time_ns) {
                 throw std::invalid_argument(format_string(
                         "Flow %" PRId64 " has invalid start time %" PRId64 " >= %" PRId64 ".",
-                        flow_id, start_time_ns, simulation_end_time_ns
+                        tcp_flow_id, start_time_ns, simulation_end_time_ns
                 ));
             }
 
             // Put into schedule
-            schedule.push_back(FlowScheduleEntry(flow_id, from_node_id, to_node_id, size_byte, start_time_ns, additional_parameters, metadata));
+            schedule.push_back(TcpFlowScheduleEntry(tcp_flow_id, from_node_id, to_node_id, size_byte, start_time_ns, additional_parameters, metadata));
 
             // Next line
             line_counter++;

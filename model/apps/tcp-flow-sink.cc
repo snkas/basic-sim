@@ -32,44 +32,44 @@
 #include "ns3/packet.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/tcp-socket-factory.h"
-#include "flow-sink.h"
+#include "tcp-flow-sink.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("FlowSink");
+NS_LOG_COMPONENT_DEFINE ("TcpFlowSink");
 
-NS_OBJECT_ENSURE_REGISTERED (FlowSink);
+NS_OBJECT_ENSURE_REGISTERED (TcpFlowSink);
 
 TypeId
-FlowSink::GetTypeId(void) {
-    static TypeId tid = TypeId("ns3::FlowSink")
+TcpFlowSink::GetTypeId(void) {
+    static TypeId tid = TypeId("ns3::TcpFlowSink")
             .SetParent<Application>()
             .SetGroupName("Applications")
-            .AddConstructor<FlowSink>()
+            .AddConstructor<TcpFlowSink>()
             .AddAttribute("Local",
                           "The Address on which to Bind the rx socket.",
                           AddressValue(),
-                          MakeAddressAccessor(&FlowSink::m_local),
+                          MakeAddressAccessor(&TcpFlowSink::m_local),
                           MakeAddressChecker())
             .AddAttribute("Protocol",
                           "The type id of the protocol to use for the rx socket.",
                           TypeIdValue(TcpSocketFactory::GetTypeId()),
-                          MakeTypeIdAccessor(&FlowSink::m_tid),
+                          MakeTypeIdAccessor(&TcpFlowSink::m_tid),
                           MakeTypeIdChecker());
     return tid;
 }
 
-FlowSink::FlowSink() {
+TcpFlowSink::TcpFlowSink() {
     NS_LOG_FUNCTION(this);
     m_socket = 0;
     m_totalRx = 0;
 }
 
-FlowSink::~FlowSink() {
+TcpFlowSink::~TcpFlowSink() {
     NS_LOG_FUNCTION(this);
 }
 
-void FlowSink::DoDispose(void) {
+void TcpFlowSink::DoDispose(void) {
     NS_LOG_FUNCTION(this);
     m_socket = 0;
     m_socketList.clear();
@@ -79,7 +79,7 @@ void FlowSink::DoDispose(void) {
 }
 
 
-void FlowSink::StartApplication() { // Called at time specified by Start
+void TcpFlowSink::StartApplication() { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
 
     // Create a socket which is always in LISTEN state
@@ -99,15 +99,15 @@ void FlowSink::StartApplication() { // Called at time specified by Start
     }
 
     // Callbacks
-    m_socket->SetRecvCallback(MakeCallback(&FlowSink::HandleRead, this));
+    m_socket->SetRecvCallback(MakeCallback(&TcpFlowSink::HandleRead, this));
     m_socket->SetAcceptCallback(
             MakeNullCallback<bool, Ptr<Socket>,const Address &>(),
-            MakeCallback(&FlowSink::HandleAccept, this)
+            MakeCallback(&TcpFlowSink::HandleAccept, this)
     );
 
 }
 
-void FlowSink::StopApplication() {  // Called at time specified by Stop
+void TcpFlowSink::StopApplication() {  // Called at time specified by Stop
     NS_LOG_FUNCTION(this);
     while (!m_socketList.empty()) {
         Ptr <Socket> socket = m_socketList.front();
@@ -119,17 +119,17 @@ void FlowSink::StopApplication() {  // Called at time specified by Stop
     }
 }
 
-void FlowSink::HandleAccept(Ptr<Socket> socket, const Address &from) {
+void TcpFlowSink::HandleAccept(Ptr<Socket> socket, const Address &from) {
     NS_LOG_FUNCTION(this << socket << from);
-    socket->SetRecvCallback (MakeCallback (&FlowSink::HandleRead, this));
+    socket->SetRecvCallback (MakeCallback (&TcpFlowSink::HandleRead, this));
     socket->SetCloseCallbacks(
-            MakeCallback(&FlowSink::HandlePeerClose, this),
-            MakeCallback(&FlowSink::HandlePeerError, this)
+            MakeCallback(&TcpFlowSink::HandlePeerClose, this),
+            MakeCallback(&TcpFlowSink::HandlePeerError, this)
     );
     m_socketList.push_back(socket);
 }
 
-void FlowSink::HandleRead(Ptr<Socket> socket) {
+void TcpFlowSink::HandleRead(Ptr<Socket> socket) {
     NS_LOG_FUNCTION (this << socket);
 
     // Immediately from the socket drain all the packets it has received
@@ -150,17 +150,17 @@ void FlowSink::HandleRead(Ptr<Socket> socket) {
     }
 }
 
-void FlowSink::HandlePeerClose(Ptr<Socket> socket) {
+void TcpFlowSink::HandlePeerClose(Ptr<Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
     CleanUp(socket);
 }
 
-void FlowSink::HandlePeerError(Ptr<Socket> socket) {
+void TcpFlowSink::HandlePeerError(Ptr<Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
     CleanUp(socket);
 }
 
-void FlowSink::CleanUp(Ptr<Socket> socket) {
+void TcpFlowSink::CleanUp(Ptr<Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
     bool found = false;
     std::list<Ptr<Socket>>::iterator it;

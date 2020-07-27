@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 #include "ns3/basic-simulation.h"
-#include "ns3/flow-scheduler.h"
+#include "ns3/tcp-flow-scheduler.h"
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/test.h"
@@ -55,13 +55,13 @@ public:
         TcpOptimizer::OptimizeBasic(basicSimulation);
 
         // Install flow sink on all
-        FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
         ApplicationContainer app = sink.Install(topology->GetNodes());
         app.Start(NanoSeconds(0));
         app.Stop(NanoSeconds(1900000000));
 
         // 0 --> 1
-        FlowSendHelper source0(
+        TcpFlowSendHelper source0(
                 "ns3::TcpSocketFactory",
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 1000000,
@@ -75,7 +75,7 @@ public:
         app.Stop(NanoSeconds(1000000000));
 
         // 1 --> 0
-        FlowSendHelper source1(
+        TcpFlowSendHelper source1(
                 "ns3::TcpSocketFactory",
                 InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 89999,
@@ -130,11 +130,11 @@ public:
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
+        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flows.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flows.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");

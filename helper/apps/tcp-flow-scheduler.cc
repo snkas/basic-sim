@@ -19,21 +19,21 @@
  * Originally based on, but since heavily adapted/extended, the scratch/main authored by Hussain.
  */
 
-#include "flow-scheduler.h"
+#include "tcp-flow-scheduler.h"
 
 namespace ns3 {
 
-void FlowScheduler::StartNextFlow(int i) {
+void TcpFlowScheduler::StartNextFlow(int i) {
 
     // Fetch the flow to start
-    FlowScheduleEntry& entry = m_schedule[i];
+    TcpFlowScheduleEntry& entry = m_schedule[i];
     int64_t now_ns = Simulator::Now().GetNanoSeconds();
     if (now_ns != entry.GetStartTimeNs()) {
         throw std::runtime_error("Scheduling start of a flow went horribly wrong");
     }
 
     // Helper to install the source application
-    FlowSendHelper source(
+    TcpFlowSendHelper source(
             "ns3::TcpSocketFactory",
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             entry.GetSizeByte(),
@@ -51,45 +51,45 @@ void FlowScheduler::StartNextFlow(int i) {
     // If there is a next flow to start, schedule its start
     if (i + 1 != (int) m_schedule.size()) {
         int64_t next_flow_ns = m_schedule[i + 1].GetStartTimeNs();
-        Simulator::Schedule(NanoSeconds(next_flow_ns - now_ns), &FlowScheduler::StartNextFlow, this, i + 1);
+        Simulator::Schedule(NanoSeconds(next_flow_ns - now_ns), &TcpFlowScheduler::StartNextFlow, this, i + 1);
     }
 
 }
 
-FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology) {
-    printf("FLOW SCHEDULER\n");
+TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology) {
+    printf("TCP FLOW SCHEDULER\n");
 
     m_basicSimulation = basicSimulation;
     m_topology = topology;
 
     // Check if it is enabled explicitly
-    m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_flow_scheduler", "false"));
+    m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_tcp_flow_scheduler", "false"));
     if (!m_enabled) {
         std::cout << "  > Not enabled explicitly, so disabled" << std::endl;
 
     } else {
-        std::cout << "  > Flow scheduler is enabled" << std::endl;
+        std::cout << "  > TCP flow scheduler is enabled" << std::endl;
 
         // Properties we will use often
         m_nodes = m_topology->GetNodes();
         m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
         m_enableFlowLoggingToFileForFlowIds = parse_set_positive_int64(
-                m_basicSimulation->GetConfigParamOrDefault("flow_enable_logging_for_flow_ids", "set()"));
+                m_basicSimulation->GetConfigParamOrDefault("tcp_flow_enable_logging_for_tcp_flow_ids", "set()"));
         m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
         m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
         // Read schedule
-        std::vector<FlowScheduleEntry> complete_schedule = read_flow_schedule(
-                m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("flow_schedule_filename"),
+        std::vector<TcpFlowScheduleEntry> complete_schedule = read_tcp_flow_schedule(
+                m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("tcp_flow_schedule_filename"),
                 m_topology,
                 m_simulation_end_time_ns
         );
 
         // Filter the schedule to only have applications starting at nodes which are part of this system
         if (m_enable_distributed) {
-            std::vector<FlowScheduleEntry> filtered_schedule;
-            for (FlowScheduleEntry &entry : complete_schedule) {
+            std::vector<TcpFlowScheduleEntry> filtered_schedule;
+            for (TcpFlowScheduleEntry &entry : complete_schedule) {
                 if (m_distributed_node_system_id_assignment[entry.GetFromNodeId()] == m_system_id) {
                     filtered_schedule.push_back(entry);
                 }
@@ -106,12 +106,12 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
         // Determine filenames
         if (m_enable_distributed) {
             m_flows_csv_filename =
-                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_flows.csv";
+                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_tcp_flows.csv";
             m_flows_txt_filename =
-                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_flows.txt";
+                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_tcp_flows.txt";
         } else {
-            m_flows_csv_filename = m_basicSimulation->GetLogsDir() + "/flows.csv";
-            m_flows_txt_filename = m_basicSimulation->GetLogsDir() + "/flows.txt";
+            m_flows_csv_filename = m_basicSimulation->GetLogsDir() + "/tcp_flows.csv";
+            m_flows_txt_filename = m_basicSimulation->GetLogsDir() + "/tcp_flows.txt";
         }
 
         // Remove files if they are there
@@ -121,56 +121,56 @@ FlowScheduler::FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology>
         m_basicSimulation->RegisterTimestamp("Remove previous flow log files");
 
         // Install sink on each endpoint node
-        std::cout << "  > Setting up flow sinks" << std::endl;
+        std::cout << "  > Setting up TCP flow sinks" << std::endl;
         for (int64_t endpoint : m_topology->GetEndpoints()) {
             if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
-                FlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+                TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
                 ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
                 app.Start(Seconds(0.0));
             }
         }
-        m_basicSimulation->RegisterTimestamp("Setup flow sinks");
+        m_basicSimulation->RegisterTimestamp("Setup TCP flow sinks");
 
         // Setup start of first source application
-        std::cout << "  > Setting up traffic flow starter" << std::endl;
+        std::cout << "  > Setting up traffic TCP flow starter" << std::endl;
         if (m_schedule.size() > 0) {
-            Simulator::Schedule(NanoSeconds(m_schedule[0].GetStartTimeNs()), &FlowScheduler::StartNextFlow, this, 0);
+            Simulator::Schedule(NanoSeconds(m_schedule[0].GetStartTimeNs()), &TcpFlowScheduler::StartNextFlow, this, 0);
         }
-        m_basicSimulation->RegisterTimestamp("Setup traffic flow starter");
+        m_basicSimulation->RegisterTimestamp("Setup traffic TCP flow starter");
 
     }
 
     std::cout << std::endl;
 }
 
-void FlowScheduler::WriteResults() {
-    std::cout << "STORE FLOW RESULTS" << std::endl;
+void TcpFlowScheduler::WriteResults() {
+    std::cout << "STORE TCP FLOW RESULTS" << std::endl;
 
     // Check if it is enabled explicitly
     if (!m_enabled) {
-        std::cout << "  > Not enabled, so no flow results are written" << std::endl;
+        std::cout << "  > Not enabled, so no TCP flow results are written" << std::endl;
 
     } else {
 
         // Open files
-        std::cout << "  > Opening flow log files:" << std::endl;
+        std::cout << "  > Opening TCP flow log files:" << std::endl;
         FILE* file_csv = fopen(m_flows_csv_filename.c_str(), "w+");
         std::cout << "    >> Opened: " << m_flows_csv_filename << std::endl;
         FILE* file_txt = fopen(m_flows_txt_filename.c_str(), "w+");
         std::cout << "    >> Opened: " << m_flows_txt_filename << std::endl;
 
         // Header
-        std::cout << "  > Writing flows.txt header" << std::endl;
+        std::cout << "  > Writing tcp_flows.txt header" << std::endl;
         fprintf(
-                file_txt, "%-12s%-10s%-10s%-16s%-18s%-18s%-16s%-16s%-13s%-16s%-14s%s\n",
-                "Flow ID", "Source", "Target", "Size", "Start time (ns)",
+                file_txt, "%-16s%-10s%-10s%-16s%-18s%-18s%-16s%-16s%-13s%-16s%-14s%s\n",
+                "TCP Flow ID", "Source", "Target", "Size", "Start time (ns)",
                 "End time (ns)", "Duration", "Sent", "Progress", "Avg. rate", "Finished?", "Metadata"
         );
 
         // Go over the schedule, write each flow's result
         std::cout << "  > Writing log files line-by-line" << std::endl;
         std::vector<ApplicationContainer>::iterator it = m_apps.begin();
-        for (FlowScheduleEntry& entry : m_schedule) {
+        for (TcpFlowScheduleEntry& entry : m_schedule) {
 
             // Retrieve statistics
             ApplicationContainer app = *it;
@@ -230,15 +230,15 @@ void FlowScheduler::WriteResults() {
         }
 
         // Close files
-        std::cout << "  > Closing flow log files:" << std::endl;
+        std::cout << "  > Closing TCP flow log files:" << std::endl;
         fclose(file_csv);
         std::cout << "    >> Closed: " << m_flows_csv_filename << std::endl;
         fclose(file_txt);
         std::cout << "    >> Closed: " << m_flows_txt_filename << std::endl;
 
         // Register completion
-        std::cout << "  > Flow log files have been written" << std::endl;
-        m_basicSimulation->RegisterTimestamp("Write flow log files");
+        std::cout << "  > TCP flow log files have been written" << std::endl;
+        m_basicSimulation->RegisterTimestamp("Write TCP flow log files");
 
     }
 

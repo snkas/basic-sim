@@ -11,7 +11,7 @@
 #include <chrono>
 #include <stdexcept>
 #include "ns3/basic-simulation.h"
-#include "ns3/flow-scheduler.h"
+#include "ns3/tcp-flow-scheduler.h"
 #include "ns3/udp-burst-scheduler.h"
 #include "ns3/pingmesh-scheduler.h"
 #include "ns3/topology-ptop.h"
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
     // Schedule flows
-    FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_flow_scheduler=true
+    TcpFlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
 
     // Schedule UDP bursts
     UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true

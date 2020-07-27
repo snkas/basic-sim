@@ -76,9 +76,9 @@ We are going to install three different applications:
    pingmesh_interval_ns=10000000
    pingmesh_endpoint_pairs=all
     
-   enable_flow_scheduler=true
-   flow_schedule_filename="flow_schedule.csv"
-   flow_enable_logging_for_flow_ids=set(0,1,2)
+   enable_tcp_flow_scheduler=true
+   tcp_flow_schedule_filename="tcp_flow_schedule.csv"
+   tcp_flow_enable_logging_for_tcp_flow_ids=set(0,1,2)
     
    enable_udp_burst_scheduler=true
    udp_burst_schedule_filename="udp_burst_schedule.csv"
@@ -108,7 +108,7 @@ We are going to install three different applications:
    link_interface_traffic_control_qdisc=disabled
    ```
    
-   **flow_schedule.csv**
+   **tcp_flow_schedule.csv**
    
    ```
    0,1,3,12500000,0,,
@@ -129,7 +129,7 @@ We are going to install three different applications:
    example_run
    |-- config_ns3.properties
    |-- topology.properties
-   |-- flow_schedule.csv
+   |-- tcp_flow_schedule.csv
    |-- udp_burst_schedule.csv
    ```
 
@@ -151,7 +151,7 @@ We are going to install three different applications:
     #include <chrono>
     #include <stdexcept>
     #include "ns3/basic-simulation.h"
-    #include "ns3/flow-scheduler.h"
+    #include "ns3/tcp-flow-scheduler.h"
     #include "ns3/udp-burst-scheduler.h"
     #include "ns3/pingmesh-scheduler.h"
     #include "ns3/topology-ptop.h"
@@ -192,7 +192,7 @@ We are going to install three different applications:
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
     
         // Schedule flows
-        FlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_flow_scheduler=true
+        TcpFlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
     
         // Schedule UDP bursts
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true
@@ -252,10 +252,10 @@ We are going to install three different applications:
    |-- pingmesh.{csv, txt}
    ```
    
-7. For example, `flows.txt` will contain:
+7. For example, `tcp_flows.txt` will contain:
 
    ```
-   Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
+   TCP Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
    0           1         3         100.00 Mbit     0                 2096381122        2096.38 ms      100.00 Mbit     100.0%       47.7 Mbit/s     YES           
    1           2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      96.08 Mbit      96.1%        27.5 Mbit/s     NO_ONGOING    
    2           2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      71.41 Mbit      71.4%        20.4 Mbit/s     NO_ONGOING             

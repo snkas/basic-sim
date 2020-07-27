@@ -20,8 +20,8 @@
  * Author: George F. Riley <riley@ece.gatech.edu>
  */
 
-#ifndef FLOW_SEND_APPLICATION_H
-#define FLOW_SEND_APPLICATION_H
+#ifndef TCP_FLOW_SEND_APPLICATION_H
+#define TCP_FLOW_SEND_APPLICATION_H
 
 #include "ns3/address.h"
 #include "ns3/application.h"
@@ -97,4 +97,4 @@ private:
 
 } // namespace ns3
 
-#endif /* FLOW_SEND_APPLICATION_H */
+#endif /* TCP_FLOW_SEND_APPLICATION_H */

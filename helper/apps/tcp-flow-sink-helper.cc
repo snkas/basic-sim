@@ -20,34 +20,34 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#include "flow-sink-helper.h"
+#include "tcp-flow-sink-helper.h"
 #include "ns3/string.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/names.h"
 
 namespace ns3 {
 
-FlowSinkHelper::FlowSinkHelper (std::string protocol, Address address)
+TcpFlowSinkHelper::TcpFlowSinkHelper (std::string protocol, Address address)
 {
-  m_factory.SetTypeId ("ns3::FlowSink");
+  m_factory.SetTypeId ("ns3::TcpFlowSink");
   SetAttribute ("Protocol", StringValue (protocol));
   SetAttribute ("Local", AddressValue (address));
 }
 
 void 
-FlowSinkHelper::SetAttribute (std::string name, const AttributeValue &value)
+TcpFlowSinkHelper::SetAttribute (std::string name, const AttributeValue &value)
 {
   m_factory.Set (name, value);
 }
 
 ApplicationContainer
-FlowSinkHelper::Install (Ptr<Node> node) const
+TcpFlowSinkHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-FlowSinkHelper::Install (NodeContainer c) const
+TcpFlowSinkHelper::Install (NodeContainer c) const
 {
   ApplicationContainer apps;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
@@ -59,7 +59,7 @@ FlowSinkHelper::Install (NodeContainer c) const
 }
 
 Ptr<Application>
-FlowSinkHelper::InstallPriv (Ptr<Node> node) const
+TcpFlowSinkHelper::InstallPriv (Ptr<Node> node) const
 {
   Ptr<Application> app = m_factory.Create<Application> ();
   node->AddApplication (app);

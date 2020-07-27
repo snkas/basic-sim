@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Simon
- * Originally based on the FlowScheduler (which is authored by Simon, Hussain)
+ * Originally based on the TcpFlowScheduler (which is authored by Simon, Hussain)
  */
 #ifndef UDP_BURST_SCHEDULER_H
 #define UDP_BURST_SCHEDULER_H

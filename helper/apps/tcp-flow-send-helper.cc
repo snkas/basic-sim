@@ -22,7 +22,7 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#include "flow-send-helper.h"
+#include "tcp-flow-send-helper.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/packet-socket-address.h"
 #include "ns3/string.h"
@@ -31,7 +31,7 @@
 
 namespace ns3 {
 
-FlowSendHelper::FlowSendHelper (std::string protocol, Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters)
+TcpFlowSendHelper::TcpFlowSendHelper (std::string protocol, Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters)
 {
   m_factory.SetTypeId ("ns3::FlowSendApplication");
   m_factory.Set ("Protocol", StringValue (protocol));
@@ -44,13 +44,13 @@ FlowSendHelper::FlowSendHelper (std::string protocol, Address address, uint64_t 
 }
 
 ApplicationContainer
-FlowSendHelper::Install (Ptr<Node> node) const
+TcpFlowSendHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 Ptr<Application>
-FlowSendHelper::InstallPriv (Ptr<Node> node) const
+TcpFlowSendHelper::InstallPriv (Ptr<Node> node) const
 {
   Ptr<Application> app = m_factory.Create<Application> ();
   node->AddApplication (app);

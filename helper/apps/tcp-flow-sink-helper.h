@@ -16,32 +16,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Simon
- * Adapted from BulkSendHelper by:
- * Author: Geoge Riley <riley@ece.gatech.edu>
- * Adapted from OnOffHelper by:
+ * Adapted from PacketSinkHelper by:
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
+#ifndef TCP_FLOW_SINK_HELPER_H
+#define TCP_FLOW_SINK_HELPER_H
 
-#ifndef FLOW_SEND_HELPER_H
-#define FLOW_SEND_HELPER_H
-
-#include <stdint.h>
-#include <string>
 #include "ns3/object-factory.h"
-#include "ns3/address.h"
-#include "ns3/attribute.h"
-#include "ns3/net-device.h"
+#include "ns3/ipv4-address.h"
 #include "ns3/node-container.h"
 #include "ns3/application-container.h"
-#include "ns3/uinteger.h"
 
 namespace ns3 {
 
-
-class FlowSendHelper
+class TcpFlowSinkHelper
 {
 public:
-  FlowSendHelper (std::string protocol, Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters);
+  TcpFlowSinkHelper (std::string protocol, Address address);
+  void SetAttribute (std::string name, const AttributeValue &value);
+  ApplicationContainer Install (NodeContainer c) const;
   ApplicationContainer Install (Ptr<Node> node) const;
 
 private:
@@ -52,5 +45,4 @@ private:
 
 } // namespace ns3
 
-#endif /* FLOW_SEND_HELPER_H */
-
+#endif /* TCP_FLOW_SINK_HELPER_H */

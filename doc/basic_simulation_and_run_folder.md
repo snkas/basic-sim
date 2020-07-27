@@ -28,7 +28,7 @@ The structure is as follows:
 ```
 run_folder
 |-- config_ns3.properties
-|-- ... (other optional files, e.g., topology.properties, flow_schedule.csv, ...)
+|-- ... (other optional files, e.g., topology.properties, tcp_flow_schedule.csv, ...)
 ```
 
 And after the run a `logs_ns3` folder is generated:

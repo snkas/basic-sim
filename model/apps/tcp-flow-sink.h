@@ -17,11 +17,11 @@
  *
  * Author: Simon
  * Adapted from PacketSink by:
- * Author:  Tom Henderson (tomhend@u.washington.edu)
+ * Author: Tom Henderson (tomhend@u.washington.edu)
  */
 
-#ifndef FLOW_SINK_H
-#define FLOW_SINK_H
+#ifndef TCP_FLOW_SINK_H
+#define TCP_FLOW_SINK_H
 
 #include "ns3/application.h"
 #include "ns3/event-id.h"
@@ -35,12 +35,12 @@ class Address;
 class Socket;
 class Packet;
 
-class FlowSink : public Application 
+class TcpFlowSink : public Application
 {
 public:
   static TypeId GetTypeId (void);
-  FlowSink ();
-  virtual ~FlowSink ();
+  TcpFlowSink ();
+  virtual ~TcpFlowSink ();
  
 protected:
   virtual void DoDispose (void);
@@ -67,4 +67,4 @@ private:
 
 } // namespace ns3
 
-#endif /* FLOW_SINK_H */
+#endif /* TCP_FLOW_SINK_H */

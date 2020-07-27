@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 #include "ns3/basic-simulation.h"
-#include "ns3/flow-scheduler.h"
+#include "ns3/tcp-flow-scheduler.h"
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/test.h"

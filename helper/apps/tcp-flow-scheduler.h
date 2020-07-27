@@ -18,8 +18,8 @@
  * Author: Simon
  * Originally based on, but since heavily adapted/extended, the scratch/main authored by Hussain.
  */
-#ifndef FLOW_SCHEDULER_H
-#define FLOW_SCHEDULER_H
+#ifndef TCP_FLOW_SCHEDULER_H
+#define TCP_FLOW_SCHEDULER_H
 
 #include <map>
 #include <iostream>
@@ -46,19 +46,19 @@
 #include "ns3/exp-util.h"
 #include "ns3/topology.h"
 
-#include "ns3/flow-schedule-reader.h"
-#include "ns3/flow-send-helper.h"
-#include "ns3/flow-send-application.h"
-#include "ns3/flow-sink-helper.h"
-#include "ns3/flow-sink.h"
+#include "ns3/tcp-flow-schedule-reader.h"
+#include "ns3/tcp-flow-send-helper.h"
+#include "ns3/tcp-flow-send-application.h"
+#include "ns3/tcp-flow-sink-helper.h"
+#include "ns3/tcp-flow-sink.h"
 
 namespace ns3 {
 
-class FlowScheduler
+class TcpFlowScheduler
 {
 
 public:
-    FlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
+    TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
     void WriteResults();
 
 protected:
@@ -68,7 +68,7 @@ protected:
     Ptr<Topology> m_topology = nullptr;
     bool m_enabled;
 
-    std::vector<FlowScheduleEntry> m_schedule;
+    std::vector<TcpFlowScheduleEntry> m_schedule;
     NodeContainer m_nodes;
     std::vector<ApplicationContainer> m_apps;
     std::set<int64_t> m_enableFlowLoggingToFileForFlowIds;
@@ -82,4 +82,4 @@ protected:
 
 }
 
-#endif /* FLOW_SCHEDULER_H */
+#endif /* TCP_FLOW_SCHEDULER_H */

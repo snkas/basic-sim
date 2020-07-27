@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 #include "ns3/basic-simulation.h"
-#include "ns3/flow-scheduler.h"
+#include "ns3/tcp-flow-scheduler.h"
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/test.h"
@@ -34,7 +34,7 @@ public:
         mkdir_if_not_exists(temp_dir);
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
+        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
     }
 
     void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed) {
@@ -43,9 +43,9 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
-        config_file << "enable_flow_scheduler=true" << std::endl;
-        config_file << "flow_schedule_filename=\"flow_schedule.csv\"" << std::endl;
-        config_file << "flow_enable_logging_for_flow_ids=set(0)" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+        config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=set(0)" << std::endl;
         config_file.close();
     }
 
@@ -65,17 +65,17 @@ public:
         topology_file.close();
     }
 
-    void test_run_and_simple_validate(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<FlowScheduleEntry> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, BeforeRunOperation* beforeRunOperation) {
+    void test_run_and_simple_validate(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<TcpFlowScheduleEntry> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, BeforeRunOperation* beforeRunOperation) {
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flows.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flows.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
 
         // Write schedule file
         std::ofstream schedule_file;
-        schedule_file.open (temp_dir + "/flow_schedule.csv");
-        for (FlowScheduleEntry entry : write_schedule) {
+        schedule_file.open (temp_dir + "/tcp_flow_schedule.csv");
+        for (TcpFlowScheduleEntry entry : write_schedule) {
             schedule_file
                     << entry.GetFlowId() << ","
                     << entry.GetFromNodeId() << ","
@@ -93,7 +93,7 @@ public:
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
-        FlowScheduler flowScheduler(basicSimulation, topology);
+        TcpFlowScheduler flowScheduler(basicSimulation, topology);
         beforeRunOperation->operation(topology);
         basicSimulation->Run();
         flowScheduler.WriteResults();
@@ -104,8 +104,8 @@ public:
         ASSERT_EQUAL(finished_lines.size(), 1);
         ASSERT_EQUAL(finished_lines[0], "Yes");
 
-        // Check flows.csv
-        std::vector<std::string> lines_csv = read_file_direct(temp_dir + "/logs_ns3/flows.csv");
+        // Check tcp_flows.csv
+        std::vector<std::string> lines_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flows.csv");
         ASSERT_EQUAL(lines_csv.size(), write_schedule.size());
         int i = 0;
         for (std::string line : lines_csv) {
@@ -128,15 +128,15 @@ public:
             i++;
         }
 
-        // Check flows.txt
-        std::vector<std::string> lines_txt = read_file_direct(temp_dir + "/logs_ns3/flows.txt");
+        // Check tcp_flows.txt
+        std::vector<std::string> lines_txt = read_file_direct(temp_dir + "/logs_ns3/tcp_flows.txt");
         ASSERT_EQUAL(lines_txt.size(), write_schedule.size() + 1);
         i = 0;
         for (std::string line : lines_txt) {
             if (i == 0) {
                 ASSERT_EQUAL(
                         line,
-                        "Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata"
+                        "TCP Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata"
                         );
             } else {
                 int j = i - 1;
@@ -171,11 +171,11 @@ public:
         // Make sure these are removed
 //        remove_file_if_exists(temp_dir + "/config_ns3.properties");
 //        remove_file_if_exists(temp_dir + "/topology.properties");
-//        remove_file_if_exists(temp_dir + "/flow_schedule.csv");
+//        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
 //        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
 //        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/flows.csv");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/flows.txt");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
+//        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
 //        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");
 //        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_progress.csv");
 //        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_rtt.csv");
@@ -201,9 +201,9 @@ public:
         write_single_topology(10.0, 100000);
 
         // A flow each way
-        std::vector<FlowScheduleEntry> schedule;
-        schedule.push_back(FlowScheduleEntry(0, 0, 1, 1000000, 0, "", "abc"));
-        schedule.push_back(FlowScheduleEntry(1, 1, 0, 1000000, 0, "", ""));
+        std::vector<TcpFlowScheduleEntry> schedule;
+        schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 1000000, 0, "", "abc"));
+        schedule.push_back(TcpFlowScheduleEntry(1, 1, 0, 1000000, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -233,8 +233,8 @@ public:
         write_single_topology(100.0, 10000);
 
         // One flow
-        std::vector<FlowScheduleEntry> schedule;
-        schedule.push_back(FlowScheduleEntry(0, 0, 1, 300, 0, "", ""));
+        std::vector<TcpFlowScheduleEntry> schedule;
+        schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 300, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -274,9 +274,9 @@ public:
         write_single_topology(10.0, 100000);
 
         // A flow each way
-        std::vector<FlowScheduleEntry> schedule;
-        schedule.push_back(FlowScheduleEntry(0, 0, 1, 1000000, 0, "", "first"));
-        schedule.push_back(FlowScheduleEntry(1, 0, 1, 1000000, 5000000000, "", "second"));
+        std::vector<TcpFlowScheduleEntry> schedule;
+        schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 1000000, 0, "", "first"));
+        schedule.push_back(TcpFlowScheduleEntry(1, 0, 1, 1000000, 5000000000, "", "second"));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -318,9 +318,9 @@ public:
         topology_file.close();
 
         // A flow each way
-        std::vector<FlowScheduleEntry> schedule;
+        std::vector<TcpFlowScheduleEntry> schedule;
         for (int i = 0; i < 8; i++) {
-            schedule.push_back(FlowScheduleEntry(i, 0, 3, 1000000000, 0, "", ""));
+            schedule.push_back(TcpFlowScheduleEntry(i, 0, 3, 1000000000, 0, "", ""));
         }
 
         // Perform the run
@@ -369,8 +369,8 @@ public:
         topology_file.close();
 
         // A flow each way
-        std::vector<FlowScheduleEntry> schedule;
-        schedule.push_back(FlowScheduleEntry(0, 0, 3, 1000000000, 0, "", ""));
+        std::vector<TcpFlowScheduleEntry> schedule;
+        schedule.push_back(TcpFlowScheduleEntry(0, 0, 3, 1000000000, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
@@ -456,9 +456,9 @@ public:
         topology_file.close();
 
         // Two flows
-        std::vector<FlowScheduleEntry> schedule;
-        schedule.push_back(FlowScheduleEntry(0, 0, 3, 1000000000, 0, "", ""));
-        schedule.push_back(FlowScheduleEntry(1, 1, 3, 1000000000, 0, "", ""));
+        std::vector<TcpFlowScheduleEntry> schedule;
+        schedule.push_back(TcpFlowScheduleEntry(0, 0, 3, 1000000000, 0, "", ""));
+        schedule.push_back(TcpFlowScheduleEntry(1, 1, 3, 1000000000, 0, "", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
