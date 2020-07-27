@@ -433,6 +433,12 @@ public:
         ASSERT_FALSE(set_pair_int64_contains(topology->GetUndirectedEdgesSet(), std::make_pair<int64_t, int64_t>(3, 1)));
         ASSERT_FALSE(set_pair_int64_contains(topology->GetUndirectedEdgesSet(), std::make_pair<int64_t, int64_t>(3, 2)));
 
+        // Order of undirected edges list
+        ASSERT_PAIR_EQUAL(topology->GetUndirectedEdges()[0], std::make_pair((int64_t) 0, (int64_t) 1));
+        ASSERT_PAIR_EQUAL(topology->GetUndirectedEdges()[1], std::make_pair((int64_t) 0, (int64_t) 2));
+        ASSERT_PAIR_EQUAL(topology->GetUndirectedEdges()[2], std::make_pair((int64_t) 1, (int64_t) 3));
+        ASSERT_PAIR_EQUAL(topology->GetUndirectedEdges()[3], std::make_pair((int64_t) 2, (int64_t) 3));
+
         basicSimulation->Finalize();
         cleanup_topology_ptop_test();
     }

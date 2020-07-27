@@ -81,7 +81,7 @@ std::vector<TcpFlowScheduleEntry> read_tcp_flow_schedule(const std::string& file
             // Fill entry
             int64_t tcp_flow_id = parse_positive_int64(comma_split[0]);
             if (tcp_flow_id != (int64_t) line_counter) {
-                throw std::invalid_argument(format_string("TCP Flow ID is not ascending by one each line (violation: %" PRId64 ")\n", tcp_flow_id));
+                throw std::invalid_argument(format_string("TCP flow ID is not ascending by one each line (violation: %" PRId64 ")\n", tcp_flow_id));
             }
             int64_t from_node_id = parse_positive_int64(comma_split[1]);
             int64_t to_node_id = parse_positive_int64(comma_split[2]);
@@ -92,13 +92,13 @@ std::vector<TcpFlowScheduleEntry> read_tcp_flow_schedule(const std::string& file
 
             // Must be weakly ascending start time
             if (prev_start_time_ns > start_time_ns) {
-                throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with flow ID: %" PRId64 ", violation: %" PRId64 ")\n", tcp_flow_id, start_time_ns));
+                throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with TCP flow ID: %" PRId64 ", violation: %" PRId64 ")\n", tcp_flow_id, start_time_ns));
             }
             prev_start_time_ns = start_time_ns;
 
             // Check node IDs
             if (from_node_id == to_node_id) {
-                throw std::invalid_argument(format_string("Flow to itself at node ID: %" PRId64 ".", to_node_id));
+                throw std::invalid_argument(format_string("TCP flow to itself at node ID: %" PRId64 ".", to_node_id));
             }
 
             // Check endpoint validity

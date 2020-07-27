@@ -76,11 +76,7 @@ namespace ns3 {
             m_intervals.push_back(std::make_tuple(m_current_interval_start, m_current_interval_end, m_busy_time_counter_ns));
 
             // This must match up
-            if (m_idle_time_counter_ns + m_busy_time_counter_ns != m_interval_ns) {
-                std::cout << m_idle_time_counter_ns << std::endl;
-                std::cout << m_busy_time_counter_ns << std::endl;
-                throw std::runtime_error("Must match up");
-            }
+            NS_ASSERT(m_idle_time_counter_ns + m_busy_time_counter_ns == m_interval_ns);
 
             // Move to next interval
             m_idle_time_counter_ns = 0;

@@ -49,13 +49,13 @@ std::vector<UdpBurstInfo> read_udp_burst_schedule(const std::string& filename, P
 
             // Must be weakly ascending start time
             if (prev_start_time_ns > start_time_ns) {
-                throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with flow ID: %" PRId64 ", violation: %" PRId64 ")\n", udp_burst_id, start_time_ns));
+                throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with UDP burst ID: %" PRId64 ", violation: %" PRId64 ")\n", udp_burst_id, start_time_ns));
             }
             prev_start_time_ns = start_time_ns;
 
             // Check node IDs
             if (from_node_id == to_node_id) {
-                throw std::invalid_argument(format_string("Flow to itself at node ID: %" PRId64 ".", to_node_id));
+                throw std::invalid_argument(format_string("UDP burst to itself at node ID: %" PRId64 ".", to_node_id));
             }
 
             // Check endpoint validity

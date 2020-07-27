@@ -5,6 +5,7 @@
 #include "exp-util-test.h"
 #include "topology-ptop-test.h"
 #include "arbiter-test.h"
+#include "ptop-utilization-test.h"
 
 using namespace ns3;
 
@@ -28,10 +29,15 @@ public:
         AddTestCase(new TopologyPtopRingTestCase, TestCase::QUICK);
         AddTestCase(new TopologyPtopInvalidTestCase, TestCase::QUICK);
 
+        // Arbiter
         AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpHashTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
+
+        // Point-to-point utilization tracking
+        AddTestCase(new PtopUtilizationSimpleTestCase, TestCase::QUICK);
+
     }
 };
 static BasicSimTestSuite basicSimTestSuite;
