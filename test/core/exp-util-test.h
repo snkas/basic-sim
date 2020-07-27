@@ -185,6 +185,50 @@ public:
         ASSERT_EXCEPTION(parse_list_positive_int64("list(a, 324)"));
         ASSERT_EXCEPTION(parse_list_positive_int64("list(3.5)"));
 
+        // Map string
+        std::vector<std::pair<std::string, std::string>> map_a;
+
+        map_a = parse_map_string("map()");
+        ASSERT_EQUAL(map_a.size(), 0);
+
+        map_a = parse_map_string("map(a: 3abc)");
+        ASSERT_EQUAL(map_a.size(), 1);
+        ASSERT_PAIR_EQUAL(map_a[0], std::make_pair(std::string("a"), std::string("3abc")));
+
+        map_a = parse_map_string("map(b: 8,a: 9;)");
+        ASSERT_EQUAL(map_a.size(), 2);
+        ASSERT_PAIR_EQUAL(map_a[0], std::make_pair(std::string("b"), std::string("8")));
+        ASSERT_PAIR_EQUAL(map_a[1], std::make_pair(std::string("a"), std::string("9;")));
+
+        map_a = parse_map_string("map(c: 99, 8: 9, a  f: 9,h:,:i)");
+        ASSERT_EQUAL(map_a.size(), 5);
+        ASSERT_PAIR_EQUAL(map_a[0], std::make_pair(std::string("c"), std::string("99")));
+        ASSERT_PAIR_EQUAL(map_a[1], std::make_pair(std::string("8"), std::string("9")));
+        ASSERT_PAIR_EQUAL(map_a[2], std::make_pair(std::string("a  f"), std::string("9")));
+        ASSERT_PAIR_EQUAL(map_a[3], std::make_pair(std::string("h"), std::string("")));
+        ASSERT_PAIR_EQUAL(map_a[4], std::make_pair(std::string(""), std::string("i")));
+
+        map_a = parse_map_string("map(i:, :i)");
+        ASSERT_EQUAL(map_a.size(), 2);
+        ASSERT_PAIR_EQUAL(map_a[0], std::make_pair(std::string("i"), std::string("")));
+        ASSERT_PAIR_EQUAL(map_a[1], std::make_pair(std::string(""), std::string("i")));
+
+        map_a = parse_map_string("map(:)");
+        ASSERT_EQUAL(map_a.size(), 1);
+        ASSERT_PAIR_EQUAL(map_a[0], std::make_pair(std::string(""), std::string("")));
+
+        ASSERT_EXCEPTION(parse_map_string("map"));
+        ASSERT_EXCEPTION(parse_map_string("map("));
+        ASSERT_EXCEPTION(parse_map_string("map)"));
+        ASSERT_EXCEPTION(parse_map_string("map(a:b,a:d)"));
+        ASSERT_EXCEPTION(parse_map_string("map(a :b,a:d)"));
+        ASSERT_EXCEPTION(parse_map_string("map(a:b, a:d)"));
+        ASSERT_EXCEPTION(parse_map_string("map( a :b, a:d)"));
+        ASSERT_EXCEPTION(parse_map_string("map( a :b, a:b)"));
+        ASSERT_EXCEPTION(parse_map_string("map(:i,:i)"));
+        ASSERT_EXCEPTION(parse_map_string("map(i:,i:)"));
+        ASSERT_EXCEPTION(parse_map_string("map(:,:)"));
+
     }
 };
 
