@@ -37,7 +37,6 @@ namespace ns3 {
     class PointToPointAbHelper {
     public:
         PointToPointAbHelper();
-        virtual ~PointToPointAbHelper() {}
 
         void SetQueueFactoryA(ObjectFactory queueFactoryA);
 
