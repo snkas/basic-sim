@@ -44,7 +44,6 @@ public:
         AddTestCase(new TcpOptimizerBasicTestCase, TestCase::QUICK);
         AddTestCase(new TcpOptimizerWorstCaseRttTestCase, TestCase::QUICK);
 
-
     }
 };
 static BasicSimTestSuite basicSimTestSuite;

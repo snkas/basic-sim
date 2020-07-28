@@ -92,56 +92,171 @@ public:
         // Finalize the simulation
         basicSimulation->Finalize();
 
-        // utilization.csv
-        std::vector<std::string> lines_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization.csv");
-        int i = 0;
+        // Directed edge list
+        std::vector<std::pair<int64_t, int64_t>> dir_a_b_list;
         for (std::pair<int64_t, int64_t> a_b : topology->GetUndirectedEdges()) {
-            std::vector<std::pair<int64_t, int64_t>> dir_a_b_list;
             dir_a_b_list.push_back(a_b);
             dir_a_b_list.push_back(std::make_pair(a_b.second, a_b.first));
-            for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
-                for (int j = 0; j < 20; j++) {
-                    std::string line = lines_csv[i];
-                    std::vector<std::string> comma_split = split_string(line, ",", 5);
-                    ASSERT_EQUAL(parse_positive_int64(comma_split[0]), dir_a_b.first);
-                    ASSERT_EQUAL(parse_positive_int64(comma_split[1]), dir_a_b.second);
-                    ASSERT_EQUAL(parse_positive_int64(comma_split[2]), (int64_t) (j * 100000000));
-                    int64_t expected_end_time_ns = (j + 1) * 100000000;
-                    if (expected_end_time_ns > 1950000000) {
-                        expected_end_time_ns = 1950000000;
-                    }
-                    ASSERT_EQUAL(parse_positive_int64(comma_split[3]), expected_end_time_ns);
-                    int64_t busy_time_ns = parse_positive_int64(comma_split[4]);
-                    if (dir_a_b.first == 0 and dir_a_b.second == 1) {
-                        if (j < 5) {
-                            ASSERT_TRUE(busy_time_ns >= 50000000);
-                        } else if (j == 5) {
-                            ASSERT_TRUE(busy_time_ns <= 100000);
-                        } else {
-                            ASSERT_EQUAL(busy_time_ns, 0);
-                        }
-                    } else if ((dir_a_b.first == 2 and dir_a_b.second == 3) || (dir_a_b.first == 3 and dir_a_b.second == 2)) {
-                        if (j == 2 or j == 7) {
-                            ASSERT_TRUE(busy_time_ns >= 45000000);
-                        } else if (j > 2 && j < 7) {
-                            ASSERT_TRUE(busy_time_ns >= 90000000);
-                        } else {
-                            ASSERT_EQUAL(busy_time_ns, 0);
-                        }
-                    } else if (dir_a_b.first == 1 and dir_a_b.second == 3) {
-                        if (j == 2 || j == 19) {
-                            ASSERT_TRUE(busy_time_ns >= 45000000);
-                        } else if (j > 2) {
-                            ASSERT_TRUE(busy_time_ns >= 90000000);
-                        } else {
-                            ASSERT_EQUAL(busy_time_ns, 0);
-                        }
+        }
+
+        // utilization.csv
+        std::vector<int64_t> correct_busy_time_ns;
+        std::vector<std::string> lines_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization.csv");
+        int line_i = 0;
+        for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
+            for (int j = 0; j < 20; j++) {
+                std::string line = lines_csv[line_i];
+                std::vector<std::string> comma_split = split_string(line, ",", 5);
+                ASSERT_EQUAL(parse_positive_int64(comma_split[0]), dir_a_b.first);
+                ASSERT_EQUAL(parse_positive_int64(comma_split[1]), dir_a_b.second);
+                ASSERT_EQUAL(parse_positive_int64(comma_split[2]), (int64_t) (j * 100000000));
+                int64_t expected_end_time_ns = (j + 1) * 100000000;
+                if (expected_end_time_ns > 1950000000) {
+                    expected_end_time_ns = 1950000000;
+                }
+                ASSERT_EQUAL(parse_positive_int64(comma_split[3]), expected_end_time_ns);
+                int64_t busy_time_ns = parse_positive_int64(comma_split[4]);
+                correct_busy_time_ns.push_back(busy_time_ns);
+                if (dir_a_b.first == 0 and dir_a_b.second == 1) {
+                    if (j < 5) {
+                        ASSERT_TRUE(busy_time_ns >= 50000000);
+                    } else if (j == 5) {
+                        ASSERT_TRUE(busy_time_ns <= 100000);
                     } else {
                         ASSERT_EQUAL(busy_time_ns, 0);
                     }
-                    i++;
+                } else if ((dir_a_b.first == 2 and dir_a_b.second == 3) || (dir_a_b.first == 3 and dir_a_b.second == 2)) {
+                    if (j == 2 or j == 7) {
+                        ASSERT_TRUE(busy_time_ns >= 45000000);
+                    } else if (j > 2 && j < 7) {
+                        ASSERT_TRUE(busy_time_ns >= 90000000);
+                    } else {
+                        ASSERT_EQUAL(busy_time_ns, 0);
+                    }
+                } else if (dir_a_b.first == 1 and dir_a_b.second == 3) {
+                    if (j == 2 || j == 19) {
+                        ASSERT_TRUE(busy_time_ns >= 45000000);
+                    } else if (j > 2) {
+                        ASSERT_TRUE(busy_time_ns >= 90000000);
+                    } else {
+                        ASSERT_EQUAL(busy_time_ns, 0);
+                    }
+                } else {
+                    ASSERT_EQUAL(busy_time_ns, 0);
                 }
+                line_i++;
             }
+        }
+
+        // utilization_compressed.csv/txt
+        std::vector<std::string> lines_compressed_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.csv");
+        std::vector<std::string> lines_compressed_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.txt");
+
+        // They are the same, except one is human-readable
+        ASSERT_EQUAL(lines_compressed_csv.size(), lines_compressed_txt.size() - 1);
+
+        // Correct exact header
+        ASSERT_EQUAL(lines_compressed_txt[0], "From     To       Interval start (ms)   Interval end (ms)     Utilization");
+
+        // Go over all the lines
+        int64_t correct_busy_time_idx = 0;
+        int64_t counter_ns = 0;
+        int64_t prev_interval_end_ns = 0;
+        size_t current_edge_idx = 0;
+        for (size_t i = 0; i < lines_compressed_csv.size(); i++) {
+            std::string line_csv = lines_compressed_csv[i];
+            std::string line_txt = lines_compressed_txt[i + 1];
+
+            // Split the CSV line
+            std::vector<std::string> line_csv_spl = split_string(line_csv, ",", 5);
+
+            // Split the text line
+            std::vector<std::string> line_txt_spl;
+            std::istringstream iss(line_txt);
+            for (std::string s; iss >> s;) {
+                line_txt_spl.push_back(s);
+            }
+
+            // Check from-to
+            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[0]), dir_a_b_list.at(current_edge_idx).first);
+            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[1]), dir_a_b_list.at(current_edge_idx).second);
+            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[0]), parse_positive_int64(line_txt_spl[0]));
+            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[1]), parse_positive_int64(line_txt_spl[1]));
+
+            // Check interval
+            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[2]), prev_interval_end_ns);
+            ASSERT_EQUAL_APPROX(parse_positive_int64(line_csv_spl[2]) / 1000000.0, parse_positive_double(line_txt_spl[2]), 0.01);
+            ASSERT_EQUAL_APPROX(parse_positive_int64(line_csv_spl[3]) / 1000000.0, parse_positive_double(line_txt_spl[3]), 0.01);
+
+            // Check that utilization matches up
+            double util_100_csv = (double) parse_positive_int64(line_csv_spl[4]) / (double) (parse_positive_int64(line_csv_spl[3]) - parse_positive_int64(line_csv_spl[2])) * 100.0;
+            double util_100_txt = parse_positive_double(line_txt_spl[4].substr(0, line_txt_spl[4].size() - 1));
+            ASSERT_EQUAL_APPROX(
+                    util_100_csv,
+                    util_100_txt,
+                    0.01
+            );
+            ASSERT_EQUAL(line_txt_spl[4].substr(line_txt_spl[4].size() - 1, line_txt_spl[4].size()), "%");
+            prev_interval_end_ns = parse_positive_int64(line_csv_spl[3]);
+
+            // Now finally check that the utilization values are correct
+            int64_t expected_sum_busy_time_ns = 0;
+            while (counter_ns < parse_positive_int64(line_csv_spl[3])) {
+                counter_ns += 100000000;
+                expected_sum_busy_time_ns += correct_busy_time_ns.at(correct_busy_time_idx);
+                correct_busy_time_idx += 1;
+            }
+            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[4]), expected_sum_busy_time_ns);
+
+            // If last interval, move onto the next edge
+            if (parse_positive_int64(line_csv_spl[3]) == 1950000000) {
+                current_edge_idx += 1;
+                prev_interval_end_ns = 0;
+                counter_ns = 0;
+            }
+
+        }
+        ASSERT_EQUAL(current_edge_idx, dir_a_b_list.size());
+        ASSERT_EQUAL(prev_interval_end_ns, 0);
+        ASSERT_EQUAL(counter_ns, 0);
+        ASSERT_EQUAL(correct_busy_time_idx, (int64_t) (dir_a_b_list.size() * 20));
+
+        // utilization_summary.txt
+        std::vector<std::string> lines_summary_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization_summary.txt");
+        ASSERT_EQUAL(lines_summary_txt.size(), dir_a_b_list.size() + 1);
+
+        // Correct exact header
+        ASSERT_EQUAL(lines_summary_txt[0], "From     To       Utilization");
+
+        // Go over all the lines
+        for (size_t i = 0; i < lines_summary_txt.size() - 1; i++) {
+            std::string line_txt = lines_summary_txt[i + 1];
+
+            // Split the text line
+            std::vector<std::string> line_txt_spl;
+            std::istringstream iss(line_txt);
+            for (std::string s; iss >> s;) {
+                line_txt_spl.push_back(s);
+            }
+
+            // Check from-to
+            ASSERT_EQUAL(parse_positive_int64(line_txt_spl[0]), dir_a_b_list.at(i).first);
+            ASSERT_EQUAL(parse_positive_int64(line_txt_spl[1]), dir_a_b_list.at(i).second);
+
+            // Check that utilization matches up
+            double util_100_txt = parse_positive_double(line_txt_spl[2].substr(0, line_txt_spl[2].size() - 1));
+            ASSERT_EQUAL(line_txt_spl[2].substr(line_txt_spl[2].size() - 1, line_txt_spl[2].size()), "%");
+            std::pair<int64_t, int64_t> dir_a_b = dir_a_b_list.at(i);
+            if (dir_a_b.first == 0 and dir_a_b.second == 1) {
+                ASSERT_EQUAL_APPROX(util_100_txt, 25.0 / 195.0 * 100.0, 0.2);
+            } else if ((dir_a_b.first == 2 and dir_a_b.second == 3) || (dir_a_b.first == 3 and dir_a_b.second == 2)) {
+                ASSERT_EQUAL_APPROX(util_100_txt, 45.0 / 195.0 * 100.0, 0.2);
+            } else if (dir_a_b.first == 1 and dir_a_b.second == 3) {
+                ASSERT_EQUAL_APPROX(util_100_txt, 153.0 / 195.0 * 100.0, 0.2);
+            } else {
+                ASSERT_EQUAL(util_100_txt, 0);
+            }
+
         }
 
         cleanup_ptop_utilization_test();
