@@ -158,6 +158,7 @@ public:
                 ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[9]), byte_to_megabit(sent_byte_list[j]), 0.01);
                 ASSERT_EQUAL(line_spl[10], "Mbit");
                 ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[11].substr(0, line_spl[11].size() - 1)), sent_byte_list[j] * 100.0 / write_schedule[j].GetSizeByte(), 0.1);
+                ASSERT_EQUAL(line_spl[11].substr(line_spl[11].size() - 1, line_spl[11].size()), "%");
                 ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), byte_to_megabit(sent_byte_list[j]) / nanosec_to_sec(end_time_ns_list[j] - write_schedule[j].GetStartTimeNs()), 0.1);
                 ASSERT_EQUAL(line_spl[13], "Mbit/s");
                 ASSERT_TRUE(line_spl[14] == "NO_ONGOING" || line_spl[14] == "YES");
@@ -169,22 +170,24 @@ public:
         }
 
         // Make sure these are removed
-//        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-//        remove_file_if_exists(temp_dir + "/topology.properties");
-//        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_progress.csv");
-//        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_rtt.csv");
-//        remove_dir_if_exists(temp_dir + "/logs_ns3");
-//        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_progress.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_rtt.csv");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
 
     }
 
 };
+
+////////////////////////////////////////////////////////////////////////////////////////
 
 class EndToEndFlowsOneToOneEqualStartTestCase : public EndToEndFlowsTestCase
 {
@@ -217,6 +220,8 @@ public:
 
     }
 };
+
+////////////////////////////////////////////////////////////////////////////////////////
 
 class EndToEndFlowsOneToOneSimpleStartTestCase : public EndToEndFlowsTestCase
 {
@@ -259,6 +264,8 @@ public:
     }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+
 class EndToEndFlowsOneToOneApartStartTestCase : public EndToEndFlowsTestCase
 {
 public:
@@ -291,6 +298,8 @@ public:
     }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+
 class EndToEndFlowsEcmpSimpleTestCase : public EndToEndFlowsTestCase
 {
 public:
@@ -314,12 +323,12 @@ public:
         topology_file << "link_channel_delay_ns=200000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30.0" << std::endl;
         topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=fq_codel_better_rtt" << std::endl;
         topology_file.close();
 
         // A flow each way
         std::vector<TcpFlowScheduleEntry> schedule;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 20; i++) {
             schedule.push_back(TcpFlowScheduleEntry(i, 0, 3, 1000000000, 0, "", ""));
         }
 
@@ -331,7 +340,7 @@ public:
 
         // All are too large to end, and they must consume bandwidth of both links
         int64_t byte_sum = 0;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 20; i++) {
             ASSERT_EQUAL(end_time_ns_list[i], simulation_end_time_ns);
             byte_sum += sent_byte_list[i];
         }
@@ -341,6 +350,8 @@ public:
 
     }
 };
+
+////////////////////////////////////////////////////////////////////////////////////////
 
 class EndToEndFlowsEcmpRemainTestCase : public EndToEndFlowsTestCase
 {
@@ -386,6 +397,8 @@ public:
     }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+
 class ArbiterSpecificDrop: public ArbiterPtop
 {
 public:
@@ -421,6 +434,8 @@ public:
 
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+
 class BeforeRunOperationDropper : public BeforeRunOperation {
 public:
     void operation(Ptr<TopologyPtop> topology) {
@@ -428,6 +443,8 @@ public:
         topology->GetNodes().Get(2)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->SetArbiter(dropper);
     }
 };
+
+////////////////////////////////////////////////////////////////////////////////////////
 
 class EndToEndFlowsOneDropOneNotTestCase : public EndToEndFlowsTestCase
 {
@@ -476,6 +493,8 @@ public:
     }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+
 class EndToEndFlowsNonExistentRunDirTestCase : public TestCase
 {
 public:
@@ -483,6 +502,62 @@ public:
 
     void DoRun () {
         ASSERT_EXCEPTION(BasicSimulation simulation("path/to/non/existent/run/dir"));
+    }
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class EndToEndFlowsNotEnabledTestCase : public EndToEndFlowsTestCase
+{
+public:
+    EndToEndFlowsNotEnabledTestCase () : EndToEndFlowsTestCase ("end-to-end-flows not-enabled") {};
+
+    void DoRun () {
+
+        // Run directory
+        prepare_test_dir();
+
+        // Config file
+        std::ofstream config_file;
+        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << 1000000000 << std::endl;
+        config_file << "simulation_seed=" << 1111111111 << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=false" << std::endl;
+        config_file.close();
+
+        // Topology
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(2)" << std::endl;
+        topology_file << "switches_which_are_tors=set(2)" << std::endl;
+        topology_file << "servers=set(0, 1, 3)" << std::endl;
+        topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=200000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        TcpFlowScheduler flowScheduler(basicSimulation, topology);
+        basicSimulation->Run();
+        flowScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
     }
 
 };

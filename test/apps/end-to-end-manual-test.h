@@ -4,6 +4,7 @@
 #include "ns3/tcp-flow-scheduler.h"
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
+#include "ns3/udp-burst-helper.h"
 #include "ns3/test.h"
 #include "../test-helpers.h"
 #include <iostream>
@@ -53,6 +54,34 @@ public:
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         TcpOptimizer::OptimizeBasic(basicSimulation);
+
+        // Install a UDP burst client on all
+        UdpBurstHelper udpBurstHelper(1026, basicSimulation->GetLogsDir());
+        ApplicationContainer udpApp = udpBurstHelper.Install(topology->GetNodes());
+        udpApp.Start(Seconds(0.0));
+
+        // UDP burst info entry
+        UdpBurstInfo udpBurstInfo(
+                0,
+                0,
+                1,
+                15,
+                1000,
+                700000000,
+                "abc",
+                "def"
+        );
+
+        // Register all bursts being sent from there and being received
+        udpApp.Get(0)->GetObject<UdpBurstApplication>()->RegisterOutgoingBurst(
+                udpBurstInfo,
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
+                true
+        );
+        udpApp.Get(1)->GetObject<UdpBurstApplication>()->RegisterIncomingBurst(
+                udpBurstInfo,
+                true
+        );
 
         // Install flow sink on all
         TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
@@ -143,6 +172,8 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/flow_1_cwnd.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/flow_1_progress.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/flow_1_rtt.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_incoming.csv");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 

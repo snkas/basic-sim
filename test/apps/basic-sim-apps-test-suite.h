@@ -22,7 +22,11 @@ public:
         AddTestCase(new UdpBurstScheduleReaderNormalTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstScheduleReaderInvalidTestCase, TestCase::QUICK);
 
+        // End-to-end manual, which means the application helpers are used
+        // directly instead of the schedulers reading from files
+        AddTestCase(new EndToEndManualTestCase, TestCase::QUICK);
 
+        // End-to-end flows
         AddTestCase(new EndToEndFlowsOneToOneEqualStartTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndFlowsOneToOneSimpleStartTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndFlowsOneToOneApartStartTestCase, TestCase::QUICK);
@@ -30,9 +34,12 @@ public:
         AddTestCase(new EndToEndFlowsEcmpRemainTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndFlowsNonExistentRunDirTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndFlowsOneDropOneNotTestCase, TestCase::QUICK);
+        AddTestCase(new EndToEndFlowsNotEnabledTestCase, TestCase::QUICK);
+
+        // End-to-end pingmesh
         AddTestCase(new EndToEndPingmeshNineAllTestCase, TestCase::QUICK);
         AddTestCase(new EndToEndPingmeshNinePairsTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndManualTestCase, TestCase::QUICK);
+
     }
 };
 static BasicAppsTestSuite basicAppsTestSuite;
