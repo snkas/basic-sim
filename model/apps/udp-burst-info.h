@@ -26,7 +26,7 @@ namespace ns3 {
                 std::string additional_parameters,
                 std::string metadata
         );
-        int64_t GetUdpBurstId();
+        int64_t GetUdpBurstId() const;
         int64_t GetFromNodeId();
         int64_t GetToNodeId();
         double GetTargetRateMegabitPerSec();

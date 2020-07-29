@@ -79,6 +79,9 @@ namespace ns3 {
         std::string m_udp_bursts_incoming_csv_filename;
         std::string m_udp_bursts_incoming_txt_filename;
 
+        std::vector<std::pair<UdpBurstInfo, Ptr<UdpBurstApplication>>> m_responsible_for_outgoing_bursts;
+        std::vector<std::pair<UdpBurstInfo, Ptr<UdpBurstApplication>>> m_responsible_for_incoming_bursts;
+
     };
 
 }

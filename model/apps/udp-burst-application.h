@@ -51,6 +51,8 @@ namespace ns3 {
         void TransmitFullPacket(size_t internal_burst_idx);
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> GetOutgoingBurstsInformation();
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> GetIncomingBurstsInformation();
+        uint64_t GetSentCounterOf(int64_t udp_burst_id);
+        uint64_t GetReceivedCounterOf(int64_t udp_burst_id);
 
     protected:
         virtual void DoDispose (void);
@@ -67,9 +69,9 @@ namespace ns3 {
                                    //!<   logs_dir/udp_burst_[id]_{incoming, outgoing}.csv
 
         // Outgoing bursts
-        std::vector<std::tuple<UdpBurstInfo, InetSocketAddress>> m_bursts; //!< Weakly ascending on start time list of bursts
-        std::vector<uint64_t> m_bursts_packets_sent_counter; //!< Amount of UDP packets sent out already for each burst
-        std::vector<bool> m_bursts_enable_precise_logging; //!< True iff enable precise logging for each burst
+        std::vector<std::tuple<UdpBurstInfo, InetSocketAddress>> m_outgoing_bursts; //!< Weakly ascending on start time list of bursts
+        std::vector<uint64_t> m_outgoing_bursts_packets_sent_counter; //!< Amount of UDP packets sent out already for each burst
+        std::vector<bool> m_outgoing_bursts_enable_precise_logging; //!< True iff enable precise logging for each burst
         size_t m_next_internal_burst_idx; //!< Next burst index to send out
 
         // Incoming bursts

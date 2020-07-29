@@ -22,7 +22,7 @@ namespace ns3 {
         m_metadata = metadata;
     }
 
-    int64_t UdpBurstInfo::GetUdpBurstId() {
+    int64_t UdpBurstInfo::GetUdpBurstId() const {
         return m_udp_burst_id;
     }
 

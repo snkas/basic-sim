@@ -74,12 +74,12 @@ namespace ns3 {
 
     void
     UdpBurstApplication::RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress, bool enable_precise_logging) {
-        if (m_bursts.size() >= 1 && burstInfo.GetStartTimeNs() < std::get<0>(m_bursts[m_bursts.size() - 1]).GetStartTimeNs()) {
+        if (m_outgoing_bursts.size() >= 1 && burstInfo.GetStartTimeNs() < std::get<0>(m_outgoing_bursts[m_outgoing_bursts.size() - 1]).GetStartTimeNs()) {
             throw std::runtime_error("Bursts must be added weakly ascending on start time");
         }
-        m_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
-        m_bursts_packets_sent_counter.push_back(0);
-        m_bursts_enable_precise_logging.push_back(enable_precise_logging);
+        m_outgoing_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
+        m_outgoing_bursts_packets_sent_counter.push_back(0);
+        m_outgoing_bursts_enable_precise_logging.push_back(enable_precise_logging);
         if (enable_precise_logging) {
             std::ofstream ofs;
             ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_outgoing.csv", burstInfo.GetUdpBurstId()));
@@ -123,8 +123,8 @@ namespace ns3 {
         m_socket->SetRecvCallback(MakeCallback(&UdpBurstApplication::HandleRead, this));
 
         // First process call is for the start of the first burst
-        if (m_bursts.size() > 0) {
-            Simulator::Schedule(NanoSeconds(std::get<0>(m_bursts[0]).GetStartTimeNs()), &UdpBurstApplication::StartNextBurst, this);
+        if (m_outgoing_bursts.size() > 0) {
+            Simulator::Schedule(NanoSeconds(std::get<0>(m_outgoing_bursts[0]).GetStartTimeNs()), &UdpBurstApplication::StartNextBurst, this);
         }
 
     }
@@ -135,7 +135,7 @@ namespace ns3 {
         int64_t now_ns = Simulator::Now().GetNanoSeconds();
 
         // If this function is called, there must be a next burst
-        if (m_next_internal_burst_idx >= m_bursts.size() || std::get<0>(m_bursts[m_next_internal_burst_idx]).GetStartTimeNs() != now_ns) {
+        if (m_next_internal_burst_idx >= m_outgoing_bursts.size() || std::get<0>(m_outgoing_bursts[m_next_internal_burst_idx]).GetStartTimeNs() != now_ns) {
             throw std::runtime_error("No next burst available; this function should not have been called.");
         }
 
@@ -144,8 +144,8 @@ namespace ns3 {
 
         // Schedule the start of the next burst if there are more
         m_next_internal_burst_idx += 1;
-        if (m_next_internal_burst_idx < m_bursts.size()) {
-            Simulator::Schedule(NanoSeconds(std::get<0>(m_bursts[m_next_internal_burst_idx]).GetStartTimeNs() - now_ns), &UdpBurstApplication::StartNextBurst, this);
+        if (m_next_internal_burst_idx < m_outgoing_bursts.size()) {
+            Simulator::Schedule(NanoSeconds(std::get<0>(m_outgoing_bursts[m_next_internal_burst_idx]).GetStartTimeNs() - now_ns), &UdpBurstApplication::StartNextBurst, this);
         }
 
     }
@@ -159,7 +159,7 @@ namespace ns3 {
 
         // Schedule the next if the packet gap would not exceed the rate
         uint64_t now_ns = Simulator::Now().GetNanoSeconds();
-        UdpBurstInfo info = std::get<0>(m_bursts[internal_burst_idx]);
+        UdpBurstInfo info = std::get<0>(m_outgoing_bursts[internal_burst_idx]);
         uint64_t packet_gap_nanoseconds = std::ceil(1500.0 / (info.GetTargetRateMegabitPerSec() / 8000.0));
         if (now_ns + packet_gap_nanoseconds < (uint64_t) (info.GetStartTimeNs() + info.GetDurationNs())) {
             Simulator::Schedule(NanoSeconds(packet_gap_nanoseconds), &UdpBurstApplication::BurstSendOut, this, internal_burst_idx);
@@ -172,14 +172,14 @@ namespace ns3 {
 
         // Header with (udp_burst_id, seq_no)
         IdSeqHeader idSeq;
-        idSeq.SetId(std::get<0>(m_bursts[internal_burst_idx]).GetUdpBurstId());
-        idSeq.SetSeq(m_bursts_packets_sent_counter[internal_burst_idx]);
+        idSeq.SetId(std::get<0>(m_outgoing_bursts[internal_burst_idx]).GetUdpBurstId());
+        idSeq.SetSeq(m_outgoing_bursts_packets_sent_counter[internal_burst_idx]);
 
         // One more packet will be sent out
-        m_bursts_packets_sent_counter[internal_burst_idx] += 1;
+        m_outgoing_bursts_packets_sent_counter[internal_burst_idx] += 1;
 
         // Log precise timestamp sent away of the sequence packet if needed
-        if (m_bursts_enable_precise_logging[internal_burst_idx]) {
+        if (m_outgoing_bursts_enable_precise_logging[internal_burst_idx]) {
             std::ofstream ofs;
             ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_outgoing.csv", idSeq.GetId()), std::ofstream::out | std::ofstream::app);
             ofs << idSeq.GetId() << "," << idSeq.GetSeq() << "," << Simulator::Now().GetNanoSeconds() << std::endl;
@@ -191,7 +191,7 @@ namespace ns3 {
         p->AddHeader(idSeq);
 
         // Send out the packet to the target address
-        m_socket->SendTo(p, 0, std::get<1>(m_bursts[internal_burst_idx]));
+        m_socket->SendTo(p, 0, std::get<1>(m_outgoing_bursts[internal_burst_idx]));
 
     }
 
@@ -236,8 +236,8 @@ namespace ns3 {
     std::vector<std::tuple<UdpBurstInfo, uint64_t>>
     UdpBurstApplication::GetOutgoingBurstsInformation() {
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> result;
-        for (size_t i = 0; i < m_bursts.size(); i++) {
-            result.push_back(std::make_tuple(std::get<0>(m_bursts[i]), m_bursts_packets_sent_counter[i]));
+        for (size_t i = 0; i < m_outgoing_bursts.size(); i++) {
+            result.push_back(std::make_tuple(std::get<0>(m_outgoing_bursts[i]), m_outgoing_bursts_packets_sent_counter[i]));
         }
         return result;
     }
@@ -246,9 +246,25 @@ namespace ns3 {
     UdpBurstApplication::GetIncomingBurstsInformation() {
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> result;
         for (size_t i = 0; i < m_incoming_bursts.size(); i++) {
-            result.push_back(std::make_tuple(m_incoming_bursts[i], m_incoming_bursts_received_counter[m_incoming_bursts[i].GetUdpBurstId()]));
+            result.push_back(std::make_tuple(m_incoming_bursts[i], m_incoming_bursts_received_counter.at(m_incoming_bursts[i].GetUdpBurstId())));
         }
         return result;
+    }
+
+    uint64_t
+    UdpBurstApplication::GetSentCounterOf(int64_t udp_burst_id) {
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> result;
+        for (size_t i = 0; i < m_outgoing_bursts.size(); i++) {
+            if (std::get<0>(m_outgoing_bursts[i]).GetUdpBurstId() == udp_burst_id) {
+                return m_outgoing_bursts_packets_sent_counter[i];
+            }
+        }
+        throw std::runtime_error("Sent counter for unknown UDP burst ID was requested");
+    }
+
+    uint64_t
+    UdpBurstApplication::GetReceivedCounterOf(int64_t udp_burst_id) {
+        return m_incoming_bursts_received_counter.at(udp_burst_id);
     }
 
 } // Namespace ns3
