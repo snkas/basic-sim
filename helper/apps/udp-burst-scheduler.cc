@@ -140,20 +140,24 @@ namespace ns3 {
             // Header
             std::cout << "  > Writing udp_bursts_{incoming, outgoing}.txt headers" << std::endl;
             fprintf(
-                    file_outgoing_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-16s%s\n",
+                    file_outgoing_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-16s%-28s%-28s%s\n",
                     "UDP burst ID", "From", "To", "Target rate", "Start time", "Duration",
-                    "Outgoing rate (w/ headers)", "Outgoing rate (payload)", "Packets sent", "Metadata"
+                    "Outgoing rate (w/ headers)", "Outgoing rate (payload)", "Packets sent",
+                    "Data sent (w/headers)", "Data sent (payload)", "Metadata"
             );
             fprintf(
-                    file_incoming_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-19s%s\n",
+                    file_incoming_txt, "%-16s%-10s%-10s%-20s%-16s%-16s%-28s%-28s%-19s%-28s%-28s%s\n",
                     "UDP burst ID", "From", "To", "Target rate", "Start time", "Duration",
-                    "Incoming rate (w/ headers)", "Incoming rate (payload)", "Packets received", "Metadata"
+                    "Incoming rate (w/ headers)", "Incoming rate (payload)", "Packets received",
+                    "Data received (w/headers)", "Data received (payload)", "Metadata"
             );
 
             // Go over each application
             std::cout << "  > Writing log files" << std::endl;
             for (size_t i = 0; i < m_apps.size(); i++) {
                 Ptr<UdpBurstApplication> udpBurstApp = m_apps[i].Get(0)->GetObject<UdpBurstApplication>();
+                uint32_t complete_packet_size = 1500;
+                uint32_t max_udp_payload_size_byte = udpBurstApp->GetMaxUdpPayloadSizeByte();
 
                 // Outgoing bursts
                 std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_bursts = udpBurstApp->GetOutgoingBurstsInformation();
@@ -163,14 +167,15 @@ namespace ns3 {
 
                     // Calculate outgoing rate
                     int64_t effective_duration_ns = info.GetStartTimeNs() + info.GetDurationNs() >= m_simulation_end_time_ns ? m_simulation_end_time_ns - info.GetStartTimeNs() : info.GetDurationNs();
-                    double rate_incl_headers_megabit_per_s = byte_to_megabit(sent_out_counter * 1500) / nanosec_to_sec(effective_duration_ns);
-                    double rate_payload_only_megabit_per_s = byte_to_megabit(sent_out_counter * 1472) / nanosec_to_sec(effective_duration_ns);
+                    double rate_incl_headers_megabit_per_s = byte_to_megabit(sent_out_counter * complete_packet_size) / nanosec_to_sec(effective_duration_ns);
+                    double rate_payload_only_megabit_per_s = byte_to_megabit(sent_out_counter * max_udp_payload_size_byte) / nanosec_to_sec(effective_duration_ns);
 
                     // Write plain to the CSV
                     fprintf(
-                            file_outgoing_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%f,%" PRId64 ",%" PRId64 ",%f,%f,%" PRIu64 ",%s\n",
+                            file_outgoing_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%f,%" PRId64 ",%" PRId64 ",%f,%f,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%s\n",
                             info.GetUdpBurstId(), info.GetFromNodeId(), info.GetToNodeId(), info.GetTargetRateMegabitPerSec(), info.GetStartTimeNs(),
-                            info.GetDurationNs(), rate_incl_headers_megabit_per_s, rate_payload_only_megabit_per_s, sent_out_counter, info.GetMetadata().c_str()
+                            info.GetDurationNs(), rate_incl_headers_megabit_per_s, rate_payload_only_megabit_per_s, sent_out_counter,
+                            sent_out_counter * complete_packet_size, sent_out_counter * max_udp_payload_size_byte, info.GetMetadata().c_str()
                     );
 
                     // Write nicely formatted to the text
@@ -184,9 +189,13 @@ namespace ns3 {
                     sprintf(str_eff_rate_incl_headers, "%.2f Mbit/s", rate_incl_headers_megabit_per_s);
                     char str_eff_rate_payload_only[100];
                     sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", rate_payload_only_megabit_per_s);
+                    char str_sent_incl_headers[100];
+                    sprintf(str_sent_incl_headers, "%.2f Mbit", byte_to_megabit(sent_out_counter * complete_packet_size));
+                    char str_sent_payload_only[100];
+                    sprintf(str_sent_payload_only, "%.2f Mbit", byte_to_megabit(sent_out_counter * max_udp_payload_size_byte));
                     fprintf(
                             file_outgoing_txt,
-                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-16" PRIu64 "%s\n",
+                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-16" PRIu64 "%-28s%-28s%s\n",
                             info.GetUdpBurstId(),
                             info.GetFromNodeId(),
                             info.GetToNodeId(),
@@ -196,6 +205,8 @@ namespace ns3 {
                             str_eff_rate_incl_headers,
                             str_eff_rate_payload_only,
                             sent_out_counter,
+                            str_sent_incl_headers,
+                            str_sent_payload_only,
                             info.GetMetadata().c_str()
                     );
 
@@ -209,14 +220,15 @@ namespace ns3 {
 
                     // Calculate incoming rate
                     int64_t effective_duration_ns = info.GetStartTimeNs() + info.GetDurationNs() >= m_simulation_end_time_ns ? m_simulation_end_time_ns - info.GetStartTimeNs() : info.GetDurationNs();
-                    double rate_incl_headers_megabit_per_s = byte_to_megabit(received_counter * 1500) / nanosec_to_sec(effective_duration_ns);
-                    double rate_payload_only_megabit_per_s = byte_to_megabit(received_counter * 1472) / nanosec_to_sec(effective_duration_ns);
+                    double rate_incl_headers_megabit_per_s = byte_to_megabit(received_counter * complete_packet_size) / nanosec_to_sec(effective_duration_ns);
+                    double rate_payload_only_megabit_per_s = byte_to_megabit(received_counter * max_udp_payload_size_byte) / nanosec_to_sec(effective_duration_ns);
 
                     // Write plain to the CSV
                     fprintf(
-                            file_incoming_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%f,%" PRId64 ",%" PRId64 ",%f,%f,%" PRIu64 ",%s\n",
+                            file_incoming_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%f,%" PRId64 ",%" PRId64 ",%f,%f,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%s\n",
                             info.GetUdpBurstId(), info.GetFromNodeId(), info.GetToNodeId(), info.GetTargetRateMegabitPerSec(), info.GetStartTimeNs(),
-                            info.GetDurationNs(), rate_incl_headers_megabit_per_s, rate_payload_only_megabit_per_s, received_counter, info.GetMetadata().c_str()
+                            info.GetDurationNs(), rate_incl_headers_megabit_per_s, rate_payload_only_megabit_per_s, received_counter,
+                            received_counter * complete_packet_size, received_counter * max_udp_payload_size_byte, info.GetMetadata().c_str()
                     );
 
                     // Write nicely formatted to the text
@@ -230,9 +242,13 @@ namespace ns3 {
                     sprintf(str_eff_rate_incl_headers, "%.2f Mbit/s", rate_incl_headers_megabit_per_s);
                     char str_eff_rate_payload_only[100];
                     sprintf(str_eff_rate_payload_only, "%.2f Mbit/s", rate_payload_only_megabit_per_s);
+                    char str_received_incl_headers[100];
+                    sprintf(str_received_incl_headers, "%.2f Mbit", byte_to_megabit(received_counter * complete_packet_size));
+                    char str_received_payload_only[100];
+                    sprintf(str_received_payload_only, "%.2f Mbit", byte_to_megabit(received_counter * max_udp_payload_size_byte));
                     fprintf(
                             file_incoming_txt,
-                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-19" PRIu64 "%s\n",
+                            "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-20s%-16s%-16s%-28s%-28s%-19" PRIu64 "%-28s%-28s%s\n",
                             info.GetUdpBurstId(),
                             info.GetFromNodeId(),
                             info.GetToNodeId(),
@@ -242,6 +258,8 @@ namespace ns3 {
                             str_eff_rate_incl_headers,
                             str_eff_rate_payload_only,
                             received_counter,
+                            str_received_incl_headers,
+                            str_received_payload_only,
                             info.GetMetadata().c_str()
                     );
 

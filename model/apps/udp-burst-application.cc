@@ -68,6 +68,10 @@ namespace ns3 {
         m_socket = 0;
     }
 
+    uint32_t UdpBurstApplication::GetMaxUdpPayloadSizeByte() {
+        return m_max_udp_payload_size_byte;
+    }
+
     void
     UdpBurstApplication::RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress, bool enable_precise_logging) {
         if (m_bursts.size() >= 1 && burstInfo.GetStartTimeNs() < std::get<0>(m_bursts[m_bursts.size() - 1]).GetStartTimeNs()) {

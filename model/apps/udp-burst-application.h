@@ -43,6 +43,7 @@ namespace ns3 {
         static TypeId GetTypeId (void);
         UdpBurstApplication ();
         virtual ~UdpBurstApplication ();
+        uint32_t GetMaxUdpPayloadSizeByte();
         void RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress, bool enable_precise_logging);
         void RegisterIncomingBurst(UdpBurstInfo burstInfo, bool enable_precise_logging);
         void StartNextBurst();
