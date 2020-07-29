@@ -37,8 +37,8 @@ void TcpFlowScheduler::StartNextFlow(int i) {
             "ns3::TcpSocketFactory",
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             entry.GetSizeByte(),
-            entry.GetFlowId(),
-            m_enableFlowLoggingToFileForFlowIds.find(entry.GetFlowId()) != m_enableFlowLoggingToFileForFlowIds.end(),
+            entry.GetTcpFlowId(),
+            m_enableFlowLoggingToFileForFlowIds.find(entry.GetTcpFlowId()) != m_enableFlowLoggingToFileForFlowIds.end(),
             m_basicSimulation->GetLogsDir(),
             entry.GetAdditionalParameters()
     );
@@ -202,7 +202,7 @@ void TcpFlowScheduler::WriteResults() {
             // Write plain to the csv
             fprintf(
                     file_csv, "%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%s,%s\n",
-                    entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), entry.GetSizeByte(), entry.GetStartTimeNs(),
+                    entry.GetTcpFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), entry.GetSizeByte(), entry.GetStartTimeNs(),
                     entry.GetStartTimeNs() + fct_ns, fct_ns, sent_byte, finished_state.c_str(), entry.GetMetadata().c_str()
             );
 
@@ -219,7 +219,7 @@ void TcpFlowScheduler::WriteResults() {
             sprintf(str_avg_rate_megabit_per_s, "%.1f Mbit/s", byte_to_megabit(sent_byte) / nanosec_to_sec(fct_ns));
             fprintf(
                     file_txt, "%-16" PRId64 "%-10" PRId64 "%-10" PRId64 "%-16s%-18" PRId64 "%-18" PRId64 "%-16s%-16s%-13s%-16s%-14s%s\n",
-                    entry.GetFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), str_size_megabit, entry.GetStartTimeNs(),
+                    entry.GetTcpFlowId(), entry.GetFromNodeId(), entry.GetToNodeId(), str_size_megabit, entry.GetStartTimeNs(),
                     entry.GetStartTimeNs() + fct_ns, str_duration_ms, str_sent_megabit, str_progress_perc, str_avg_rate_megabit_per_s,
                     finished_state.c_str(), entry.GetMetadata().c_str()
             );

@@ -2,7 +2,7 @@ NS3_VERSION="ns-3.31"
 
 # Usage help
 if [ "$1" == "--help" ]; then
-  echo "Usage: bash test.sh [--help, --only_tests, --no_coverage]"
+  echo "Usage: bash test.sh [--help] [--core, --apps, --distributed, --coverage]*"
   exit 0
 fi
 
@@ -20,59 +20,67 @@ cd ${NS3_VERSION} || exit 1
 echo "Zeroing coverage counters"
 lcov --directory build/debug_all --zerocounters
 
-# Perform coverage test
-echo "Performing tests for coverage"
-python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
-python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
+# Core tests
+if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "--core" ] || [ "$4" == "--core" ]; then
+  echo "Performing core tests"
+  python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
+  cat ../test_results/test_results_core.txt
+fi
 
-# Show test results in the middle as well
-cat ../test_results/test_results_core.txt
-cat ../test_results/test_results_apps.txt
-
-# Stop if we don't want a coverage report
-if [ "$1" == "--only_tests" ]; then
-  exit 0
+# Apps tests
+if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ]; then
+  python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
+  cat ../test_results/test_results_apps.txt
 fi
 
 # Back to build/ directory
 cd .. || exit 1
 
-# Check cores
-num_cores=$(nproc --all)
+# Distributed tests
+if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] || [ "$3" == "--distributed" ] || [ "$4" == "--distributed" ]; then
 
-# 1 core tests
-bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
-bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
+  # Check cores
+  num_cores=$(nproc --all)
 
-# 2 core tests (set to >= 4 because Travis does not support ns-3 MPI properly with more than 1 logical process)
-if [ "${num_cores}" -ge "4" ]; then
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
+  # 1 core tests
+  bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
+  bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
+
+  # 2 core tests (set to >= 4 because Travis does not support ns-3 MPI properly with more than 1 logical process)
+  if [ "${num_cores}" -ge "4" ]; then
+    bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
+    bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
+  fi
+
+  # Test that the distributed results are equivalent
+  python test_distributed_equivalent.py || exit 1
+
 fi
 
-# Test that the distributed results are equivalent
-python test_distributed_equivalent.py || exit 1
+# Coverage report
+if [ "$1" == "" ] || [ "$1" == "--coverage" ] || [ "$2" == "--coverage" ] || [ "$3" == "--coverage" ] || [ "$4" == "--coverage" ]; then
 
-# Stop if we don't want a coverage report
-if [ "$1" == "--no_coverage" ]; then
-  exit 0
+  # Make coverage report
+  rm -rf coverage_report
+  mkdir -p coverage_report
+  cd ${NS3_VERSION}/build/debug_all/ || exit 1
+  lcov --capture --directory contrib/basic-sim --output-file ../../../coverage_report/coverage.info
+
+  # Remove directories from coverage report which we don't want
+  lcov -r ../../../coverage_report/coverage.info "/usr/*" "*/build/debug_all/ns3/*" "*/test/*" "test/*" --output-file ../../../coverage_report/coverage.info
+
+  # Generate html
+  cd ../../../ || exit 1
+  genhtml --output-directory coverage_report coverage_report/coverage.info
+  echo "Coverage report is located at: coverage_report/index.html"
+
+  # Show results
+  echo "Display test results"
+  if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "--core" ] || [ "$4" == "--core" ]; then
+    cat test_results/test_results_core.txt
+  fi
+  if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ]; then
+    cat test_results/test_results_apps.txt
+  fi
+
 fi
-
-# Make coverage report
-rm -rf coverage_report
-mkdir -p coverage_report
-cd ${NS3_VERSION}/build/debug_all/ || exit 1
-lcov --capture --directory contrib/basic-sim --output-file ../../../coverage_report/coverage.info
-
-# Remove directories from coverage report which we don't want
-lcov -r ../../../coverage_report/coverage.info "/usr/*" "*/build/debug_all/ns3/*" "*/test/*" "test/*" --output-file ../../../coverage_report/coverage.info
-
-# Generate html
-cd ../../../ || exit 1
-genhtml --output-directory coverage_report coverage_report/coverage.info
-echo "Coverage report is located at: coverage_report/index.html"
-
-# Show results
-echo "Display test results"
-cat test_results/test_results_core.txt
-cat test_results/test_results_apps.txt

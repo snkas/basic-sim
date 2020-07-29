@@ -20,7 +20,7 @@ TcpFlowScheduleEntry::TcpFlowScheduleEntry(
     m_metadata = metadata;
 }
 
-int64_t TcpFlowScheduleEntry::GetFlowId() {
+int64_t TcpFlowScheduleEntry::GetTcpFlowId() {
     return m_tcp_flow_id;
 }
 

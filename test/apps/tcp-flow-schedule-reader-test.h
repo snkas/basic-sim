@@ -70,7 +70,7 @@ public:
 
         ASSERT_EQUAL(schedule.size(), 2);
 
-        ASSERT_EQUAL(schedule[0].GetFlowId(), 0);
+        ASSERT_EQUAL(schedule[0].GetTcpFlowId(), 0);
         ASSERT_EQUAL(schedule[0].GetFromNodeId(), 0);
         ASSERT_EQUAL(schedule[0].GetToNodeId(), 1);
         ASSERT_EQUAL(schedule[0].GetSizeByte(), 100000);
@@ -78,7 +78,7 @@ public:
         ASSERT_EQUAL(schedule[0].GetAdditionalParameters(), "a=b");
         ASSERT_EQUAL(schedule[0].GetMetadata(), "test");
 
-        ASSERT_EQUAL(schedule[1].GetFlowId(), 1);
+        ASSERT_EQUAL(schedule[1].GetTcpFlowId(), 1);
         ASSERT_EQUAL(schedule[1].GetFromNodeId(), 7);
         ASSERT_EQUAL(schedule[1].GetToNodeId(), 3);
         ASSERT_EQUAL(schedule[1].GetSizeByte(), 7488338);

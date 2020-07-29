@@ -77,7 +77,7 @@ public:
         schedule_file.open (temp_dir + "/tcp_flow_schedule.csv");
         for (TcpFlowScheduleEntry entry : write_schedule) {
             schedule_file
-                    << entry.GetFlowId() << ","
+                    << entry.GetTcpFlowId() << ","
                     << entry.GetFromNodeId() << ","
                     << entry.GetToNodeId() << ","
                     << entry.GetSizeByte() << ","

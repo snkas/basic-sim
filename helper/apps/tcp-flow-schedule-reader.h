@@ -27,7 +27,7 @@ public:
             std::string additional_parameters,
             std::string metadata
     );
-    int64_t GetFlowId();
+    int64_t GetTcpFlowId();
     int64_t GetFromNodeId();
     int64_t GetToNodeId();
     int64_t GetSizeByte();
