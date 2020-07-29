@@ -39,6 +39,7 @@ public:
         // Pingmesh end-to-end
         AddTestCase(new PingmeshEndToEndNineAllTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndNinePairsTestCase, TestCase::QUICK);
+        AddTestCase(new PingmeshEndToEndNotEnabledTestCase, TestCase::QUICK);
 
     }
 };
