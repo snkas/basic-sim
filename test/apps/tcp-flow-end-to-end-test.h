@@ -25,10 +25,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsTestCase : public TestCase {
+class TcpFlowEndToEndTestCase : public TestCase {
 public:
-    EndToEndFlowsTestCase(std::string s) : TestCase(s) {};
-    const std::string temp_dir = ".tmp-end-to-end-flows-test";
+    TcpFlowEndToEndTestCase(std::string s) : TestCase(s) {};
+    const std::string temp_dir = ".tmp-tcp-flow-end-to-end-test";
 
     void prepare_test_dir() {
         mkdir_if_not_exists(temp_dir);
@@ -189,10 +189,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsOneToOneEqualStartTestCase : public EndToEndFlowsTestCase
+class TcpFlowEndToEndOneToOneEqualStartTestCase : public TcpFlowEndToEndTestCase
 {
 public:
-    EndToEndFlowsOneToOneEqualStartTestCase () : EndToEndFlowsTestCase ("end-to-end-flows 1-to-1 equal-start") {};
+    TcpFlowEndToEndOneToOneEqualStartTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end 1-to-1 equal-start") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -223,10 +223,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsOneToOneSimpleStartTestCase : public EndToEndFlowsTestCase
+class TcpFlowEndToEndOneToOneSimpleStartTestCase : public TcpFlowEndToEndTestCase
 {
 public:
-    EndToEndFlowsOneToOneSimpleStartTestCase () : EndToEndFlowsTestCase ("end-to-end-flows 1-to-1 simple") {};
+    TcpFlowEndToEndOneToOneSimpleStartTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end 1-to-1 simple") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -266,10 +266,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsOneToOneApartStartTestCase : public EndToEndFlowsTestCase
+class TcpFlowEndToEndOneToOneApartStartTestCase : public TcpFlowEndToEndTestCase
 {
 public:
-    EndToEndFlowsOneToOneApartStartTestCase () : EndToEndFlowsTestCase ("end-to-end-flows 1-to-1 apart-start") {};
+    TcpFlowEndToEndOneToOneApartStartTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end 1-to-1 apart-start") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -300,10 +300,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsEcmpSimpleTestCase : public EndToEndFlowsTestCase
+class TcpFlowEndToEndEcmpSimpleTestCase : public TcpFlowEndToEndTestCase
 {
 public:
-    EndToEndFlowsEcmpSimpleTestCase () : EndToEndFlowsTestCase ("end-to-end-flows ecmp-simple") {};
+    TcpFlowEndToEndEcmpSimpleTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end ecmp-simple") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -353,10 +353,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsEcmpRemainTestCase : public EndToEndFlowsTestCase
+class TcpFlowEndToEndEcmpRemainTestCase : public TcpFlowEndToEndTestCase
 {
 public:
-    EndToEndFlowsEcmpRemainTestCase () : EndToEndFlowsTestCase ("end-to-end-flows ecmp-remain") {};
+    TcpFlowEndToEndEcmpRemainTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end ecmp-remain") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -446,10 +446,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsOneDropOneNotTestCase : public EndToEndFlowsTestCase
+class TcpFlowEndToEndOneDropOneNotTestCase : public TcpFlowEndToEndTestCase
 {
 public:
-    EndToEndFlowsOneDropOneNotTestCase () : EndToEndFlowsTestCase ("end-to-end-flows one-drop-one-not") {};
+    TcpFlowEndToEndOneDropOneNotTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end one-drop-one-not") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -495,10 +495,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsNonExistentRunDirTestCase : public TestCase
+class TcpFlowEndToEndNonExistentRunDirTestCase : public TestCase
 {
 public:
-    EndToEndFlowsNonExistentRunDirTestCase () : TestCase ("end-to-end-flows non-existent-run-dir") {};
+    TcpFlowEndToEndNonExistentRunDirTestCase () : TestCase ("tcp-flow-end-to-end non-existent-run-dir") {};
 
     void DoRun () {
         ASSERT_EXCEPTION(BasicSimulation simulation("path/to/non/existent/run/dir"));
@@ -508,10 +508,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndFlowsNotEnabledTestCase : public EndToEndFlowsTestCase
+class TcpFlowEndToEndNotEnabledTestCase : public TcpFlowEndToEndTestCase
 {
 public:
-    EndToEndFlowsNotEnabledTestCase () : EndToEndFlowsTestCase ("end-to-end-flows not-enabled") {};
+    TcpFlowEndToEndNotEnabledTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end not-enabled") {};
 
     void DoRun () {
 

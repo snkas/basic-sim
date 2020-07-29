@@ -4,9 +4,9 @@
 #include "ns3/test.h"
 #include "tcp-flow-schedule-reader-test.h"
 #include "udp-burst-schedule-reader-test.h"
-#include "end-to-end-flows-test.h"
-#include "end-to-end-pingmesh-test.h"
-#include "end-to-end-manual-test.h"
+#include "tcp-flow-end-to-end-test.h"
+#include "pingmesh-end-to-end-test.h"
+#include "manual-end-to-end-test.h"
 
 using namespace ns3;
 
@@ -22,23 +22,23 @@ public:
         AddTestCase(new UdpBurstScheduleReaderNormalTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstScheduleReaderInvalidTestCase, TestCase::QUICK);
 
-        // End-to-end manual, which means the application helpers are used
+        // Manual end-to-end, which means the application helpers are used
         // directly instead of the schedulers reading from files
-        AddTestCase(new EndToEndManualTestCase, TestCase::QUICK);
+        AddTestCase(new ManualEndToEndTestCase, TestCase::QUICK);
 
-        // End-to-end flows
-        AddTestCase(new EndToEndFlowsOneToOneEqualStartTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndFlowsOneToOneSimpleStartTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndFlowsOneToOneApartStartTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndFlowsEcmpSimpleTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndFlowsEcmpRemainTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndFlowsNonExistentRunDirTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndFlowsOneDropOneNotTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndFlowsNotEnabledTestCase, TestCase::QUICK);
+        // TCP flows end-to-end
+        AddTestCase(new TcpFlowEndToEndOneToOneEqualStartTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndOneToOneSimpleStartTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndOneToOneApartStartTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndEcmpSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndEcmpRemainTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndNonExistentRunDirTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndOneDropOneNotTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndNotEnabledTestCase, TestCase::QUICK);
 
-        // End-to-end pingmesh
-        AddTestCase(new EndToEndPingmeshNineAllTestCase, TestCase::QUICK);
-        AddTestCase(new EndToEndPingmeshNinePairsTestCase, TestCase::QUICK);
+        // Pingmesh end-to-end
+        AddTestCase(new PingmeshEndToEndNineAllTestCase, TestCase::QUICK);
+        AddTestCase(new PingmeshEndToEndNinePairsTestCase, TestCase::QUICK);
 
     }
 };

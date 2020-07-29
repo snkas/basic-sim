@@ -14,10 +14,10 @@ using namespace ns3;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndPingmeshTestCase : public TestCase {
+class PingmeshEndToEndTestCase : public TestCase {
 public:
-    EndToEndPingmeshTestCase(std::string s) : TestCase(s) {};
-    const std::string temp_dir = ".tmp-end-to-end-pingmesh-test";
+    PingmeshEndToEndTestCase(std::string s) : TestCase(s) {};
+    const std::string temp_dir = ".tmp-pingmesh-end-to-end-test";
 
     void prepare_test_dir() {
         mkdir_if_not_exists(temp_dir);
@@ -147,10 +147,12 @@ public:
 
 };
 
-class EndToEndPingmeshNineAllTestCase : public EndToEndPingmeshTestCase
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PingmeshEndToEndNineAllTestCase : public PingmeshEndToEndTestCase
 {
 public:
-    EndToEndPingmeshNineAllTestCase () : EndToEndPingmeshTestCase ("pingmesh nine-all") {};
+    PingmeshEndToEndNineAllTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end nine-all") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -186,10 +188,12 @@ public:
     }
 };
 
-class EndToEndPingmeshNinePairsTestCase : public EndToEndPingmeshTestCase
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PingmeshEndToEndNinePairsTestCase : public PingmeshEndToEndTestCase
 {
 public:
-    EndToEndPingmeshNinePairsTestCase () : EndToEndPingmeshTestCase ("pingmesh nine-pairs") {};
+    PingmeshEndToEndNinePairsTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end nine-pairs") {};
 
     void DoRun () {
         prepare_test_dir();

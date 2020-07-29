@@ -14,10 +14,10 @@ using namespace ns3;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class EndToEndManualTestCase : public TestCase {
+class ManualEndToEndTestCase : public TestCase {
 public:
-    EndToEndManualTestCase () : TestCase ("end-to-end manual") {};
-    const std::string temp_dir = ".tmp-end-to-end-manual-test";
+    ManualEndToEndTestCase () : TestCase ("manual-end-to-end") {};
+    const std::string temp_dir = ".tmp-manual-end-to-end-test";
 
     void DoRun () {
 
