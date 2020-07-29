@@ -156,6 +156,20 @@ public:
         ASSERT_EQUAL(finished_lines.size(), 1);
         ASSERT_EQUAL(finished_lines[0], "Yes");
 
+        // Check UDP burst completion information
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_0_info = udpApp.Get(0)->GetObject<UdpBurstApplication>()->GetOutgoingBurstsInformation();
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_1_info = udpApp.Get(1)->GetObject<UdpBurstApplication>()->GetOutgoingBurstsInformation();
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> incoming_0_info = udpApp.Get(0)->GetObject<UdpBurstApplication>()->GetIncomingBurstsInformation();
+        std::vector<std::tuple<UdpBurstInfo, uint64_t>> incoming_1_info = udpApp.Get(1)->GetObject<UdpBurstApplication>()->GetIncomingBurstsInformation();
+        ASSERT_EQUAL(outgoing_0_info.size(), 1);
+        ASSERT_EQUAL(std::get<0>(outgoing_0_info.at(0)).GetUdpBurstId(), 0);
+        ASSERT_EQUAL_APPROX((double) std::get<1>(outgoing_0_info.at(0)), 0.7 * 15 * 1000 * 1000 / 8.0 / 1500.0, 0.00001); // Everything will be sent
+        ASSERT_EQUAL(outgoing_1_info.size(), 0);
+        ASSERT_EQUAL(incoming_0_info.size(), 0);
+        ASSERT_EQUAL(incoming_1_info.size(), 1);
+        ASSERT_EQUAL(std::get<0>(incoming_1_info.at(0)).GetUdpBurstId(), 0);
+        ASSERT_EQUAL_APPROX((double) std::get<1>(incoming_1_info.at(0)), 0.7 * 15 * 1000 * 1000 / 8.0 / 1500.0, 100.0); // Not everything will arrive due to TCP competition
+
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");

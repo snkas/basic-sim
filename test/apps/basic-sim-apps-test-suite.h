@@ -7,6 +7,7 @@
 #include "tcp-flow-end-to-end-test.h"
 #include "pingmesh-end-to-end-test.h"
 #include "manual-end-to-end-test.h"
+#include "udp-burst-end-to-end-test.h"
 
 using namespace ns3;
 
@@ -40,6 +41,10 @@ public:
         AddTestCase(new PingmeshEndToEndNineAllTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndNinePairsTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndNotEnabledTestCase, TestCase::QUICK);
+
+        // UDP burst end-to-end
+        AddTestCase(new UdpBurstEndToEndOneToOneEqualStartTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndNotEnabledTestCase, TestCase::QUICK);
 
     }
 };
