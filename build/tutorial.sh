@@ -39,3 +39,9 @@ python tcp_flow_plot.py ../../example_run_folders/tutorial/logs_ns3 ../../exampl
 python tcp_flow_plot.py ../../example_run_folders/tutorial/logs_ns3 ../../example_run_folders/tutorial/logs_ns3/data ../../example_run_folders/tutorial/logs_ns3/pdf 1 100000000 || exit 1
 python tcp_flow_plot.py ../../example_run_folders/tutorial/logs_ns3 ../../example_run_folders/tutorial/logs_ns3/data ../../example_run_folders/tutorial/logs_ns3/pdf 2 100000000 || exit 1
 cd .. || exit 1
+
+# UDP burst plots
+cd udp_burst_plot || exit 1
+python udp_burst_plot.py ../../example_run_folders/tutorial/logs_ns3 ../../example_run_folders/tutorial/logs_ns3/data ../../example_run_folders/tutorial/logs_ns3/pdf 0 100000000 || exit 1
+python udp_burst_plot.py ../../example_run_folders/tutorial/logs_ns3 ../../example_run_folders/tutorial/logs_ns3/data ../../example_run_folders/tutorial/logs_ns3/pdf 1 100000000 || exit 1
+cd .. || exit 1
