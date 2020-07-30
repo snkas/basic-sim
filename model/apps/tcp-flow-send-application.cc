@@ -40,23 +40,23 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("FlowSendApplication");
+NS_LOG_COMPONENT_DEFINE ("TcpFlowSendApplication");
 
-NS_OBJECT_ENSURE_REGISTERED (FlowSendApplication);
+NS_OBJECT_ENSURE_REGISTERED (TcpFlowSendApplication);
 
 TypeId
-FlowSendApplication::GetTypeId(void) {
-    static TypeId tid = TypeId("ns3::FlowSendApplication")
+TcpFlowSendApplication::GetTypeId(void) {
+    static TypeId tid = TypeId("ns3::TcpFlowSendApplication")
             .SetParent<Application>()
             .SetGroupName("Applications")
-            .AddConstructor<FlowSendApplication>()
+            .AddConstructor<TcpFlowSendApplication>()
             .AddAttribute("SendSize", "The amount of data to send each time.",
                           UintegerValue(100000),
-                          MakeUintegerAccessor(&FlowSendApplication::m_sendSize),
+                          MakeUintegerAccessor(&TcpFlowSendApplication::m_sendSize),
                           MakeUintegerChecker<uint32_t>(1))
             .AddAttribute("Remote", "The address of the destination",
                           AddressValue(),
-                          MakeAddressAccessor(&FlowSendApplication::m_peer),
+                          MakeAddressAccessor(&TcpFlowSendApplication::m_peer),
                           MakeAddressChecker())
             .AddAttribute("MaxBytes",
                           "The total number of bytes to send. "
@@ -64,41 +64,41 @@ FlowSendApplication::GetTypeId(void) {
                           "no data  is sent again. The value zero means "
                           "that there is no limit.",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&FlowSendApplication::m_maxBytes),
+                          MakeUintegerAccessor(&TcpFlowSendApplication::m_maxBytes),
                           MakeUintegerChecker<uint64_t>())
-            .AddAttribute("FlowId",
-                          "Flow identifier",
+            .AddAttribute("TcpFlowId",
+                          "TCP flow identifier",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&FlowSendApplication::m_flowId),
+                          MakeUintegerAccessor(&TcpFlowSendApplication::m_tcpFlowId),
                           MakeUintegerChecker<uint64_t>())
             .AddAttribute("Protocol", "The type of protocol to use.",
                           TypeIdValue(TcpSocketFactory::GetTypeId()),
-                          MakeTypeIdAccessor(&FlowSendApplication::m_tid),
+                          MakeTypeIdAccessor(&TcpFlowSendApplication::m_tid),
                           MakeTypeIdChecker())
             .AddAttribute("EnableFlowLoggingToFile",
                           "True iff you want to track some aspects (progress, CWND, RTT) of the TCP flow over time.",
                           BooleanValue(true),
-                          MakeBooleanAccessor(&FlowSendApplication::m_enableFlowLoggingToFile),
+                          MakeBooleanAccessor(&TcpFlowSendApplication::m_enableFlowLoggingToFile),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
                            "Base logging directory (flow logging will be placed here, i.e. logs_dir/tcp_flow_[flow id]_{progress, cwnd, rtt}.csv",
                            StringValue (""),
-                           MakeStringAccessor (&FlowSendApplication::m_baseLogsDir),
+                           MakeStringAccessor (&TcpFlowSendApplication::m_baseLogsDir),
                            MakeStringChecker ())
             .AddAttribute ("AdditionalParameters",
                            "Additional parameter string; this might be parsed in another version of this application to "
                            "do slightly different behavior (e.g., set priority on TCP socket etc.)",
                            StringValue (""),
-                           MakeStringAccessor (&FlowSendApplication::m_additionalParameters),
+                           MakeStringAccessor (&TcpFlowSendApplication::m_additionalParameters),
                            MakeStringChecker ())
             .AddTraceSource("Tx", "A new packet is created and is sent",
-                            MakeTraceSourceAccessor(&FlowSendApplication::m_txTrace),
+                            MakeTraceSourceAccessor(&TcpFlowSendApplication::m_txTrace),
                             "ns3::Packet::TracedCallback");
     return tid;
 }
 
 
-FlowSendApplication::FlowSendApplication()
+TcpFlowSendApplication::TcpFlowSendApplication()
         : m_socket(0),
           m_connected(false),
           m_totBytes(0),
@@ -111,12 +111,12 @@ FlowSendApplication::FlowSendApplication()
     NS_LOG_FUNCTION(this);
 }
 
-FlowSendApplication::~FlowSendApplication() {
+TcpFlowSendApplication::~TcpFlowSendApplication() {
     NS_LOG_FUNCTION(this);
 }
 
 void
-FlowSendApplication::DoDispose(void) {
+TcpFlowSendApplication::DoDispose(void) {
     NS_LOG_FUNCTION(this);
 
     m_socket = 0;
@@ -124,7 +124,7 @@ FlowSendApplication::DoDispose(void) {
     Application::DoDispose();
 }
 
-void FlowSendApplication::StartApplication(void) { // Called at time specified by Start
+void TcpFlowSendApplication::StartApplication(void) { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
 
     // Create the socket if not already
@@ -156,24 +156,24 @@ void FlowSendApplication::StartApplication(void) { // Called at time specified b
 
         // Callbacks
         m_socket->SetConnectCallback(
-                MakeCallback(&FlowSendApplication::ConnectionSucceeded, this),
-                MakeCallback(&FlowSendApplication::ConnectionFailed, this)
+                MakeCallback(&TcpFlowSendApplication::ConnectionSucceeded, this),
+                MakeCallback(&TcpFlowSendApplication::ConnectionFailed, this)
         );
-        m_socket->SetSendCallback(MakeCallback(&FlowSendApplication::DataSend, this));
+        m_socket->SetSendCallback(MakeCallback(&TcpFlowSendApplication::DataSend, this));
         m_socket->SetCloseCallbacks(
-                MakeCallback(&FlowSendApplication::SocketClosedNormal, this),
-                MakeCallback(&FlowSendApplication::SocketClosedError, this)
+                MakeCallback(&TcpFlowSendApplication::SocketClosedNormal, this),
+                MakeCallback(&TcpFlowSendApplication::SocketClosedError, this)
         );
         if (m_enableFlowLoggingToFile) {
             std::ofstream ofs;
-            ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_flowId));
+            ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId));
             ofs.close();
-            ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_flowId));
+            ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId));
             ofs.close();
-            m_socket->TraceConnectWithoutContext ("CongestionWindow", MakeCallback (&FlowSendApplication::CwndChange, this));
-            ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_flowId));
+            m_socket->TraceConnectWithoutContext ("CongestionWindow", MakeCallback (&TcpFlowSendApplication::CwndChange, this));
+            ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId));
             ofs.close();
-            m_socket->TraceConnectWithoutContext ("RTT", MakeCallback (&FlowSendApplication::RttChange, this));
+            m_socket->TraceConnectWithoutContext ("RTT", MakeCallback (&TcpFlowSendApplication::RttChange, this));
         }
     }
     if (m_connected) {
@@ -181,17 +181,17 @@ void FlowSendApplication::StartApplication(void) { // Called at time specified b
     }
 }
 
-void FlowSendApplication::StopApplication(void) { // Called at time specified by Stop
+void TcpFlowSendApplication::StopApplication(void) { // Called at time specified by Stop
     NS_LOG_FUNCTION(this);
     if (m_socket != 0) {
         m_socket->Close();
         m_connected = false;
     } else {
-        NS_LOG_WARN("FlowSendApplication found null socket to close in StopApplication");
+        NS_LOG_WARN("TcpFlowSendApplication found null socket to close in StopApplication");
     }
 }
 
-void FlowSendApplication::SendData(void) {
+void TcpFlowSendApplication::SendData(void) {
     NS_LOG_FUNCTION(this);
     while (m_maxBytes == 0 || m_totBytes < m_maxBytes) { // Time to send more
 
@@ -225,16 +225,16 @@ void FlowSendApplication::SendData(void) {
     }
 }
 
-void FlowSendApplication::ConnectionSucceeded(Ptr <Socket> socket) {
+void TcpFlowSendApplication::ConnectionSucceeded(Ptr <Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
-    NS_LOG_LOGIC("FlowSendApplication Connection succeeded");
+    NS_LOG_LOGIC("TcpFlowSendApplication Connection succeeded");
     m_connected = true;
     SendData();
 }
 
-void FlowSendApplication::ConnectionFailed(Ptr <Socket> socket) {
+void TcpFlowSendApplication::ConnectionFailed(Ptr <Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
-    NS_LOG_LOGIC("FlowSendApplication, Connection Failed");
+    NS_LOG_LOGIC("TcpFlowSendApplication, Connection Failed");
     m_connFailed = true;
     m_closedByError = false;
     m_closedNormally = false;
@@ -243,7 +243,7 @@ void FlowSendApplication::ConnectionFailed(Ptr <Socket> socket) {
     m_socket = 0;
 }
 
-void FlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
+void TcpFlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
     NS_LOG_FUNCTION(this);
     if (m_connected) { // Only send new data if the connection has completed
         SendData();
@@ -252,14 +252,14 @@ void FlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
     // Log the progress as DataSend() is called anytime space in the transmission buffer frees up
     if (m_enableFlowLoggingToFile) {
         std::ofstream ofs;
-        ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_flowId), std::ofstream::out | std::ofstream::app);
-        ofs << m_flowId << "," << Simulator::Now ().GetNanoSeconds () << "," << (m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size()) << std::endl;
+        ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
+        ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << (m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size()) << std::endl;
         ofs.close();
     }
 
 }
 
-int64_t FlowSendApplication::GetAckedBytes() {
+int64_t TcpFlowSendApplication::GetAckedBytes() {
     if (m_closedNormally || m_closedByError) {
         return m_ackedBytes;
     } else {
@@ -267,27 +267,27 @@ int64_t FlowSendApplication::GetAckedBytes() {
     }
 }
 
-int64_t FlowSendApplication::GetCompletionTimeNs() {
+int64_t TcpFlowSendApplication::GetCompletionTimeNs() {
     return m_completionTimeNs;
 }
 
-bool FlowSendApplication::IsCompleted() {
+bool TcpFlowSendApplication::IsCompleted() {
     return m_isCompleted;
 }
 
-bool FlowSendApplication::IsConnFailed() {
+bool TcpFlowSendApplication::IsConnFailed() {
     return m_connFailed;
 }
 
-bool FlowSendApplication::IsClosedNormally() {
+bool TcpFlowSendApplication::IsClosedNormally() {
     return m_closedNormally;
 }
 
-bool FlowSendApplication::IsClosedByError() {
+bool TcpFlowSendApplication::IsClosedByError() {
     return m_closedByError;
 }
 
-void FlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
+void TcpFlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
     m_completionTimeNs = Simulator::Now().GetNanoSeconds();
     m_connFailed = false;
     m_closedByError = false;
@@ -300,7 +300,7 @@ void FlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
     m_socket = 0;
 }
 
-void FlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
+void TcpFlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
     m_connFailed = false;
     m_closedByError = true;
     m_closedNormally = false;
@@ -310,20 +310,20 @@ void FlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
 }
 
 void
-FlowSendApplication::CwndChange(uint32_t oldCwnd, uint32_t newCwnd)
+TcpFlowSendApplication::CwndChange(uint32_t oldCwnd, uint32_t newCwnd)
 {
     std::ofstream ofs;
-    ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_flowId), std::ofstream::out | std::ofstream::app);
-    ofs << m_flowId << "," << Simulator::Now ().GetNanoSeconds () << "," << newCwnd << std::endl;
+    ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
+    ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << newCwnd << std::endl;
     ofs.close();
 }
 
 void
-FlowSendApplication::RttChange (Time oldRtt, Time newRtt)
+TcpFlowSendApplication::RttChange (Time oldRtt, Time newRtt)
 {
     std::ofstream ofs;
-    ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_flowId), std::ofstream::out | std::ofstream::app);
-    ofs << m_flowId << "," << Simulator::Now ().GetNanoSeconds () << "," << newRtt.GetNanoSeconds() << std::endl;
+    ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
+    ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << newRtt.GetNanoSeconds() << std::endl;
     ofs.close();
 }
 

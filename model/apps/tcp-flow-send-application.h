@@ -35,14 +35,14 @@ namespace ns3 {
 class Address;
 class Socket;
 
-class FlowSendApplication : public Application
+class TcpFlowSendApplication : public Application
 {
 public:
   static TypeId GetTypeId (void);
 
-  FlowSendApplication ();
+  TcpFlowSendApplication ();
 
-  virtual ~FlowSendApplication ();
+  virtual ~TcpFlowSendApplication ();
 
   int64_t GetAckedBytes();
   int64_t GetCompletionTimeNs();
@@ -67,7 +67,7 @@ private:
   bool            m_connected;    //!< True if connected
   uint32_t        m_sendSize;     //!< Size of data to send each time
   uint64_t        m_maxBytes;     //!< Limit total number of bytes sent
-  uint64_t        m_flowId;       //!< Flow identifier
+  uint64_t        m_tcpFlowId;       //!< Flow identifier
   uint64_t        m_totBytes;     //!< Total bytes sent so far
   TypeId          m_tid;          //!< The type of protocol to use.
   int64_t         m_completionTimeNs; //!< Completion time in nanoseconds

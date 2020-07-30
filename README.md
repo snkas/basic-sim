@@ -60,6 +60,7 @@ sudo apt-get -y install lcov
 cd build
 bash build.sh
 bash test.sh
+bash tutorial.sh
 bash example.sh
 ```
 

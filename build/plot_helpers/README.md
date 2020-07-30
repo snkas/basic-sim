@@ -18,7 +18,7 @@ Plotting flow with id 0 (cwnd, progress, RTT, rate (in 10ms intervals)):
 
 ```
 cd /path/to/plot_helpers/flow_plot
-python flow_plot.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 0 10000000
+python tcp_flow_plot.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 0 10000000
 ```
 
 Generating only the rate data file for flow id 0 (in a 10ms interval):

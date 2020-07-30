@@ -38,7 +38,7 @@ void TcpFlowScheduler::StartNextFlow(int i) {
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             entry.GetSizeByte(),
             entry.GetTcpFlowId(),
-            m_enableFlowLoggingToFileForFlowIds.find(entry.GetTcpFlowId()) != m_enableFlowLoggingToFileForFlowIds.end(),
+            m_enableTcpFlowLoggingToFileForTcpFlowIds.find(entry.GetTcpFlowId()) != m_enableTcpFlowLoggingToFileForTcpFlowIds.end(),
             m_basicSimulation->GetLogsDir(),
             entry.GetAdditionalParameters()
     );
@@ -73,7 +73,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Properties we will use often
         m_nodes = m_topology->GetNodes();
         m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
-        m_enableFlowLoggingToFileForFlowIds = parse_set_positive_int64(
+        m_enableTcpFlowLoggingToFileForTcpFlowIds = parse_set_positive_int64(
                 m_basicSimulation->GetConfigParamOrDefault("tcp_flow_enable_logging_for_tcp_flow_ids", "set()"));
         m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
@@ -174,7 +174,7 @@ void TcpFlowScheduler::WriteResults() {
 
             // Retrieve statistics
             ApplicationContainer app = *it;
-            Ptr<FlowSendApplication> flowSendApp = ((it->Get(0))->GetObject<FlowSendApplication>());
+            Ptr<TcpFlowSendApplication> flowSendApp = ((it->Get(0))->GetObject<TcpFlowSendApplication>());
             bool is_completed = flowSendApp->IsCompleted();
             bool is_conn_failed = flowSendApp->IsConnFailed();
             bool is_closed_err = flowSendApp->IsClosedByError();

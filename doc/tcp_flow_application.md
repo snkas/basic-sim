@@ -57,10 +57,11 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 
 ## Getting started: directly installing applications
 
-1. In your code, import the UDP RTT helper:
+1. In your code, import the TCP flow send and sink helper:
 
    ```
-   #include "ns3/udp-rtt-helper.h"
+   #include "ns3/tcp-flow-send-helper.h"
+   #include "ns3/tcp-flow-sink-helper.h"
    ```
    
 2. Before the start of the simulation run, in your code add:
@@ -78,7 +79,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
             1000000000, // Flow size (byte)
             0, // Flow id (must be unique!)
             true, // Enable tracking cwnd / rtt / progress
-            m_basicSimulation->GetLogsDir() // Log directory where the flow_0_{cwnd, rtt, progress}.csv are written
+            m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{cwnd, rtt, progress}.csv are written
     );
     ApplicationContainer app_flow_0 = source.Install(node_a);
     app.Start(NanoSeconds(0)); // Flow start time (ns)
@@ -88,17 +89,17 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 
    ```c++
    // Retrieve client
-   Ptr<FlowSendApplication> flowSendApp = app_flow_0->GetObject<FlowSendApplication>();
+   Ptr<TcpFlowSendApplication> tcpFlowSendApp = app_flow_0->GetObject<TcpFlowSendApplication>();
 
    // Data about this flow
-   bool is_completed = flowSendApp->IsCompleted();
-   bool is_conn_failed = flowSendApp->IsConnFailed();
-   bool is_closed_err = flowSendApp->IsClosedByError();
-   bool is_closed_normal = flowSendApp->IsClosedNormally();
-   int64_t sent_byte = flowSendApp->GetAckedBytes();
+   bool is_completed = tcpFlowSendApp->IsCompleted();
+   bool is_conn_failed = tcpFlowSendApp->IsConnFailed();
+   bool is_closed_err = tcpFlowSendApp->IsClosedByError();
+   bool is_closed_normal = tcpFlowSendApp->IsClosedNormally();
+   int64_t sent_byte = tcpFlowSendApp->GetAckedBytes();
    int64_t fct_ns;
    if (is_completed) {
-       fct_ns = flowSendApp->GetCompletionTimeNs() - entry.start_time_ns;
+       fct_ns = tcpFlowSendApp->GetCompletionTimeNs() - entry.start_time_ns;
    } else {
        fct_ns = m_simulation_end_time_ns - entry.start_time_ns;
    }
@@ -119,7 +120,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
    ```
 
 
-## Flow scheduler information
+## TCP flow scheduler information
 
 You MUST set the following keys in `config_ns3.properties`:
 
