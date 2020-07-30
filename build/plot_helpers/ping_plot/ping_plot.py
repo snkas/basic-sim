@@ -79,7 +79,7 @@ def ping_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, from_id, to_id, interval_
 
     # Data RTT file
     print("TIME VS. RTT")
-    data_rtt_filename = "%s/ping_data_time_vs_rtt_%d_to_%d.csv" % (data_out_dir, from_id, to_id)
+    data_rtt_filename = "%s/ping_%d_to_%d_rtt.csv" % (data_out_dir, from_id, to_id)
     with open(data_rtt_filename, "w+") as out_file:
         for val in ping_results:
             if val["is_lost"]:
@@ -144,7 +144,7 @@ def ping_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, from_id, to_id, interval_
     #
     # This effectively creates a step function as a continuous line, which can then be plotted by gnuplot.
     #
-    data_out_of_order_filename = "%s/ping_data_time_vs_out_of_order_%d_to_%d.csv" % (data_out_dir, from_id, to_id)
+    data_out_of_order_filename = "%s/ping_%d_to_%d_out_of_order_in_intervals.csv" % (data_out_dir, from_id, to_id)
     with open(data_out_of_order_filename, "w+") as f_out:
         for i in range(len(intervals)):
             f_out.write("%d,%d,%f,%f\n" % (from_id, to_id, intervals[i][0], intervals[i][2]))

@@ -50,7 +50,7 @@ def generate_tcp_flow_rate_csv(logs_ns3_dir, data_out_dir, tcp_flow_id, interval
     #
     # This effectively creates a step function as a continuous line, which can then be plotted by gnuplot.
     #
-    data_filename = data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rate.csv"
+    data_filename = data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rate_in_intervals.csv"
     with open(data_filename, "w+") as f_out:
         for i in range(len(intervals)):
             rate_megabit_per_s = intervals[i][2] / 125000.0 * (1e9 / interval_ns)

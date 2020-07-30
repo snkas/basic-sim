@@ -60,7 +60,7 @@ def tcp_flow_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, tcp_flow_id, interval
     local_shell.remove("temp.plt")
 
     # Plot time vs. rate
-    data_filename = data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rate.csv"
+    data_filename = data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rate_in_intervals.csv"
     pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_rate_" + str(tcp_flow_id) + ".pdf"
     plt_filename = "plot_tcp_flow_time_vs_rate.plt"
     local_shell.copy_file(plt_filename, "temp.plt")
