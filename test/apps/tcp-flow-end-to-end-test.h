@@ -177,9 +177,9 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_rtt.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_progress.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 

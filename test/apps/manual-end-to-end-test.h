@@ -180,12 +180,12 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_0_rtt.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_1_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_1_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/flow_1_rtt.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_progress.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_cwnd.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_progress.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_rtt.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_incoming.csv");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
