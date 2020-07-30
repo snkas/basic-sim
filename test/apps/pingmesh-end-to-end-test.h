@@ -28,7 +28,7 @@ public:
     void write_basic_config(int64_t simulation_end_time_ns, int64_t pingmesh_interval_ns, std::string pingmesh_endpoint_pairs) {
         std::ofstream config_file;
         config_file.open (temp_dir + "/config_ns3.properties");
-        config_file << "simulation_end_time_ns=5000000000" << std::endl;
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "enable_pingmesh_scheduler=true" << std::endl;
