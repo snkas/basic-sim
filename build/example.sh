@@ -1,23 +1,22 @@
 # Usage help
 if [ "$1" == "--help" ]; then
-  echo "Usage: bash build.sh [--help]"
+  echo "Usage: bash example.sh [--help]"
   exit 0
 fi
 
 # Rebuild
 bash rebuild.sh || exit 1
 
-# Check cores
-num_cores=$(nproc --all)
-
 # Single process (without MPI)
-bash run_assist.sh "example_run_folders/tutorial" 0 || exit 1
 bash run_assist.sh "example_run_folders/single" 0 || exit 1
 bash run_assist.sh "example_run_folders/ring" 0 || exit 1
 bash run_assist.sh "example_run_folders/leaf_spine" 0 || exit 1
 bash run_assist.sh "example_run_folders/leaf_spine_servers" 0 || exit 1
 bash run_assist.sh "example_run_folders/grid" 0 || exit 1
 bash run_assist.sh "example_run_folders/fat_tree_k4_servers" 0 || exit 1
+
+# Check cores
+num_cores=$(nproc --all)
 
 # Distributed
 bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
