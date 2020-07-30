@@ -10,7 +10,7 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
 ## Installation
 
 1. Install the following dependencies:
-   * Python 3.6+
+   * Python 3.7+
    * MPI: `sudo apt-get install mpic++`
    * gnuplot (for example plotting): `sudo apt-get install gnuplot`
    * exputilpy (for example plotting): `pip install git+https://github.com/snkas/exputilpy.git`

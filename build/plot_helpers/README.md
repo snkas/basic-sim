@@ -4,6 +4,7 @@ In here you will find a few Python scripts that can be used to easily plot certa
 
 ## Requirements
 
+* Python 3.7+
 * A recent version of gnuplot: `sudo apt-get install gnuplot`
 * exputil: `pip install git+https://github.com/snkas/exputilpy.git`
 
@@ -46,3 +47,11 @@ cd /path/to/plot_helpers/utilization_plot
 python utilization_plot.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
 ```
 
+
+### UDP burst plotting
+
+Plotting UDP burst with id 33 (arrived/sent amount, arrived/sent rate (in 100ms intervals), one-way latency):
+```
+cd /path/to/plot_helpers/udp_burst_plot
+python udp_burst_plot.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 33 100000000
+```
