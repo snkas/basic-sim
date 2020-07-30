@@ -44,6 +44,9 @@ public:
 
         // UDP burst end-to-end
         AddTestCase(new UdpBurstEndToEndOneToOneEqualStartTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndSingleOverflowTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndDoubleEnoughTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndDoubleOverflowTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndNotEnabledTestCase, TestCase::QUICK);
 
     }

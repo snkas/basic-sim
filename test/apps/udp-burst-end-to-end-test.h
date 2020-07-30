@@ -25,7 +25,7 @@ public:
         remove_file_if_exists(temp_dir + "/udp_burst_schedule.csv");
     }
 
-    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed) {
+    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed, std::string detailed_logging_enabled_for) {
         std::ofstream config_file;
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
@@ -33,7 +33,7 @@ public:
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "enable_udp_burst_scheduler=true" << std::endl;
         config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
-        config_file << "udp_burst_enable_logging_for_udp_burst_ids=set(0)" << std::endl;
+        config_file << "udp_burst_enable_logging_for_udp_burst_ids=set(" << detailed_logging_enabled_for << ")" << std::endl;
         config_file.close();
     }
 
@@ -98,6 +98,10 @@ public:
         ASSERT_EQUAL(finished_lines.size(), 1);
         ASSERT_EQUAL(finished_lines[0], "Yes");
 
+        // For checking the sent / received amount
+        std::vector<int64_t> udp_burst_sent_amount;
+        std::vector<int64_t> udp_burst_received_amount;
+
         // Check udp_bursts_outgoing.csv
         std::vector<std::string> lines_outgoing_csv = read_file_direct(temp_dir + "/logs_ns3/udp_bursts_outgoing.csv");
         ASSERT_EQUAL(lines_outgoing_csv.size(), write_schedule.size());
@@ -114,6 +118,7 @@ public:
             double outgoing_rate_incl_headers_megabit_per_s = parse_positive_double(line_spl[6]);
             double outgoing_rate_payload_megabit_per_s = parse_positive_double(line_spl[7]);
             int64_t sent_packets = parse_positive_int64(line_spl[8]);
+            udp_burst_sent_amount.push_back(sent_packets);
             int64_t outgoing_sent_incl_headers_byte = parse_positive_int64(line_spl[9]);
             int64_t outgoing_sent_payload_only_byte = parse_positive_int64(line_spl[10]);
             ASSERT_EQUAL(outgoing_sent_payload_only_byte, sent_packets * 1472);
@@ -141,6 +146,7 @@ public:
             double incoming_rate_incl_headers_megabit_per_s = parse_positive_double(line_spl[6]);
             double incoming_rate_payload_megabit_per_s = parse_positive_double(line_spl[7]);
             int64_t received_packets = parse_positive_int64(line_spl[8]);
+            udp_burst_received_amount.push_back(received_packets);
             int64_t incoming_received_incl_headers_byte = parse_positive_int64(line_spl[9]);
             int64_t incoming_received_payload_only_byte = parse_positive_int64(line_spl[10]);
             ASSERT_EQUAL(incoming_received_payload_only_byte, received_packets * 1472);
@@ -244,6 +250,47 @@ public:
             i++;
         }
 
+        // Check the precise outgoing / incoming logs for each burst
+        for (UdpBurstInfo entry : write_schedule) {
+
+            // Outgoing
+            std::vector<std::string> lines_precise_outgoing_csv = read_file_direct(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_outgoing.csv");
+            ASSERT_EQUAL(lines_precise_outgoing_csv.size(), (size_t) udp_burst_sent_amount.at(entry.GetUdpBurstId()));
+            int j = 0;
+            for (std::string line : lines_precise_outgoing_csv) {
+                std::vector <std::string> line_spl = split_string(line, ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetUdpBurstId());
+                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), j);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), entry.GetStartTimeNs() + j * std::ceil(1500.0 / (entry.GetTargetRateMegabitPerSec() / 8000.0)));
+                j += 1;
+            }
+
+            // Incoming
+            std::vector<std::string> lines_precise_incoming_csv = read_file_direct(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_incoming.csv");
+            ASSERT_EQUAL(lines_precise_incoming_csv.size(), (size_t) udp_burst_received_amount.at(entry.GetUdpBurstId()));
+            std::set<int64_t> already_seen_seqs;
+            int prev_timestamp_ns = 0;
+            for (std::string line : lines_precise_incoming_csv) {
+                std::vector <std::string> line_spl = split_string(line, ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+
+                // Must be correct UDP burst ID
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetUdpBurstId());
+
+                // We can only check that the sequence number has not arrived before
+                int64_t seq = parse_positive_int64(line_spl[1]);
+                ASSERT_TRUE(already_seen_seqs.find(seq) == already_seen_seqs.end());
+                already_seen_seqs.insert(seq);
+
+                // And that the timestamps are at least weakly ascending
+                int64_t timestamp = parse_positive_int64(line_spl[2]);
+                ASSERT_TRUE(timestamp >= prev_timestamp_ns);
+                prev_timestamp_ns = timestamp;
+            }
+
+        }
+
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
@@ -254,10 +301,10 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_outgoing.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_incoming.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_incoming.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_incoming.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_1_outgoing.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_1_incoming.csv");
+        for (UdpBurstInfo entry : write_schedule) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_outgoing.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_incoming.csv");
+        }
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
@@ -278,7 +325,7 @@ public:
         int64_t simulation_end_time_ns = 5000000000;
 
         // One-to-one, 5s, 10.0 Mbit/s, 100 microseconds delay
-        write_basic_config(simulation_end_time_ns, 123456);
+        write_basic_config(simulation_end_time_ns, 123456, "0,1");
         write_single_topology(10.0, 100000);
 
         // A UDP burst each way
@@ -298,6 +345,116 @@ public:
         ASSERT_EQUAL(list_incoming_rate_megabit_per_s.size(), 2);
         ASSERT_EQUAL(list_incoming_rate_megabit_per_s.at(0), list_incoming_rate_megabit_per_s.at(1));
         ASSERT_TRUE(list_incoming_rate_megabit_per_s.at(0) >= 8.5);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpBurstEndToEndSingleOverflowTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndSingleOverflowTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end single-overflow") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 5000000000;
+
+        // One-to-one, 5s, 10.0 Mbit/s, 100 microseconds delay
+        write_basic_config(simulation_end_time_ns, 123456, "0");
+        write_single_topology(10.0, 100000);
+
+        // A UDP burst each way
+        std::vector<UdpBurstInfo> schedule;
+        schedule.push_back(UdpBurstInfo(0, 0, 1, 25, 1000000000, 3000000000, "", "abc"));
+
+        // Perform the run
+        std::vector<double> list_outgoing_rate_megabit_per_s;
+        std::vector<double> list_incoming_rate_megabit_per_s;
+        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+
+        // Not everything will arrive
+        ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 1);
+        ASSERT_TRUE(list_outgoing_rate_megabit_per_s.at(0) >= 24.5);
+        ASSERT_EQUAL(list_incoming_rate_megabit_per_s.size(), 1);
+        ASSERT_TRUE(list_incoming_rate_megabit_per_s.at(0) >= 9.5);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpBurstEndToEndDoubleEnoughTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndDoubleEnoughTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end double-enough") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 5000000000;
+
+        // One-to-one, 5s, 10.0 Mbit/s, 100 microseconds delay
+        write_basic_config(simulation_end_time_ns, 123456, "0,1");
+        write_single_topology(10.0, 100000);
+
+        // A UDP burst each way
+        std::vector<UdpBurstInfo> schedule;
+        schedule.push_back(UdpBurstInfo(0, 0, 1, 3, 1000000000, 3000000000, "", "abc"));
+        schedule.push_back(UdpBurstInfo(1, 0, 1, 4, 1000000000, 3000000000, "", "abc"));
+
+        // Perform the run
+        std::vector<double> list_outgoing_rate_megabit_per_s;
+        std::vector<double> list_incoming_rate_megabit_per_s;
+        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+
+        // They will share the overflow
+        ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 2);
+        ASSERT_TRUE(list_outgoing_rate_megabit_per_s.at(0) >= 2.5 && list_outgoing_rate_megabit_per_s.at(0) <= 3.1);
+        ASSERT_TRUE(list_outgoing_rate_megabit_per_s.at(1) >= 3.5 && list_outgoing_rate_megabit_per_s.at(1) <= 4.1);
+
+        ASSERT_EQUAL(list_incoming_rate_megabit_per_s.size(), 2);
+        ASSERT_TRUE(list_incoming_rate_megabit_per_s.at(0) >= 2.5 && list_incoming_rate_megabit_per_s.at(0) <= 3.1);
+        ASSERT_TRUE(list_incoming_rate_megabit_per_s.at(1) >= 3.5 && list_incoming_rate_megabit_per_s.at(1) <= 4.1);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpBurstEndToEndDoubleOverflowTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndDoubleOverflowTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end double-overflow") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 5000000000;
+
+        // One-to-one, 5s, 10.0 Mbit/s, 100 microseconds delay
+        write_basic_config(simulation_end_time_ns, 123456, "0,1");
+        write_single_topology(10.0, 100000);
+
+        // A UDP burst each way
+        std::vector<UdpBurstInfo> schedule;
+        schedule.push_back(UdpBurstInfo(0, 0, 1, 15, 1000000000, 3000000000, "", "abc"));
+        schedule.push_back(UdpBurstInfo(1, 0, 1, 10, 1000000000, 3000000000, "", "abc"));
+
+        // Perform the run
+        std::vector<double> list_outgoing_rate_megabit_per_s;
+        std::vector<double> list_incoming_rate_megabit_per_s;
+        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+
+        // They will share the overflow
+        ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 2);
+        ASSERT_TRUE(list_outgoing_rate_megabit_per_s.at(0) >= 14.5);
+        ASSERT_TRUE(list_outgoing_rate_megabit_per_s.at(1) >= 9.5);
+
+        ASSERT_EQUAL(list_incoming_rate_megabit_per_s.size(), 2);
+        ASSERT_TRUE(list_incoming_rate_megabit_per_s.at(0) >= 5.0);
+        ASSERT_TRUE(list_incoming_rate_megabit_per_s.at(1) >= 2.5);
 
     }
 };
