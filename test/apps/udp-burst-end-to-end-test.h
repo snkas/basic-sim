@@ -53,7 +53,7 @@ public:
         topology_file.close();
     }
 
-    void test_run_and_simple_validate(
+    void test_run_and_validate_udp_burst_logs(
             int64_t simulation_end_time_ns,
             std::string temp_dir, 
             std::vector<UdpBurstInfo> write_schedule,
@@ -336,7 +336,7 @@ public:
         // Perform the run
         std::vector<double> list_outgoing_rate_megabit_per_s;
         std::vector<double> list_incoming_rate_megabit_per_s;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+        test_run_and_validate_udp_burst_logs(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
 
         // As they are started at the same point and should have the same behavior, progress should be equal
         ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 2);
@@ -372,7 +372,7 @@ public:
         // Perform the run
         std::vector<double> list_outgoing_rate_megabit_per_s;
         std::vector<double> list_incoming_rate_megabit_per_s;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+        test_run_and_validate_udp_burst_logs(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
 
         // Not everything will arrive
         ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 1);
@@ -407,7 +407,7 @@ public:
         // Perform the run
         std::vector<double> list_outgoing_rate_megabit_per_s;
         std::vector<double> list_incoming_rate_megabit_per_s;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+        test_run_and_validate_udp_burst_logs(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
 
         // They will share the overflow
         ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 2);
@@ -445,7 +445,7 @@ public:
         // Perform the run
         std::vector<double> list_outgoing_rate_megabit_per_s;
         std::vector<double> list_incoming_rate_megabit_per_s;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+        test_run_and_validate_udp_burst_logs(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
 
         // They will share the overflow
         ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 2);

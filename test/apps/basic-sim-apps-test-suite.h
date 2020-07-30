@@ -39,7 +39,8 @@ public:
 
         // Pingmesh end-to-end
         AddTestCase(new PingmeshEndToEndNineAllTestCase, TestCase::QUICK);
-        AddTestCase(new PingmeshEndToEndNinePairsTestCase, TestCase::QUICK);
+        AddTestCase(new PingmeshEndToEndFivePairsTestCase, TestCase::QUICK);
+        AddTestCase(new PingmeshEndToEndCompetitionTcpTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndNotEnabledTestCase, TestCase::QUICK);
 
         // UDP burst end-to-end
