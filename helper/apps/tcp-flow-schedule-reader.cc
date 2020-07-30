@@ -112,7 +112,7 @@ std::vector<TcpFlowScheduleEntry> read_tcp_flow_schedule(const std::string& file
             // Check start time
             if (start_time_ns >= simulation_end_time_ns) {
                 throw std::invalid_argument(format_string(
-                        "Flow %" PRId64 " has invalid start time %" PRId64 " >= %" PRId64 ".",
+                        "TCP flow %" PRId64 " has invalid start time %" PRId64 " >= %" PRId64 ".",
                         tcp_flow_id, start_time_ns, simulation_end_time_ns
                 ));
             }

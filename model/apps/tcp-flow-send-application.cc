@@ -75,13 +75,13 @@ TcpFlowSendApplication::GetTypeId(void) {
                           TypeIdValue(TcpSocketFactory::GetTypeId()),
                           MakeTypeIdAccessor(&TcpFlowSendApplication::m_tid),
                           MakeTypeIdChecker())
-            .AddAttribute("EnableFlowLoggingToFile",
+            .AddAttribute("EnableTcpFlowLoggingToFile",
                           "True iff you want to track some aspects (progress, CWND, RTT) of the TCP flow over time.",
                           BooleanValue(true),
                           MakeBooleanAccessor(&TcpFlowSendApplication::m_enableFlowLoggingToFile),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
-                           "Base logging directory (flow logging will be placed here, i.e. logs_dir/tcp_flow_[flow id]_{progress, cwnd, rtt}.csv",
+                           "Base logging directory (logging will be placed here, i.e. logs_dir/tcp_flow_[flow id]_{progress, cwnd, rtt}.csv",
                            StringValue (""),
                            MakeStringAccessor (&TcpFlowSendApplication::m_baseLogsDir),
                            MakeStringChecker ())
@@ -134,8 +134,8 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
         // Must be TCP basically
         if (m_socket->GetSocketType() != Socket::NS3_SOCK_STREAM &&
             m_socket->GetSocketType() != Socket::NS3_SOCK_SEQPACKET) {
-            NS_FATAL_ERROR("Using FlowSend with an incompatible socket type. "
-                           "FlowSend requires SOCK_STREAM or SOCK_SEQPACKET. "
+            NS_FATAL_ERROR("Using TcpFlowSendApplication with an incompatible socket type. "
+                           "TcpFlowSendApplication requires SOCK_STREAM or SOCK_SEQPACKET. "
                            "In other words, use TCP instead of UDP.");
         }
 

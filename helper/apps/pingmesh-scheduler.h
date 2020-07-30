@@ -15,7 +15,6 @@
 #include <chrono>
 #include <stdexcept>
 
-#include "ns3/flow-monitor-module.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"

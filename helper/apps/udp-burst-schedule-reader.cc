@@ -69,7 +69,7 @@ std::vector<UdpBurstInfo> read_udp_burst_schedule(const std::string& filename, P
             // Check start time
             if (start_time_ns >= simulation_end_time_ns) {
                 throw std::invalid_argument(format_string(
-                        "Flow %" PRId64 " has invalid start time %" PRId64 " >= %" PRId64 ".",
+                        "UDP burst %" PRId64 " has invalid start time %" PRId64 " >= %" PRId64 ".",
                         udp_burst_id, start_time_ns, simulation_end_time_ns
                 ));
             }

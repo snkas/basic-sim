@@ -38,7 +38,7 @@ TcpFlowSendHelper::TcpFlowSendHelper (std::string protocol, Address address, uin
   m_factory.Set ("Remote", AddressValue (address));
   m_factory.Set ("MaxBytes", UintegerValue (maxBytes));
   m_factory.Set ("TcpFlowId", UintegerValue (flowId));
-  m_factory.Set ("EnableFlowLoggingToFile", BooleanValue (enableFlowLoggingToFile));
+  m_factory.Set ("EnableTcpFlowLoggingToFile", BooleanValue (enableFlowLoggingToFile));
   m_factory.Set ("BaseLogsDir", StringValue (baseLogsDir));
   m_factory.Set ("AdditionalParameters", StringValue (additionalParameters));
 }

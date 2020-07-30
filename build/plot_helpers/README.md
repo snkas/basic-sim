@@ -12,20 +12,20 @@ In here you will find a few Python scripts that can be used to easily plot certa
 
 Suppose you have your `logs_ns3` folder at `path/to/run_folder/logs_ns3`
 
-### Flow plotting
+### TCP flow plotting
 
-Plotting flow with id 0 (cwnd, progress, RTT, rate (in 10ms intervals)):
+Plotting TCP flow with id 0 (cwnd, progress, RTT, rate (in 10ms intervals)):
 
 ```
-cd /path/to/plot_helpers/flow_plot
+cd /path/to/plot_helpers/tcp_flow_plot
 python tcp_flow_plot.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 0 10000000
 ```
 
-Generating only the rate data file for flow id 0 (in a 10ms interval):
+Generating only the rate data file for TCP flow id 0 (in a 10ms interval):
 
 ```
-cd /path/to/plot_helpers/flow_plot
-python generate_flow_rase_csv.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data 0 10000000
+cd /path/to/plot_helpers/tcp_flow_plot
+python generate_tcp_flow_rate_csv.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data 0 10000000
 ```
 
 

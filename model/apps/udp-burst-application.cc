@@ -47,7 +47,7 @@ namespace ns3 {
                               MakeUintegerAccessor(&UdpBurstApplication::m_port),
                               MakeUintegerChecker<uint16_t>())
                 .AddAttribute ("BaseLogsDir",
-                               "Base logging directory (flow logging will be placed here, i.e. logs_dir/flow_[flow id]_{progress, cwnd, rtt}.csv",
+                               "Base logging directory (logging will be placed here, i.e. logs_dir/udp_burst_[UDP burst id]_{incoming, outgoing}.csv",
                                StringValue (""),
                                MakeStringAccessor (&UdpBurstApplication::m_baseLogsDir),
                                MakeStringChecker ())

@@ -79,8 +79,8 @@ private:
 
   // Flow logging
   bool m_enableFlowLoggingToFile;          //!< True iff you want to write flow logs
-  std::string m_baseLogsDir;               //!< Where the flow logs will be written to:
-                                           //!<   logs_dir/flow-[id]-{progress, cwnd, rtt}.csv
+  std::string m_baseLogsDir;               //!< Where the logs will be written to:
+                                           //!<   logs_dir/tcp_flow_[id]_{progress, cwnd, rtt}.csv
   std::string m_additionalParameters;      //!< Not used in this version of the application
   TracedCallback<Ptr<const Packet> > m_txTrace;
 
