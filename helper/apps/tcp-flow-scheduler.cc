@@ -28,9 +28,7 @@ void TcpFlowScheduler::StartNextFlow(int i) {
     // Fetch the flow to start
     TcpFlowScheduleEntry& entry = m_schedule[i];
     int64_t now_ns = Simulator::Now().GetNanoSeconds();
-    if (now_ns != entry.GetStartTimeNs()) {
-        throw std::runtime_error("Scheduling start of a flow went horribly wrong");
-    }
+    NS_ASSERT(now_ns == entry.GetStartTimeNs());
 
     // Helper to install the source application
     TcpFlowSendHelper source(
