@@ -37,7 +37,7 @@ public:
         remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
     }
 
-    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed) {
+    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed, uint32_t num_tcp_flows) {
         std::ofstream config_file;
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
@@ -45,7 +45,14 @@ public:
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "enable_tcp_flow_scheduler=true" << std::endl;
         config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
-        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=set(0)" << std::endl;
+        std::string ids = "";
+        for (size_t i = 0; i < num_tcp_flows; i++) {
+            if (i != 0) {
+                ids = ids + ",";
+            }
+            ids = ids + std::to_string(i);
+        }
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=set(" << ids << ")" << std::endl;
         config_file.close();
     }
 
@@ -177,9 +184,11 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+        }
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
@@ -200,7 +209,7 @@ public:
         int64_t simulation_end_time_ns = 5000000000;
 
         // One-to-one, 5s, 10.0 Mbit/s, 100 microseconds delay
-        write_basic_config(simulation_end_time_ns, 123456);
+        write_basic_config(simulation_end_time_ns, 123456, 2);
         write_single_topology(10.0, 100000);
 
         // A flow each way
@@ -234,7 +243,7 @@ public:
         int64_t simulation_end_time_ns = 5000000000;
 
         // One-to-one, 5s, 100.0 Mbit/s, 10 microseconds delay
-        write_basic_config(simulation_end_time_ns, 123456);
+        write_basic_config(simulation_end_time_ns, 123456, 1);
         write_single_topology(100.0, 10000);
 
         // One flow
@@ -277,7 +286,7 @@ public:
         int64_t simulation_end_time_ns = 10000000000;
 
         // One-to-one, 10s, 10.0 Mbit/s, 100 microseconds delay
-        write_basic_config(simulation_end_time_ns, 654321);
+        write_basic_config(simulation_end_time_ns, 654321, 2);
         write_single_topology(10.0, 100000);
 
         // A flow each way
@@ -311,7 +320,7 @@ public:
         int64_t simulation_end_time_ns = 100000000;
 
         // One-to-one, 5s, 30.0 Mbit/s, 200 microsec delay
-        write_basic_config(simulation_end_time_ns, 123456);
+        write_basic_config(simulation_end_time_ns, 123456, 20);
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
@@ -364,7 +373,7 @@ public:
         int64_t simulation_end_time_ns = 100000000;
 
         // One-to-one, 5s, 30.0 Mbit/s, 200 microsec delay
-        write_basic_config(simulation_end_time_ns, 123456);
+        write_basic_config(simulation_end_time_ns, 123456, 1);
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
@@ -457,7 +466,7 @@ public:
         int64_t simulation_end_time_ns = 100000000;
 
         // One-to-one, 5s, 30.0 Mbit/s, 200 microsec delay
-        write_basic_config(simulation_end_time_ns, 123456);
+        write_basic_config(simulation_end_time_ns, 123456, 2);
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
