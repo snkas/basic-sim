@@ -38,7 +38,7 @@ void TcpFlowScheduler::StartNextFlow(int i) {
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             entry.GetSizeByte(),
             entry.GetTcpFlowId(),
-            m_enableTcpFlowLoggingToFileForTcpFlowIds.find(entry.GetTcpFlowId()) != m_enableTcpFlowLoggingToFileForTcpFlowIds.end(),
+            m_enable_logging_for_tcp_flow_ids.find(entry.GetTcpFlowId()) != m_enable_logging_for_tcp_flow_ids.end(),
             m_basicSimulation->GetLogsDir(),
             entry.GetAdditionalParameters()
     );
@@ -73,7 +73,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Properties we will use often
         m_nodes = m_topology->GetNodes();
         m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
-        m_enableTcpFlowLoggingToFileForTcpFlowIds = parse_set_positive_int64(
+        m_enable_logging_for_tcp_flow_ids = parse_set_positive_int64(
                 m_basicSimulation->GetConfigParamOrDefault("tcp_flow_enable_logging_for_tcp_flow_ids", "set()"));
         m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
@@ -85,6 +85,13 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
                 m_topology,
                 m_simulation_end_time_ns
         );
+
+        // Check that the TCP flow IDs exist in the logging
+        for (int64_t tcp_flow_id : m_enable_logging_for_tcp_flow_ids) {
+            if ((size_t) tcp_flow_id >= complete_schedule.size()) {
+                throw std::invalid_argument("Invalid TCP flow ID in tcp_flow_enable_logging_for_tcp_flow_ids: " + std::to_string(tcp_flow_id));
+            }
+        }
 
         // Filter the schedule to only have applications starting at nodes which are part of this system
         if (m_enable_distributed) {
