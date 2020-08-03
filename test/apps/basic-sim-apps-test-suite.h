@@ -36,6 +36,7 @@ public:
         AddTestCase(new TcpFlowEndToEndNonExistentRunDirTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndOneDropOneNotTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndNotEnabledTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndInvalidLoggingIdTestCase, TestCase::QUICK);
 
         // Pingmesh end-to-end
         AddTestCase(new PingmeshEndToEndNineAllTestCase, TestCase::QUICK);
@@ -49,6 +50,7 @@ public:
         AddTestCase(new UdpBurstEndToEndDoubleEnoughTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndDoubleOverflowTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndNotEnabledTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndInvalidLoggingIdTestCase, TestCase::QUICK);
 
     }
 };

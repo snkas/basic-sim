@@ -516,3 +516,66 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpBurstEndToEndInvalidLoggingIdTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndInvalidLoggingIdTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end invalid-logging-id") {};
+
+    void DoRun () {
+
+        // Run directory
+        prepare_test_dir();
+
+        // Config file
+        std::ofstream config_file;
+        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << 1000000000 << std::endl;
+        config_file << "simulation_seed=" << 1111111111 << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_udp_burst_scheduler=true" << std::endl;
+        config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
+        config_file << "udp_burst_enable_logging_for_udp_burst_ids=set(0,1)" << std::endl; // Invalid entry: 1
+        config_file.close();
+
+        // One flow
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/udp_burst_schedule.csv");
+        schedule_file << "0,0,1,100,0,10000,," << std::endl;
+        schedule_file.close();
+
+        // Topology
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(2)" << std::endl;
+        topology_file << "switches_which_are_tors=set(2)" << std::endl;
+        topology_file << "servers=set(0, 1, 3)" << std::endl;
+        topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=200000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ASSERT_EXCEPTION(UdpBurstScheduler(basicSimulation, topology));
+        basicSimulation->Finalize();
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
