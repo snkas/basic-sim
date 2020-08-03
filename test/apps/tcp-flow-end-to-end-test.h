@@ -72,7 +72,7 @@ public:
         topology_file.close();
     }
 
-    void test_run_and_simple_validate(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<TcpFlowScheduleEntry> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, BeforeRunOperation* beforeRunOperation) {
+    void test_run_and_validate_tcp_flow_logs(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<TcpFlowScheduleEntry> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, BeforeRunOperation* beforeRunOperation) {
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
@@ -176,6 +176,81 @@ public:
             i++;
         }
 
+        // Now go over all the detailed logs
+        for (TcpFlowScheduleEntry& entry : write_schedule) {
+
+            // TCP congestion window
+            // tcp_flow_[id]_cwnd.csv
+            std::vector<std::string> lines_cwnd_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd.csv");
+            int64_t prev_timestamp_ns = 0;
+            int64_t prev_cwnd_byte = -1;
+            for (size_t i = 0; i < lines_cwnd_csv.size(); i++) {
+                std::vector<std::string> line_spl = split_string(lines_cwnd_csv.at(i), ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+
+                // Correct TCP flow ID
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                // Weakly ascending timestamp
+                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                prev_timestamp_ns = timestamp_ns;
+
+                // Congestion window has to be positive and different
+                int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
+                ASSERT_TRUE(cwnd_byte != prev_cwnd_byte);
+                prev_cwnd_byte = cwnd_byte;
+            }
+
+            // TCP connection progress
+            // tcp_flow_[id]_progress.csv
+            std::vector<std::string> lines_progress_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_progress.csv");
+            prev_timestamp_ns = 0;
+            int64_t prev_progress_byte = 0;
+            for (size_t i = 0; i < lines_progress_csv.size(); i++) {
+                std::vector<std::string> line_spl = split_string(lines_progress_csv.at(i), ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+
+                // Correct TCP flow ID
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                // Weakly ascending timestamp
+                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                prev_timestamp_ns = timestamp_ns;
+
+                // Progress has to be positive and ascending
+                int64_t progress_byte = parse_positive_int64(line_spl[2]);
+                ASSERT_TRUE(progress_byte >= prev_progress_byte);
+                prev_progress_byte = progress_byte;
+            }
+            ASSERT_EQUAL(prev_progress_byte, sent_byte_list.at(entry.GetTcpFlowId())); // Progress must be equal to the sent amount reported in the end
+
+            // TCP RTT
+            // tcp_flow_[id]_rtt.csv
+            std::vector<std::string> lines_rtt_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_rtt.csv");
+            prev_timestamp_ns = 0;
+            int64_t prev_rtt_ns = 0;
+            for (size_t i = 0; i < lines_rtt_csv.size(); i++) {
+                std::vector<std::string> line_spl = split_string(lines_rtt_csv.at(i), ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+
+                // Correct TCP flow ID
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                // Weakly ascending timestamp
+                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                prev_timestamp_ns = timestamp_ns;
+
+                // RTT has to be positive and different
+                int64_t rtt_ns = parse_positive_int64(line_spl[2]);
+                ASSERT_TRUE(rtt_ns != prev_rtt_ns);
+                prev_rtt_ns = rtt_ns;
+            }
+
+        }
+
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
@@ -221,7 +296,7 @@ public:
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
         BeforeRunOperationNothing op;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
 
         // As they are started at the same point and should have the same behavior, progress should be equal
         ASSERT_EQUAL(end_time_ns_list[0], end_time_ns_list[1]);
@@ -255,7 +330,7 @@ public:
         std::vector<int64_t> sent_byte_list;
 
         BeforeRunOperationNothing op;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
 
         // As they are started at the same point and should have the same behavior, progress should be equal
         int expected_end_time_ns = 0;
@@ -298,7 +373,7 @@ public:
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
         BeforeRunOperationNothing op;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
 
         // As they are started without any interference, should have same completion
         ASSERT_EQUAL(end_time_ns_list[0], end_time_ns_list[1] - 5000000000);
@@ -345,7 +420,7 @@ public:
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
         BeforeRunOperationNothing op;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
 
         // All are too large to end, and they must consume bandwidth of both links
         int64_t byte_sum = 0;
@@ -396,7 +471,7 @@ public:
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
         BeforeRunOperationNothing op;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
 
         // Can only consume the bandwidth of one path, the one it is hashed to
         ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
@@ -490,7 +565,7 @@ public:
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
         BeforeRunOperationDropper op;
-        test_run_and_simple_validate(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
 
         // Can only consume the bandwidth of one path, the one it is hashed to
         ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
