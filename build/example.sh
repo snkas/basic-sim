@@ -14,6 +14,7 @@ bash run_assist.sh "example_run_folders/leaf_spine" 0 || exit 1
 bash run_assist.sh "example_run_folders/leaf_spine_servers" 0 || exit 1
 bash run_assist.sh "example_run_folders/grid" 0 || exit 1
 bash run_assist.sh "example_run_folders/fat_tree_k4_servers" 0 || exit 1
+bash run_assist.sh "example_run_folders/fat_tree_k4_servers_poisson" 0 || exit 1
 
 # Check cores
 num_cores=$(nproc --all)

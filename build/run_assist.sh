@@ -3,6 +3,11 @@ NS3_VERSION="ns-3.31"
 # Usage help
 if [ "$1" == "--help" ] || [ "$#" -ne 2 ]; then
   echo "Usage: bash run_assist.sh [run_folder] [mpi number of processes, 0 if not to use mpi]"
+  echo ""
+  echo "Usage with ns-3 logging:"
+  echo ""
+  echo "   NS_LOG=\"TcpFlowSink=all:TcpSocketBase=all\" bash run_assist.sh [run_folder] [mpi number of processes, 0 if not to use mpi]"
+  echo ""
   exit 1
 fi
 
