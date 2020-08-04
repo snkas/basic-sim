@@ -40,13 +40,38 @@
 
 namespace ns3 {
 
+class TopologyPtop;
+
+class TopologyPtopQueueSelector : public Object {
+public:
+    static TypeId GetTypeId(void);
+    TopologyPtopQueueSelector() {};
+    virtual std::pair<ObjectFactory, QueueSize> ParseQueueValue(Ptr<TopologyPtop> topology, std::string value) = 0;
+};
+
+class TopologyPtopTcQdiscSelector : public Object {
+public:
+    static TypeId GetTypeId(void);
+    TopologyPtopTcQdiscSelector() {};
+    virtual std::pair<bool, TrafficControlHelper> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value) = 0;
+};
+
 class TopologyPtop : public Topology
 {
 public:
 
     // Constructors
     static TypeId GetTypeId (void);
-    TopologyPtop(Ptr<BasicSimulation> basicSimulation, const Ipv4RoutingHelper& ipv4RoutingHelper);
+    TopologyPtop(
+            Ptr<BasicSimulation> basicSimulation,
+            const Ipv4RoutingHelper& ipv4RoutingHelper,
+            Ptr<TopologyPtopQueueSelector> queueSelector,
+            Ptr<TopologyPtopTcQdiscSelector> tcQdiscSelector
+    );
+    TopologyPtop(
+            Ptr<BasicSimulation> basicSimulation,
+            const Ipv4RoutingHelper& ipv4RoutingHelper
+    );
 
     // Parsers to assist
     std::map<std::pair<int64_t, int64_t>, std::string> ParseUndirectedEdgeMap(std::string value);
@@ -85,8 +110,8 @@ private:
     void ParseLinkDeviceQueueProperty();
     void ParseLinkInterfaceTrafficControlQdiscProperty();
     void ParseTopologyLinkProperties();
-    std::pair<bool, TrafficControlHelper> ParseTcQdiscValue(std::string value);
-    std::pair<ObjectFactory, QueueSize> ParseQueueValue(std::string value);
+    Ptr<TopologyPtopQueueSelector> m_queueSelector;
+    Ptr<TopologyPtopTcQdiscSelector> m_tcQdiscSelector;
 
     // Estimations
     void EstimateWorstCaseRtt();

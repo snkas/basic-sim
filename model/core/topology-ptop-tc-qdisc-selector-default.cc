@@ -1,25 +1,16 @@
-#include <utility>
-#include "ns3/core-module.h"
-#include "ns3/node.h"
-#include "ns3/node-container.h"
-#include "ns3/topology.h"
-#include "ns3/exp-util.h"
-#include "ns3/basic-simulation.h"
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/internet-module.h"
-#include "ns3/point-to-point-module.h"
-#include "ns3/applications-module.h"
-#include "ns3/random-variable-stream.h"
-#include "ns3/command-line.h"
-#include "ns3/traffic-control-helper.h"
-#include "ns3/point-to-point-ab-helper.h"
-#include "ns3/object-factory.h"
-#include "ns3/net-device-container.h"
-#include "ns3/node-container.h"
-#include "topology-ptop.h"
+#include "topology-ptop-tc-qdisc-selector-default.h"
 
 namespace ns3 {
+
+    NS_OBJECT_ENSURE_REGISTERED (TopologyPtopTcQdiscSelectorDefault);
+    TypeId TopologyPtopTcQdiscSelectorDefault::GetTypeId (void)
+    {
+        static TypeId tid = TypeId ("ns3::TopologyPtopTcQdiscSelectorDefault")
+                .SetParent<TopologyPtopTcQdiscSelector> ()
+                .SetGroupName("BasicSim")
+        ;
+        return tid;
+    }
 
     /**
      * Parse the traffic control queueing discipline value into a traffic control helper which
@@ -30,7 +21,7 @@ namespace ns3 {
      *
      * @return Pair(True iff enabled, traffic control helper instance) (or an exception if invalid)
      */
-    std::pair<bool, TrafficControlHelper> TopologyPtop::ParseTcQdiscValue(std::string value) {
+    std::pair<bool, TrafficControlHelper> TopologyPtopTcQdiscSelectorDefault::ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value) {
         if (value == "disabled") {
             TrafficControlHelper unusedHelper; // We have to create some instance, but it is not used
             return std::make_pair(false, unusedHelper);
@@ -41,8 +32,8 @@ namespace ns3 {
 
         } else if (value == "fq_codel_better_rtt") {
             TrafficControlHelper fqCoDelBetterRttHelper;
-            std::string interval = format_string("%" PRId64 "ns", m_worst_case_rtt_estimate_ns);
-            std::string target = format_string("%" PRId64 "ns", m_worst_case_rtt_estimate_ns / 20);
+            std::string interval = format_string("%" PRId64 "ns", topology->GetWorstCaseRttEstimateNs());
+            std::string target = format_string("%" PRId64 "ns", topology->GetWorstCaseRttEstimateNs() / 20);
             fqCoDelBetterRttHelper.SetRootQueueDisc(
                     "ns3::FqCoDelQueueDisc",
                     "Interval", StringValue(interval),

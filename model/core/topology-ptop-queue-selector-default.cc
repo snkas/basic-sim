@@ -1,25 +1,16 @@
-#include <utility>
-#include "ns3/core-module.h"
-#include "ns3/node.h"
-#include "ns3/node-container.h"
-#include "ns3/topology.h"
-#include "ns3/exp-util.h"
-#include "ns3/basic-simulation.h"
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/internet-module.h"
-#include "ns3/point-to-point-module.h"
-#include "ns3/applications-module.h"
-#include "ns3/random-variable-stream.h"
-#include "ns3/command-line.h"
-#include "ns3/traffic-control-helper.h"
-#include "ns3/point-to-point-ab-helper.h"
-#include "ns3/object-factory.h"
-#include "ns3/net-device-container.h"
-#include "ns3/node-container.h"
-#include "topology-ptop.h"
+#include "topology-ptop-queue-selector-default.h"
 
 namespace ns3 {
+
+    NS_OBJECT_ENSURE_REGISTERED (TopologyPtopQueueSelectorDefault);
+    TypeId TopologyPtopQueueSelectorDefault::GetTypeId (void)
+    {
+        static TypeId tid = TypeId ("ns3::TopologyPtopQueueSelectorDefault")
+                .SetParent<TopologyPtopQueueSelector> ()
+                .SetGroupName("BasicSim")
+        ;
+        return tid;
+    }
 
     /*
      * Parse the queue value into a queue object factory.
@@ -28,7 +19,7 @@ namespace ns3 {
      *
      * @return Pair of (Queue object factory, Maximum queue size) if success, else throws an exception
      */
-    std::pair<ObjectFactory, QueueSize> TopologyPtop::ParseQueueValue(std::string value) {
+    std::pair<ObjectFactory, QueueSize> TopologyPtopQueueSelectorDefault::ParseQueueValue(Ptr<TopologyPtop>, std::string value) {
 
         // First-in-first-out = drop-tail
         if (starts_with(value, "drop_tail(") && ends_with(value, ")")) {

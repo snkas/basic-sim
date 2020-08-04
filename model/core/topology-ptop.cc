@@ -23,6 +23,33 @@
 
 namespace ns3 {
 
+NS_OBJECT_ENSURE_REGISTERED (TopologyPtopQueueSelector);
+TypeId TopologyPtopQueueSelector::GetTypeId (void)
+{
+    static TypeId tid = TypeId ("ns3::TopologyPtopQueueSelector")
+            .SetParent<Object> ()
+            .SetGroupName("BasicSim")
+    ;
+    return tid;
+}
+
+NS_OBJECT_ENSURE_REGISTERED (TopologyPtopTcQdiscSelector);
+TypeId TopologyPtopTcQdiscSelector::GetTypeId (void)
+{
+    static TypeId tid = TypeId ("ns3::TopologyPtopTcQdiscSelector")
+            .SetParent<Object> ()
+            .SetGroupName("BasicSim")
+    ;
+    return tid;
+}
+
+}
+
+#include "topology-ptop-queue-selector-default.h"
+#include "topology-ptop-tc-qdisc-selector-default.h"
+
+namespace ns3 {
+
 NS_OBJECT_ENSURE_REGISTERED (TopologyPtop);
 TypeId TopologyPtop::GetTypeId (void)
 {
@@ -33,13 +60,32 @@ TypeId TopologyPtop::GetTypeId (void)
     return tid;
 }
 
-TopologyPtop::TopologyPtop(Ptr<BasicSimulation> basicSimulation, const Ipv4RoutingHelper& ipv4RoutingHelper) {
+TopologyPtop::TopologyPtop(
+        Ptr<BasicSimulation> basicSimulation,
+        const Ipv4RoutingHelper& ipv4RoutingHelper,
+        Ptr<TopologyPtopQueueSelector> queueSelector,
+        Ptr<TopologyPtopTcQdiscSelector> tcQdiscSelector
+) {
     m_basicSimulation = basicSimulation;
+    m_queueSelector = queueSelector;
+    m_tcQdiscSelector = tcQdiscSelector;
     ReadTopologyConfig();
     ParseTopologyGraph();
     ParseTopologyLinkProperties();
     SetupNodes(ipv4RoutingHelper);
     SetupLinks();
+}
+
+TopologyPtop::TopologyPtop(
+        Ptr<BasicSimulation> basicSimulation,
+        const Ipv4RoutingHelper& ipv4RoutingHelper
+) : TopologyPtop(
+        basicSimulation,
+        ipv4RoutingHelper,
+        CreateObject<TopologyPtopQueueSelectorDefault>(),
+        CreateObject<TopologyPtopTcQdiscSelectorDefault>()
+) {
+  // Left empty on purpose
 }
 
 /**
@@ -340,7 +386,7 @@ void TopologyPtop::ParseLinkDeviceQueueProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::pair<ObjectFactory, QueueSize> link_device_queue = ParseQueueValue(value);
+        std::pair<ObjectFactory, QueueSize> link_device_queue = m_queueSelector->ParseQueueValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
             m_link_device_queue_mapping[p] = link_device_queue;
             m_link_device_queue_mapping[std::make_pair(p.second, p.first)] = link_device_queue;
@@ -350,7 +396,7 @@ void TopologyPtop::ParseLinkDeviceQueueProperty() {
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_queue_mapping[entry.first] = ParseQueueValue(entry.second);
+            m_link_device_queue_mapping[entry.first] = m_queueSelector->ParseQueueValue(this, entry.second);
         }
         std::cout << "    >> Per link device mapping was read" << std::endl;
     }
@@ -426,7 +472,7 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::pair<bool, TrafficControlHelper> link_interface_traffic_control_qdisc = ParseTcQdiscValue(value);
+        std::pair<bool, TrafficControlHelper> link_interface_traffic_control_qdisc = m_tcQdiscSelector->ParseTcQdiscValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
             m_link_interface_traffic_control_qdisc_mapping[p] = link_interface_traffic_control_qdisc;
             m_link_interface_traffic_control_qdisc_mapping[std::make_pair(p.second, p.first)] = link_interface_traffic_control_qdisc;
@@ -436,7 +482,7 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_interface_traffic_control_qdisc_mapping[entry.first] = ParseTcQdiscValue(entry.second);
+            m_link_interface_traffic_control_qdisc_mapping[entry.first] = m_tcQdiscSelector->ParseTcQdiscValue(this, entry.second);
         }
         std::cout << "    >> Per link interface mapping was read" << std::endl;
     }
