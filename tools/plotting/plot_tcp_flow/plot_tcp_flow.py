@@ -4,7 +4,7 @@ import exputil
 from generate_tcp_flow_rate_csv import generate_tcp_flow_rate_csv
 
 
-def tcp_flow_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, tcp_flow_id, interval_ns):
+def plot_tcp_flow(logs_ns3_dir, data_out_dir, pdf_out_dir, tcp_flow_id, interval_ns):
     local_shell = exputil.LocalShell()
 
     # Check that all plotting files are available
@@ -13,7 +13,7 @@ def tcp_flow_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, tcp_flow_id, interval
        not local_shell.file_exists("plot_tcp_flow_time_vs_rtt.plt") or \
        not local_shell.file_exists("plot_tcp_flow_time_vs_rate.plt"):
         print("The gnuplot files are not present.")
-        print("Are you executing this python file inside the tcp_flow_plot directory?")
+        print("Are you executing this python file inside the plot_tcp_flow directory?")
         exit(1)
 
     # Create the output directories if they don't exist yet
@@ -75,11 +75,11 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python tcp_flow_plot.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [tcp_flow_id]"
+        print("Usage: python plot_tcp_flow.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [tcp_flow_id]"
               " [interval_ns (for rates)]")
         exit(1)
     else:
-        tcp_flow_plot(
+        plot_tcp_flow(
             args[0],
             args[1],
             args[2],

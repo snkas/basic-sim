@@ -2,14 +2,14 @@ import sys
 from exputil import *
 
 
-def ping_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, from_id, to_id, interval_ns):
+def plot_ping(logs_ns3_dir, data_out_dir, pdf_out_dir, from_id, to_id, interval_ns):
     local_shell = LocalShell()
 
     # Check that all plotting files are available
     if not local_shell.file_exists("plot_ping_time_vs_rtt.plt") or \
             not local_shell.file_exists("plot_ping_time_vs_out_of_order.plt"):
         print("The gnuplot files are not present.")
-        print("Are you executing this python file inside the ping_plot directory?")
+        print("Are you executing this python file inside the plot_ping directory?")
         exit(1)
 
     # Create the output directories if they don't exist yet
@@ -168,11 +168,11 @@ def main():
     args = sys.argv[1:]
     if len(args) != 6:
         print("Must supply exactly six arguments")
-        print("Usage: python ping_plot.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir] "
+        print("Usage: python plot_ping.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir] "
               "[from_node_id] [to_node_id] [interval_ns (for out-of-order counting)]")
         exit(1)
     else:
-        ping_plot(
+        plot_ping(
             args[0],
             args[1],
             args[2],

@@ -2,13 +2,13 @@ import sys
 from exputil import *
 
 
-def utilization_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_node_id):
+def plot_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_node_id):
     local_shell = LocalShell()
 
     # Check that the plotting file is available
     if not local_shell.file_exists("plot_time_vs_utilization.plt"):
         print("The gnuplot file is not present.")
-        print("Are you executing this python file inside the utilization_plot directory?")
+        print("Are you executing this python file inside the plot_utilization directory?")
         exit(1)
 
     # Create the output directories if they don't exist yet
@@ -58,11 +58,11 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python utilization_plot.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
+        print("Usage: python plot_utilization.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
               " [from_node_id] [to_node_id]")
         exit(1)
     else:
-        utilization_plot(
+        plot_utilization(
             args[0],
             args[1],
             args[2],

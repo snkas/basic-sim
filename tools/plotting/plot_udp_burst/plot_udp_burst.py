@@ -89,7 +89,7 @@ def generate_udp_burst_latency_csv(data_out_dir, udp_burst_id, outgoing_time_ns_
     return filename
 
 
-def udp_burst_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, udp_burst_id, interval_ns):
+def plot_udp_burst(logs_ns3_dir, data_out_dir, pdf_out_dir, udp_burst_id, interval_ns):
     local_shell = exputil.LocalShell()
 
     # Check that all plotting files are available
@@ -97,7 +97,7 @@ def udp_burst_plot(logs_ns3_dir, data_out_dir, pdf_out_dir, udp_burst_id, interv
     #         not local_shell.file_exists("plot_udp_burst_time_vs_latency.plt") or \
     #         not local_shell.file_exists("plot_udp_burst_time_vs_arrival_rate.plt"):
     #     print("The gnuplot files are not present.")
-    #     print("Are you executing this python file inside the udp_burst_plot directory?")
+    #     print("Are you executing this python file inside the plot_udp_burst directory?")
     #     exit(1)
 
     # Create the output directories if they don't exist yet
@@ -202,11 +202,11 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python udp_burst_plot.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [udp_burst_id]"
+        print("Usage: python plot_udp_burst.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [udp_burst_id]"
               " [interval_ns (for rates)]")
         exit(1)
     else:
-        udp_burst_plot(
+        plot_udp_burst(
             args[0],
             args[1],
             args[2],
