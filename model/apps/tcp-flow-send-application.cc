@@ -78,7 +78,7 @@ TcpFlowSendApplication::GetTypeId(void) {
             .AddAttribute("EnableTcpFlowLoggingToFile",
                           "True iff you want to track some aspects (progress, CWND, RTT) of the TCP flow over time.",
                           BooleanValue(true),
-                          MakeBooleanAccessor(&TcpFlowSendApplication::m_enableFlowLoggingToFile),
+                          MakeBooleanAccessor(&TcpFlowSendApplication::m_enableDetailedLogging),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
                            "Base logging directory (logging will be placed here, i.e. logs_dir/tcp_flow_[flow id]_{progress, cwnd, rtt}.csv",
@@ -164,7 +164,7 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
                 MakeCallback(&TcpFlowSendApplication::SocketClosedNormal, this),
                 MakeCallback(&TcpFlowSendApplication::SocketClosedError, this)
         );
-        if (m_enableFlowLoggingToFile) {
+        if (m_enableDetailedLogging) {
             std::ofstream ofs;
             ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId));
             ofs.close();
@@ -250,7 +250,7 @@ void TcpFlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
     }
 
     // Log the progress as DataSend() is called anytime space in the transmission buffer frees up
-    if (m_enableFlowLoggingToFile) {
+    if (m_enableDetailedLogging) {
         std::ofstream ofs;
         ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
         ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << (m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size()) << std::endl;

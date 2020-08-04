@@ -100,10 +100,10 @@ public:
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
-        TcpFlowScheduler flowScheduler(basicSimulation, topology);
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         beforeRunOperation->operation(topology);
         basicSimulation->Run();
-        flowScheduler.WriteResults();
+        tcpFlowScheduler.WriteResults();
         basicSimulation->Finalize();
 
         // Check finished.txt
@@ -629,9 +629,9 @@ public:
         // Perform basic simulation
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        TcpFlowScheduler flowScheduler(basicSimulation, topology);
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         basicSimulation->Run();
-        flowScheduler.WriteResults();
+        tcpFlowScheduler.WriteResults();
         basicSimulation->Finalize();
 
         // Make sure these are removed

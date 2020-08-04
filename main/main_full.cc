@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
     // Schedule flows
-    TcpFlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
 
     // Schedule UDP bursts
     UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     basicSimulation->Run();
 
     // Write flow results
-    flowScheduler.WriteResults();
+    tcpFlowScheduler.WriteResults();
 
     // Write UDP burst results
     udpBurstScheduler.WriteResults();

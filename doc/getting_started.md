@@ -192,7 +192,7 @@ We are going to install three different applications:
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
     
         // Schedule flows
-        TcpFlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
     
         // Schedule UDP bursts
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true
@@ -204,7 +204,7 @@ We are going to install three different applications:
         basicSimulation->Run();
     
         // Write flow results
-        flowScheduler.WriteResults();
+        tcpFlowScheduler.WriteResults();
     
         // Write UDP burst results
         udpBurstScheduler.WriteResults();

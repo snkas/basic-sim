@@ -76,12 +76,12 @@ private:
   bool            m_closedByError;    //!< Whether the connection closed by error
   uint64_t        m_ackedBytes;       //!< Amount of acknowledged bytes cached after close of the socket
   bool            m_isCompleted;      //!< True iff the flow is completed fully AND closed normally
+  std::string m_additionalParameters; //!< Not used in this version of the application
 
-  // Flow logging
-  bool m_enableFlowLoggingToFile;          //!< True iff you want to write flow logs
+  // TCP flow logging
+  bool m_enableDetailedLogging;            //!< True iff you want to write detailed logs
   std::string m_baseLogsDir;               //!< Where the logs will be written to:
                                            //!<   logs_dir/tcp_flow_[id]_{progress, cwnd, rtt}.csv
-  std::string m_additionalParameters;      //!< Not used in this version of the application
   TracedCallback<Ptr<const Packet> > m_txTrace;
 
 private:

@@ -42,14 +42,14 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
 
     ```c++
     // Schedule flows
-    TcpFlowScheduler flowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
     ```
    
 4. After the run, in your code add:
 
     ```c++
     // Write result
-    flowScheduler.WriteResults();
+    tcpFlowScheduler.WriteResults();
     ```
 
 5. After the run, you should have the flows log files in the `logs_ns3` of your run folder.

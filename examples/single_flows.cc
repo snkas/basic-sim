@@ -69,13 +69,13 @@ int main(int argc, char *argv[]) {
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
     // Schedule flows
-    TcpFlowScheduler flowScheduler(basicSimulation, topology); // Requires tcp_flow_schedule_filename to be present in the configuration
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires tcp_flow_schedule_filename to be present in the configuration
 
     // Run simulation
     basicSimulation->Run();
 
     // Write result
-    flowScheduler.WriteResults();
+    tcpFlowScheduler.WriteResults();
 
     // Write utilization result
     utilTrackerHelper.WriteResults();
