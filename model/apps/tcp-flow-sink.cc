@@ -162,17 +162,14 @@ void TcpFlowSink::HandlePeerError(Ptr<Socket> socket) {
 
 void TcpFlowSink::CleanUp(Ptr<Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
-    bool found = false;
+    // This function can be called 2x if the LAST_ACK retries fail.
+    // That would result in first a normal close, and then an error close.
     std::list<Ptr<Socket>>::iterator it;
     for (it = m_socketList.begin(); it != m_socketList.end(); ++it) {
         if (*it == socket) {
             m_socketList.erase(it);
-            found = true;
             break;
         }
-    }
-    if (!found) {
-        throw std::runtime_error("When trying to clean up socket, could not find the socket.");
     }
 }
 
