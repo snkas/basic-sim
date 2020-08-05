@@ -9,7 +9,7 @@ def plot_tcp_flows_ecdfs(logs_ns3_dir, data_out_dir, pdf_out_dir):
 
     # Check that all plotting files are available
     if not local_shell.file_exists("plot_tcp_flows_ecdf_fct.plt") \
-        or not local_shell.file_exists("plot_tcp_flows_ecdf_avg_throughput.plt"):
+       or not local_shell.file_exists("plot_tcp_flows_ecdf_avg_throughput.plt"):
         print("The gnuplot files are not present.")
         print("Are you executing this python file inside the plot_tcp_flows_ecdfs directory?")
         exit(1)
