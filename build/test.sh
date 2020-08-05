@@ -42,6 +42,9 @@ if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] 
   # Check cores
   num_cores=$(nproc --all)
 
+  # Baseline
+  bash run_assist.sh "example_run_folders/leaf_spine" 0 || exit 1
+
   # 1 core tests
   bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
   python test_distributed_exactly_equal.py "example_run_folders/leaf_spine" "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
