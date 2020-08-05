@@ -4,11 +4,7 @@ The backlog of additional work that can be done on the `basic-sim` module:
 
 * Flowlet routing arbiter
 * Long-living TCP application and scheduler
-* Add link filter to interface (link) utilization tracker
-* Improve testing:
-  * Link utilization log files
-  * UDP burst log files
-* Plot helpers for UDP bursts
+* Add filter to interface (link) utilization tracker
 
 When upgrading to a new version of ns-3, be sure to check:
 
