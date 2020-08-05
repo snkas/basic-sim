@@ -37,8 +37,7 @@ namespace ns3 {
         void WriteResults();
 
     private:
-        std::vector<Ptr<PtopUtilizationTracker>> m_utilization_trackers;
-        std::vector<std::pair<int64_t, int64_t>> m_installed_edges;
+        std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PtopUtilizationTracker>>> m_utilization_trackers;
         Ptr<BasicSimulation> m_basicSimulation;
         Ptr<TopologyPtop> m_topology;
         int64_t m_utilization_interval_ns;

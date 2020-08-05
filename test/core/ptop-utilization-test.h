@@ -98,6 +98,7 @@ public:
             dir_a_b_list.push_back(a_b);
             dir_a_b_list.push_back(std::make_pair(a_b.second, a_b.first));
         }
+        std::sort(dir_a_b_list.begin(), dir_a_b_list.end());
 
         // utilization.csv
         std::vector<int64_t> correct_busy_time_ns;

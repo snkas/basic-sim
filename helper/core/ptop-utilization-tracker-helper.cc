@@ -57,15 +57,13 @@ namespace ns3 {
                 // One tracker a -> b
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
                     Ptr<PtopUtilizationTracker> tracker_a_b = CreateObject<PtopUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
-                    m_utilization_trackers.push_back(tracker_a_b);
-                    m_installed_edges.push_back(edge);
+                    m_utilization_trackers.push_back(std::make_pair(edge, tracker_a_b));
                 }
 
                 // One tracker b -> a
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
                     Ptr<PtopUtilizationTracker> tracker_b_a = CreateObject<PtopUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
-                    m_utilization_trackers.push_back(tracker_b_a);
-                    m_installed_edges.push_back(std::make_pair(edge.second, edge.first));
+                    m_utilization_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
                 }
 
             }
@@ -125,15 +123,25 @@ namespace ns3 {
             std::cout << "  > Writing utilization summary TXT header" << std::endl;
             fprintf(file_utilization_summary_txt, "From     To       Utilization\n");
 
+            // Sort
+            struct ascending_by_directed_link
+            {
+                inline bool operator() (const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopUtilizationTracker>>& a, const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopUtilizationTracker>>& b)
+                {
+                    return (a.first.first == b.first.first ? a.first.second < b.first.second : a.first.first < b.first.first);
+                }
+            };
+            std::sort(m_utilization_trackers.begin(), m_utilization_trackers.end(), ascending_by_directed_link());
+
             // Go over every tracker
             std::cout << "  > Writing utilization log files" << std::endl;
             for (size_t i = 0; i < m_utilization_trackers.size(); i++) {
 
-                // Tracker
-                Ptr<PtopUtilizationTracker> tracker = m_utilization_trackers[i];
-
                 // Retrieve the corresponding directed edge
-                std::pair<int64_t, int64_t> directed_edge = m_installed_edges[i];
+                std::pair<int64_t, int64_t> directed_edge = m_utilization_trackers[i].first;
+
+                // Tracker
+                Ptr<PtopUtilizationTracker> tracker = m_utilization_trackers[i].second;
 
                 // Go over every utilization interval
                 const std::vector<std::tuple<int64_t, int64_t, int64_t>> intervals = tracker->FinalizeUtilization();
