@@ -67,10 +67,12 @@ namespace ns3 {
         Ptr<Socket> m_socket; //!< IPv4 Socket
         std::string m_baseLogsDir; //!< Where the UDP burst logs will be written to:
                                    //!<   logs_dir/udp_burst_[id]_{incoming, outgoing}.csv
+        EventId m_startNextBurstEvent; //!< Event to start next burst
 
         // Outgoing bursts
         std::vector<std::tuple<UdpBurstInfo, InetSocketAddress>> m_outgoing_bursts; //!< Weakly ascending on start time list of bursts
         std::vector<uint64_t> m_outgoing_bursts_packets_sent_counter; //!< Amount of UDP packets sent out already for each burst
+        std::vector<EventId> m_outgoing_bursts_event_id; //!< Event ID of the outgoing burst send loop
         std::vector<bool> m_outgoing_bursts_enable_precise_logging; //!< True iff enable precise logging for each burst
         size_t m_next_internal_burst_idx; //!< Next burst index to send out
 

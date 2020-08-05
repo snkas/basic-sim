@@ -79,6 +79,7 @@ namespace ns3 {
         }
         m_outgoing_bursts.push_back(std::make_tuple(burstInfo, targetAddress));
         m_outgoing_bursts_packets_sent_counter.push_back(0);
+        m_outgoing_bursts_event_id.push_back(EventId());
         m_outgoing_bursts_enable_precise_logging.push_back(enable_precise_logging);
         if (enable_precise_logging) {
             std::ofstream ofs;
@@ -124,7 +125,7 @@ namespace ns3 {
 
         // First process call is for the start of the first burst
         if (m_outgoing_bursts.size() > 0) {
-            Simulator::Schedule(NanoSeconds(std::get<0>(m_outgoing_bursts[0]).GetStartTimeNs()), &UdpBurstApplication::StartNextBurst, this);
+            m_startNextBurstEvent = Simulator::Schedule(NanoSeconds(std::get<0>(m_outgoing_bursts[0]).GetStartTimeNs()), &UdpBurstApplication::StartNextBurst, this);
         }
 
     }
@@ -145,7 +146,7 @@ namespace ns3 {
         // Schedule the start of the next burst if there are more
         m_next_internal_burst_idx += 1;
         if (m_next_internal_burst_idx < m_outgoing_bursts.size()) {
-            Simulator::Schedule(NanoSeconds(std::get<0>(m_outgoing_bursts[m_next_internal_burst_idx]).GetStartTimeNs() - now_ns), &UdpBurstApplication::StartNextBurst, this);
+            m_startNextBurstEvent = Simulator::Schedule(NanoSeconds(std::get<0>(m_outgoing_bursts[m_next_internal_burst_idx]).GetStartTimeNs() - now_ns), &UdpBurstApplication::StartNextBurst, this);
         }
 
     }
@@ -162,7 +163,7 @@ namespace ns3 {
         UdpBurstInfo info = std::get<0>(m_outgoing_bursts[internal_burst_idx]);
         uint64_t packet_gap_nanoseconds = std::ceil(1500.0 / (info.GetTargetRateMegabitPerSec() / 8000.0));
         if (now_ns + packet_gap_nanoseconds < (uint64_t) (info.GetStartTimeNs() + info.GetDurationNs())) {
-            Simulator::Schedule(NanoSeconds(packet_gap_nanoseconds), &UdpBurstApplication::BurstSendOut, this, internal_burst_idx);
+            m_outgoing_bursts_event_id.at(internal_burst_idx) = Simulator::Schedule(NanoSeconds(packet_gap_nanoseconds), &UdpBurstApplication::BurstSendOut, this, internal_burst_idx);
         }
 
     }
@@ -201,7 +202,10 @@ namespace ns3 {
         if (m_socket != 0) {
             m_socket->Close();
             m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
-            // TODO: Cancel any running events
+            Simulator::Cancel(m_startNextBurstEvent);
+            for (EventId& eventId : m_outgoing_bursts_event_id) {
+                Simulator::Cancel(eventId);
+            }
         }
     }
 
@@ -217,10 +221,7 @@ namespace ns3 {
             packet->RemoveHeader (incomingIdSeq);
 
             // Count packets from incoming bursts
-            if (m_incoming_bursts_received_counter.find(incomingIdSeq.GetId()) == m_incoming_bursts_received_counter.end()) {
-                throw std::runtime_error("Incoming burst was not registered");
-            }
-            m_incoming_bursts_received_counter[incomingIdSeq.GetId()] += 1;
+            m_incoming_bursts_received_counter.at(incomingIdSeq.GetId()) += 1;
 
             // Log precise timestamp received of the sequence packet if needed
             if (m_incoming_bursts_enable_precise_logging[incomingIdSeq.GetId()]) {
