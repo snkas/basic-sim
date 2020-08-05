@@ -10,11 +10,17 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
 ## Installation
 
 1. Install the following dependencies:
+
    * Python 3.7+
    * MPI: `sudo apt-get install mpic++`
-   * gnuplot (for example plotting): `sudo apt-get install gnuplot`
-   * exputilpy (for testing and example plotting): `pip install git+https://github.com/snkas/exputilpy.git`
-   * (optional, for testing) lcov: `sudo apt-get install lcov`
+   * lcov: `sudo apt-get install lcov`
+   
+   Additionally, if you are going to make use of functionality beyond the C++ ns-3 module:
+   
+   * gnuplot (for plotting): `sudo apt-get install gnuplot`
+   * numpy (for plotting): `pip install numpy`
+   * statsmodels (for plotting): `pip install statsmodels`
+   * exputilpy (for testing and plotting): `pip install git+https://github.com/snkas/exputilpy.git`
 
 2. You need to add the `basic-sim` module into your own ns-3's `contrib/` folder.
 
@@ -32,7 +38,8 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
    
     Method 3: download the zip of this git repository and extract it there.
    
-3. Now you should be able to compile it along with all your other modules. It has been tested for ns-3 version 3.31.
+3. Now you should be able to compile it along with all your other modules.
+   It has been tested for ns-3 version 3.31.
 
 
 ## Getting started
@@ -43,20 +50,16 @@ A good starting point is: `doc/getting_started.md`.
 
 ## Testing
 
-Requirements:
-
-* Python 3.6+
-* MPI: `sudo apt-get install mpic++`
-* lcov: `sudo apt-get install lcov`
-
-To perform the full range of testing of this module:
+To perform the full range of testing of this module (Python 3.7+):
 
 ```
 sudo apt-get update
 sudo apt-get -y install mpic++
-sudo apt-get -y install gnuplot
-pip install git+https://github.com/snkas/exputilpy.git
 sudo apt-get -y install lcov
+sudo apt-get -y install gnuplot
+pip install numpy
+pip install statsmodels
+pip install git+https://github.com/snkas/exputilpy.git
 cd build
 bash build.sh
 bash test.sh

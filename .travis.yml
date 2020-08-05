@@ -11,9 +11,11 @@ before_install:
   - pyenv global 3.7
   - sudo apt-get update
   - sudo apt-get -y install mpic++
-  - sudo apt-get -y install gnuplot
-  - pip install git+https://github.com/snkas/exputilpy.git
   - sudo apt-get -y install lcov
+  - sudo apt-get -y install gnuplot
+  - pip install numpy
+  - pip install statsmodels
+  - pip install git+https://github.com/snkas/exputilpy.git
 
 # Command(s) to build
 install:

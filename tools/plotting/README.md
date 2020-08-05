@@ -4,9 +4,11 @@ In here you will find a few Python scripts that can be used to easily plot certa
 
 ## Requirements
 
-* Python 3.7+
-* A recent version of gnuplot: `sudo apt-get install gnuplot`
-* exputil: `pip install git+https://github.com/snkas/exputilpy.git`
+ * Python 3.7+
+ * A recent version of gnuplot: `sudo apt-get install gnuplot`
+ * exputil: `pip install git+https://github.com/snkas/exputilpy.git`
+ * numpy: `pip install numpy`
+ * statsmodels: `pip install statsmodels`
 
 ## Getting started
 
@@ -26,6 +28,15 @@ Generating only the rate data file for TCP flow id 0 (in a 10ms interval):
 ```
 cd /path/to/tools/plotting/plot_tcp_flow
 python generate_tcp_flow_rate_csv.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data 0 10000000
+```
+
+
+### TCP flows ECDF plotting
+
+Plotting all flows' ECDF for flow completion time (FCT) and average throughput:
+```
+cd /path/to/tools/plotting/plot_tcp_flows_ecdfs
+python plot_tcp_flows_ecdfs.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf
 ```
 
 
