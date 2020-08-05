@@ -13,7 +13,7 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
    * Python 3.7+
    * MPI: `sudo apt-get install mpic++`
    * gnuplot (for example plotting): `sudo apt-get install gnuplot`
-   * exputilpy (for example plotting): `pip install git+https://github.com/snkas/exputilpy.git`
+   * exputilpy (for testing and example plotting): `pip install git+https://github.com/snkas/exputilpy.git`
    * (optional, for testing) lcov: `sudo apt-get install lcov`
 
 2. You need to add the `basic-sim` module into your own ns-3's `contrib/` folder.
