@@ -44,7 +44,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
             // Only between select pairs
             std::set<std::string> string_set = parse_set_string(pingmesh_endpoints_pair_str);
             for (std::string s : string_set) {
-                std::vector<std::string> spl = split_string(s, "-", 2);
+                std::vector<std::string> spl = split_string(s, "->", 2);
                 int64_t a = parse_positive_int64(spl[0]);
                 int64_t b = parse_positive_int64(spl[1]);
                 if (a == b) {

@@ -102,7 +102,7 @@ You MUST set the following keys in `config_ns3.properties`:
 
 The following are OPTIONAL:
 
-* `pingmesh_endpoint_pairs` : Endpoint directed pingmesh pairs (either `all` (default) or e.g., `set(0-1, 5-6)` to only have pinging from 0 to 1 and from 5 to 6 (directed pairs))
+* `pingmesh_endpoint_pairs` : Endpoint directed pingmesh pairs (either `all` (default) or e.g., `set(0->1, 5->6)` to only have pinging from 0 to 1 and from 5 to 6 (directed pairs))
 
 **The pingmesh log files**
 

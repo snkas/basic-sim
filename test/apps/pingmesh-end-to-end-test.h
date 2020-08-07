@@ -336,7 +336,7 @@ public:
         prepare_test_dir();
 
         // 5 seconds, every 100ms a ping
-        write_basic_config(5000000000, 100000000, "set(2-1, 1-2, 0-5, 5-2, 3-1)");
+        write_basic_config(5000000000, 100000000, "set(2->1, 1->2, 0->5, 5->2, 3->1)");
         write_six_topology();
         std::map<std::pair<int64_t, int64_t>, int64_t> pair_to_expected_latency;
         pair_to_expected_latency.insert(std::make_pair(std::make_pair(0, 5), 150000000));
