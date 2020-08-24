@@ -12,7 +12,11 @@ This ns-3 module is intended to make experimental simulation of networks a bit e
 1. Install the following dependencies:
 
    * Python 3.7+
-   * MPI: `sudo apt-get install mpic++`
+   * MPI:
+     ```
+     sudo apt-get install mpic++
+     sudo apt-get install libopenmpi-dev
+     ```
    * lcov: `sudo apt-get install lcov`
    
    Additionally, if you are going to make use of functionality beyond the C++ ns-3 module:
@@ -55,6 +59,7 @@ To perform the full range of testing of this module (Python 3.7+):
 ```
 sudo apt-get update
 sudo apt-get -y install mpic++
+sudo apt-get -y install libopenmpi-dev
 sudo apt-get -y install lcov
 sudo apt-get -y install gnuplot
 pip install numpy
