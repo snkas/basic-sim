@@ -174,12 +174,12 @@ void TcpFlowScheduler::WriteResults() {
 
         // Go over the schedule, write each flow's result
         std::cout << "  > Writing log files line-by-line" << std::endl;
-        std::vector<ApplicationContainer>::iterator it = m_apps.begin();
+        std::cout << "  > Total TCP flow log entries to write... " << m_apps.size() << std::endl;
+        uint32_t app_idx = 0;
         for (TcpFlowScheduleEntry& entry : m_schedule) {
 
             // Retrieve statistics
-            ApplicationContainer app = *it;
-            Ptr<TcpFlowSendApplication> flowSendApp = ((it->Get(0))->GetObject<TcpFlowSendApplication>());
+            Ptr<TcpFlowSendApplication> flowSendApp = m_apps.at(app_idx).Get(0)->GetObject<TcpFlowSendApplication>();
             bool is_completed = flowSendApp->IsCompleted();
             bool is_conn_failed = flowSendApp->IsConnFailed();
             bool is_closed_err = flowSendApp->IsClosedByError();
@@ -229,8 +229,8 @@ void TcpFlowScheduler::WriteResults() {
                     finished_state.c_str(), entry.GetMetadata().c_str()
             );
 
-            // Move on iterator
-            it++;
+            // Move on application index
+            app_idx += 1;
 
         }
 
