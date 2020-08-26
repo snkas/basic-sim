@@ -113,7 +113,7 @@ private:
     int64_t m_last_log_time_ns_since_epoch;
     int m_counter_progress_updates = 0;
     double m_progress_interval_ns = 10000000000; // First one after 10s
-    double m_simulation_event_interval_s = 0.00001;
+    double m_simulation_event_interval_s = 0.1; // Start at 100ms for a reasonable estimate
 
 };
 

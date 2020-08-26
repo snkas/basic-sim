@@ -259,8 +259,30 @@ void TcpFlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
 
 }
 
+void TcpFlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
+    m_completionTimeNs = Simulator::Now().GetNanoSeconds();
+    m_connFailed = false;
+    m_closedByError = false;
+    m_closedNormally = true;
+    if (m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size() != 0) {
+        throw std::runtime_error("Socket closed normally but send buffer is not empty");
+    }
+    m_ackedBytes = m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size();
+    m_isCompleted = m_ackedBytes == m_maxBytes;
+    m_socket = 0;
+}
+
+void TcpFlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
+    m_connFailed = false;
+    m_closedByError = true;
+    m_closedNormally = false;
+    m_ackedBytes = m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size();
+    m_isCompleted = false;
+    m_socket = 0;
+}
+
 int64_t TcpFlowSendApplication::GetAckedBytes() {
-    if (m_closedNormally || m_closedByError) {
+    if (m_connFailed || m_closedNormally || m_closedByError) {
         return m_ackedBytes;
     } else {
         return m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size();
@@ -285,28 +307,6 @@ bool TcpFlowSendApplication::IsClosedNormally() {
 
 bool TcpFlowSendApplication::IsClosedByError() {
     return m_closedByError;
-}
-
-void TcpFlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
-    m_completionTimeNs = Simulator::Now().GetNanoSeconds();
-    m_connFailed = false;
-    m_closedByError = false;
-    m_closedNormally = true;
-    if (m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size() != 0) {
-        throw std::runtime_error("Socket closed normally but send buffer is not empty");
-    }
-    m_ackedBytes = m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size();
-    m_isCompleted = m_ackedBytes == m_maxBytes;
-    m_socket = 0;
-}
-
-void TcpFlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
-    m_connFailed = false;
-    m_closedByError = true;
-    m_closedNormally = false;
-    m_ackedBytes = m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size();
-    m_isCompleted = false;
-    m_socket = 0;
 }
 
 void

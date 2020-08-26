@@ -225,6 +225,8 @@ void BasicSimulation::ShowSimulationProgress() {
         }
         m_counter_progress_updates++;
     }
+    double current_sim_speed_simulation_sec_per_wallclock_sec = Simulator::Now().GetSeconds() / ((now - m_sim_start_time_ns_since_epoch) / 1e9);
+    m_simulation_event_interval_s = current_sim_speed_simulation_sec_per_wallclock_sec * (m_progress_interval_ns / 1e9) / 5.0; // At most +20% expected difference to interval
     Simulator::Schedule(Seconds(m_simulation_event_interval_s), &BasicSimulation::ShowSimulationProgress, this);
 }
 

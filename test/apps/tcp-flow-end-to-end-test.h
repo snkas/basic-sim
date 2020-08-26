@@ -72,7 +72,7 @@ public:
         topology_file.close();
     }
 
-    void test_run_and_validate_tcp_flow_logs(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<TcpFlowScheduleEntry> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, BeforeRunOperation* beforeRunOperation) {
+    void test_run_and_validate_tcp_flow_logs(int64_t simulation_end_time_ns, std::string temp_dir, std::vector<TcpFlowScheduleEntry> write_schedule, std::vector<int64_t>& end_time_ns_list, std::vector<int64_t>& sent_byte_list, std::vector<std::string>& finished_list, BeforeRunOperation* beforeRunOperation) {
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
@@ -128,10 +128,11 @@ public:
             ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns - write_schedule[i].GetStartTimeNs());
             int64_t sent_byte = parse_positive_int64(line_spl[7]);
             ASSERT_TRUE(sent_byte >= 0 && sent_byte <= simulation_end_time_ns);
-            ASSERT_TRUE((line_spl[8] == "NO_ONGOING" || line_spl[8] == "YES"));
+            ASSERT_TRUE(line_spl[8] == "YES" || line_spl[8] == "NO_ONGOING" || line_spl[8] == "NO_CONN_FAIL" || line_spl[8] == "NO_ERR_CLOSE" || line_spl[8] == "NO_BAD_CLOSE");
             ASSERT_EQUAL(line_spl[9], write_schedule[i].GetMetadata());
             end_time_ns_list.push_back(end_time_ns);
             sent_byte_list.push_back(sent_byte);
+            finished_list.push_back(line_spl[8]);
             i++;
         }
 
@@ -168,7 +169,8 @@ public:
                 ASSERT_EQUAL(line_spl[11].substr(line_spl[11].size() - 1, line_spl[11].size()), "%");
                 ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), byte_to_megabit(sent_byte_list[j]) / nanosec_to_sec(end_time_ns_list[j] - write_schedule[j].GetStartTimeNs()), 0.1);
                 ASSERT_EQUAL(line_spl[13], "Mbit/s");
-                ASSERT_TRUE(line_spl[14] == "NO_ONGOING" || line_spl[14] == "YES");
+                ASSERT_TRUE(line_spl[14] == "YES" || line_spl[14] == "NO_ONGOING" || line_spl[14] == "NO_CONN_FAIL" || line_spl[14] == "NO_ERR_CLOSE" || line_spl[14] == "NO_BAD_CLOSE");
+                ASSERT_EQUAL(line_spl[14], finished_list[j]);
                 if (line_spl.size() == 16) {
                     ASSERT_EQUAL(line_spl[15], write_schedule[j].GetMetadata());
                 }
@@ -295,12 +297,15 @@ public:
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
         BeforeRunOperationNothing op;
-        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
 
         // As they are started at the same point and should have the same behavior, progress should be equal
         ASSERT_EQUAL(end_time_ns_list[0], end_time_ns_list[1]);
         ASSERT_EQUAL(sent_byte_list[0], sent_byte_list[1]);
+        ASSERT_EQUAL(finished_list[0], "YES");
+        ASSERT_EQUAL(finished_list[1], "YES");
 
     }
 };
@@ -328,9 +333,10 @@ public:
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
 
         BeforeRunOperationNothing op;
-        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
 
         // As they are started at the same point and should have the same behavior, progress should be equal
         int expected_end_time_ns = 0;
@@ -344,6 +350,7 @@ public:
         expected_end_time_ns += 54 * 80;  // FIN+ACK = 2 (P2P) + 20 (IP) + 20 (TCP basic) + 12 (TCP option)  = 54 bytes
         ASSERT_EQUAL_APPROX(end_time_ns_list[0], expected_end_time_ns, 6); // 6 transmissions for which the rounding can be down
         ASSERT_EQUAL(300, sent_byte_list[0]);
+        ASSERT_EQUAL(finished_list[0], "YES");
 
     }
 };
@@ -372,12 +379,15 @@ public:
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
         BeforeRunOperationNothing op;
-        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
 
         // As they are started without any interference, should have same completion
         ASSERT_EQUAL(end_time_ns_list[0], end_time_ns_list[1] - 5000000000);
         ASSERT_EQUAL(sent_byte_list[0], sent_byte_list[1]);
+        ASSERT_EQUAL(finished_list[0], "YES");
+        ASSERT_EQUAL(finished_list[1], "YES");
 
     }
 };
@@ -419,17 +429,17 @@ public:
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
         BeforeRunOperationNothing op;
-        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
 
         // All are too large to end, and they must consume bandwidth of both links
         int64_t byte_sum = 0;
         for (int i = 0; i < 20; i++) {
             ASSERT_EQUAL(end_time_ns_list[i], simulation_end_time_ns);
+            ASSERT_EQUAL(finished_list[i], "NO_ONGOING");
             byte_sum += sent_byte_list[i];
         }
-        std::cout << "Megabit: " << byte_to_megabit(byte_sum) << std::endl;
-        std::cout << "Time: " << nanosec_to_sec(simulation_end_time_ns) << std::endl;
         ASSERT_TRUE(byte_to_megabit(byte_sum) / nanosec_to_sec(simulation_end_time_ns) >= 45.0); // At least 45 Mbit/s, given that probability of all of them going up is 0.5^8
 
     }
@@ -470,13 +480,15 @@ public:
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
         BeforeRunOperationNothing op;
-        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
 
         // Can only consume the bandwidth of one path, the one it is hashed to
         ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
         double rate_Mbps = byte_to_megabit(sent_byte_list[0]) / nanosec_to_sec(end_time_ns_list[0]);
         ASSERT_TRUE(rate_Mbps >= 25.0 && rate_Mbps <= 30.0); // Somewhere between 25 and 30
+        ASSERT_EQUAL(finished_list[0], "NO_ONGOING");
 
     }
 };
@@ -486,9 +498,12 @@ public:
 class ArbiterSpecificDrop: public ArbiterPtop
 {
 public:
+    int m_counter = 0;
+    int m_drop_threshold;
 
-    ArbiterSpecificDrop(Ptr<Node> this_node, NodeContainer nodes, Ptr<TopologyPtop> topology) : ArbiterPtop(this_node, nodes, topology) {
+    ArbiterSpecificDrop(Ptr<Node> this_node, NodeContainer nodes, Ptr<TopologyPtop> topology, int drop_threshold) : ArbiterPtop(this_node, nodes, topology) {
         // Empty
+        m_drop_threshold = drop_threshold;
     }
 
     int32_t TopologyPtopDecide(
@@ -500,9 +515,20 @@ public:
             bool is_socket_request_for_source_ip
     ) {
         if (source_node_id == 1) {
-            return -1;
+            if (m_counter >= m_drop_threshold) {
+                return -1;
+            } else {
+                m_counter += 1;
+                if (target_node_id == 3) {
+                    return 3;
+                } else {
+                    throw std::runtime_error("Not possible");
+                }
+            }
         } else {
-            if (source_node_id == 0 && target_node_id == 3) {
+            if (source_node_id == 3 && target_node_id == 1) {
+                return 1;
+            } else if (source_node_id == 0 && target_node_id == 3) {
                 return 3;
             } else if (source_node_id == 3 && target_node_id == 0) {
                 return 0;
@@ -522,8 +548,12 @@ public:
 
 class BeforeRunOperationDropper : public BeforeRunOperation {
 public:
+    int m_drop_threshold;
+    BeforeRunOperationDropper(int drop_threshold) {
+        m_drop_threshold = drop_threshold;
+    }
     void operation(Ptr<TopologyPtop> topology) {
-        Ptr<ArbiterSpecificDrop> dropper = CreateObject<ArbiterSpecificDrop>(topology->GetNodes().Get(2), topology->GetNodes(), topology);
+        Ptr<ArbiterSpecificDrop> dropper = CreateObject<ArbiterSpecificDrop>(topology->GetNodes().Get(2), topology->GetNodes(), topology, m_drop_threshold);
         topology->GetNodes().Get(2)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->SetArbiter(dropper);
     }
 };
@@ -564,8 +594,9 @@ public:
         // Perform the run
         std::vector<int64_t> end_time_ns_list;
         std::vector<int64_t> sent_byte_list;
-        BeforeRunOperationDropper op;
-        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, &op);
+        std::vector<std::string> finished_list;
+        BeforeRunOperationDropper op(0);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
 
         // Can only consume the bandwidth of one path, the one it is hashed to
         ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
@@ -573,6 +604,106 @@ public:
         double rate_Mbps = byte_to_megabit(sent_byte_list[0]) / nanosec_to_sec(end_time_ns_list[0]);
         ASSERT_TRUE(rate_Mbps >= 25.0 && rate_Mbps <= 30.0); // Somewhere between 25 and 30
         ASSERT_EQUAL(sent_byte_list[1], 0);
+        ASSERT_EQUAL(finished_list[0], "NO_ONGOING");
+        ASSERT_EQUAL(finished_list[1], "NO_ONGOING");
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class TcpFlowEndToEndConnFailTestCase : public TcpFlowEndToEndTestCase
+{
+public:
+    TcpFlowEndToEndConnFailTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end conn-fail") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        // One-to-one, 10s, 30.0 Mbit/s, 200 microsec delay
+        int64_t simulation_end_time_ns = 50000000000;
+        write_basic_config(simulation_end_time_ns, 123456, 1);
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(2)" << std::endl;
+        topology_file << "switches_which_are_tors=set(2)" << std::endl;
+        topology_file << "servers=set(0, 1, 3)" << std::endl;
+        topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=200000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // Two flows
+        std::vector<TcpFlowScheduleEntry> schedule;
+        schedule.push_back(TcpFlowScheduleEntry(0, 1, 3, 1000000000, 0, "", ""));
+
+        // Perform the run
+        std::vector<int64_t> end_time_ns_list;
+        std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
+        BeforeRunOperationDropper op(0);
+        test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
+
+        // Can only consume the bandwidth of one path, the one it is hashed to
+        ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
+        ASSERT_EQUAL(sent_byte_list[0], 0);
+        ASSERT_EQUAL(finished_list[0], "NO_CONN_FAIL");
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class TcpFlowEndToEndPrematureCloseTestCase : public TcpFlowEndToEndTestCase
+{
+public:
+    TcpFlowEndToEndPrematureCloseTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end premature-close") {};
+
+    void DoRun () {
+
+        for (int num_packets_allowed = 1; num_packets_allowed < 5; num_packets_allowed++) {
+
+            prepare_test_dir();
+
+            // One-to-one, 10s, 30.0 Mbit/s, 200 microsec delay
+            int64_t simulation_end_time_ns = 200000000000;
+            write_basic_config(simulation_end_time_ns, 123456, 1);
+            std::ofstream topology_file;
+            topology_file.open(temp_dir + "/topology.properties");
+            topology_file << "num_nodes=4" << std::endl;
+            topology_file << "num_undirected_edges=3" << std::endl;
+            topology_file << "switches=set(2)" << std::endl;
+            topology_file << "switches_which_are_tors=set(2)" << std::endl;
+            topology_file << "servers=set(0, 1, 3)" << std::endl;
+            topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
+            topology_file << "link_channel_delay_ns=200000" << std::endl;
+            topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
+            topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+            topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+            topology_file.close();
+
+            // Two flows
+            std::vector <TcpFlowScheduleEntry> schedule;
+            schedule.push_back(TcpFlowScheduleEntry(0, 1, 3, 1000000000, 0, "", ""));
+
+            // Perform the run
+            std::vector <int64_t> end_time_ns_list;
+            std::vector <int64_t> sent_byte_list;
+            std::vector <std::string> finished_list;
+            BeforeRunOperationDropper op(num_packets_allowed);
+            test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, temp_dir, schedule, end_time_ns_list,
+                                                sent_byte_list, finished_list, &op);
+
+            // Can only consume the bandwidth of one path, the one it is hashed to
+            ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
+            ASSERT_EQUAL(sent_byte_list[0], std::max(num_packets_allowed - 2, 0) * 1380);
+            ASSERT_EQUAL(finished_list[0], "NO_ERR_CLOSE");
+
+        }
 
     }
 };

@@ -35,6 +35,8 @@ public:
         AddTestCase(new TcpFlowEndToEndEcmpRemainTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndNonExistentRunDirTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndOneDropOneNotTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndConnFailTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndPrematureCloseTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndNotEnabledTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndInvalidLoggingIdTestCase, TestCase::QUICK);
 
