@@ -36,6 +36,18 @@ TypeId BasicSimulation::GetTypeId (void)
 BasicSimulation::BasicSimulation(std::string run_dir) {
     m_run_dir = run_dir;
     RegisterTimestamp("Start");
+
+    // Information about the start
+    std::cout << "BASIC SIMULATION START" << std::endl;
+    std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    char buffer_date[100];
+    char buffer_time[100];
+    if (std::strftime(buffer_date, sizeof(buffer_date), "%A %B %e, %Y", std::localtime(&now)) && std::strftime(buffer_time, sizeof(buffer_time), "%H:%M:%S", std::localtime(&now))) {
+        std::cout << "  > Date... " << buffer_date << std::endl;
+        std::cout << "  > Time... " << buffer_time << std::endl;
+    }
+    std::cout << std::endl;
+
     ConfigureRunDirectory();
     ReadConfig();
     ConfigureSimulation();
@@ -327,6 +339,18 @@ void BasicSimulation::StoreTimingResults() {
 void BasicSimulation::Finalize() {
     CleanUpSimulation();
     StoreTimingResults();
+
+    // Information about the end
+    std::cout << "BASIC SIMULATION END" << std::endl;
+    std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    char buffer_date[100];
+    char buffer_time[100];
+    if (std::strftime(buffer_date, sizeof(buffer_date), "%A %B %e, %Y", std::localtime(&now)) && std::strftime(buffer_time, sizeof(buffer_time), "%H:%M:%S", std::localtime(&now))) {
+        std::cout << "  > Date... " << buffer_date << std::endl;
+        std::cout << "  > Time... " << buffer_time << std::endl;
+    }
+    std::cout << std::endl;
+
     WriteFinished(true);
 }
 
