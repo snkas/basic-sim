@@ -242,6 +242,7 @@ void BasicSimulation::ConfirmAllConfigParamKeysRequested() {
 }
 
 void BasicSimulation::Run() {
+    RegisterTimestamp("Whatever is between previous timestamp and the simulation run");
     std::cout << "SIMULATION" << std::endl;
 
     // Before it starts to run, we need to have processed all the config
@@ -295,6 +296,8 @@ void BasicSimulation::StoreTimingResults() {
         if (t_prev == -1) {
             t_prev = ts.second;
         } else {
+
+            // Format text line
             std::string line = format_string(
                     "[%7.1f - %7.1f] (%.1f s) :: %s",
                     (t_prev - m_timestamps[0].second) / 1e9,
@@ -302,9 +305,16 @@ void BasicSimulation::StoreTimingResults() {
                     (ts.second - t_prev) / 1e9,
                     ts.first.c_str()
             );
+
+            // Standard out (console)
             std::cout << line << std::endl;
+
+            // timing_results.txt
             file_txt << line << std::endl;
+
+            // timing_results.csv (line format: <activity description>,<duration in nanoseconds>)
             file_csv << ts.first << "," << (ts.second - t_prev) << std::endl;
+
             t_prev = ts.second;
         }
     }
