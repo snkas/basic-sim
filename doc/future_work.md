@@ -5,6 +5,7 @@ The backlog of additional work that can be done on the `basic-sim` module:
 * Flowlet routing arbiter
 * Long-living TCP application and scheduler
 * Add filter to interface (link) utilization tracker
+* Add DCTCP example
 
 When upgrading to a new version of ns-3, be sure to check:
 

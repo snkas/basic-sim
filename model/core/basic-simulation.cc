@@ -174,13 +174,16 @@ void BasicSimulation::ConfigureSimulation() {
 void BasicSimulation::PrepareBasicSimulationLogFiles() {
     if (m_enable_distributed) {
         m_finished_filename = m_logs_dir + "/system_" + std::to_string(m_system_id) + "_finished.txt";
-        m_timing_results_filename = m_logs_dir + "/system_" + std::to_string(m_system_id) + "_timing_results.txt";
+        m_timing_results_txt_filename = m_logs_dir + "/system_" + std::to_string(m_system_id) + "_timing_results.txt";
+        m_timing_results_csv_filename = m_logs_dir + "/system_" + std::to_string(m_system_id) + "_timing_results.csv";
     } else {
         m_finished_filename = m_logs_dir + "/finished.txt";
-        m_timing_results_filename = m_logs_dir + "/timing_results.txt";
+        m_timing_results_txt_filename = m_logs_dir + "/timing_results.txt";
+        m_timing_results_csv_filename = m_logs_dir + "/timing_results.csv";
     }
     remove_file_if_exists(m_finished_filename);
-    remove_file_if_exists(m_timing_results_filename);
+    remove_file_if_exists(m_timing_results_txt_filename);
+    remove_file_if_exists(m_timing_results_csv_filename);
 }
 
 void BasicSimulation::WriteFinished(bool finished) {
@@ -284,8 +287,9 @@ void BasicSimulation::StoreTimingResults() {
     std::cout << "TIMING RESULTS" << std::endl;
     std::cout << "------" << std::endl;
 
-    // Write to both file and out
-    std::ofstream fileTimingResults(m_timing_results_filename);
+    // Write to both files and out
+    std::ofstream file_txt(m_timing_results_txt_filename);
+    std::ofstream file_csv(m_timing_results_csv_filename);
     int64_t t_prev = -1;
     for (std::pair <std::string, int64_t> &ts : m_timestamps) {
         if (t_prev == -1) {
@@ -299,11 +303,13 @@ void BasicSimulation::StoreTimingResults() {
                     ts.first.c_str()
             );
             std::cout << line << std::endl;
-            fileTimingResults << line << std::endl;
+            file_txt << line << std::endl;
+            file_csv << ts.first << "," << (ts.second - t_prev) << std::endl;
             t_prev = ts.second;
         }
     }
-    fileTimingResults.close();
+    file_txt.close();
+    file_csv.close();
 
     std::cout << std::endl;
 }

@@ -22,6 +22,7 @@ void cleanup_udp_burst_schedule_reader_test() {
     remove_file_if_exists(udp_burst_schedule_reader_test_dir + "/udp_burst_schedule.csv");
     remove_file_if_exists(udp_burst_schedule_reader_test_dir + "/logs_ns3/finished.txt");
     remove_file_if_exists(udp_burst_schedule_reader_test_dir + "/logs_ns3/timing_results.txt");
+    remove_file_if_exists(udp_burst_schedule_reader_test_dir + "/logs_ns3/timing_results.csv");
     remove_dir_if_exists(udp_burst_schedule_reader_test_dir + "/logs_ns3");
     remove_dir_if_exists(udp_burst_schedule_reader_test_dir);
 }

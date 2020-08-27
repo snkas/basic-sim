@@ -241,7 +241,7 @@ We are going to install three different applications:
    ```
    logs_ns3
    |-- finished.txt
-   |-- timing_results.txt
+   |-- timing_results.{csv, txt}
    |-- tcp_flows.{csv, txt}
    |-- tcp_flow_{0, 1, 2}_{cwnd, progress, rtt}.csv
    |-- utilization.csv

@@ -176,6 +176,7 @@ public:
         remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");

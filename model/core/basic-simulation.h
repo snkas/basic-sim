@@ -96,7 +96,8 @@ private:
     std::string m_run_dir;
     std::string m_logs_dir;
     std::string m_finished_filename;
-    std::string m_timing_results_filename;
+    std::string m_timing_results_csv_filename;
+    std::string m_timing_results_txt_filename;
 
     // Config variables
     std::map<std::string, std::string> m_config;

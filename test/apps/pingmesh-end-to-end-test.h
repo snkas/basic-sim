@@ -317,6 +317,7 @@ public:
         remove_file_if_exists(temp_dir + "/topology.properties");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
@@ -407,6 +408,7 @@ public:
         remove_file_if_exists(temp_dir + "/topology.properties");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
@@ -518,6 +520,7 @@ public:
         remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
@@ -577,6 +580,7 @@ public:
         remove_file_if_exists(temp_dir + "/topology.properties");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
