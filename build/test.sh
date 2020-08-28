@@ -53,7 +53,7 @@ if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] 
   python test_distributed_exactly_equal.py "example_run_folders/leaf_spine" "example_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
 
   # 2 core tests (set to >= 4 because Travis does not support ns-3 MPI properly with more than 1 logical process)
-  if [ "${num_cores}" -ge "4" ]; then
+  if [ "${num_cores}" -ge "2" ]; then
 
     bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
     python test_distributed_exactly_equal.py "example_run_folders/leaf_spine" "example_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
