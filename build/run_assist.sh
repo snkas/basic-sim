@@ -27,25 +27,32 @@ mkdir "../${run_folder}/logs_ns3"
 
 # Perform the run
 if [ "${mpi_np}" == "0" ]; then
+
+  # Single logical process
   ./waf --run="basic-sim-main-full --run_dir='../${run_folder}'" 2>&1 | tee "../${run_folder}/logs_ns3/console.txt"
   if [[ $(< "../${run_folder}/logs_ns3/finished.txt") != "Yes" ]] ; then
     exit 1
   fi
+
 else
 
-  # Debug version:
-  echo "cd build/debug_all; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-debug --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt'" | ./waf shell
+  # Multiple logical processes
 
-  # Optimized version
-  # echo "cd build/optimized; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-optimized --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt'" | ./waf shell
+  # Debug version (through waf shell):
+  echo "cd build/debug_all; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-debug --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt' || exit 1" | ./waf shell || exit 1
 
-  # Causes some issues in file checks:
+  # Optimized version (through waf shell):
+  # echo "cd build/optimized; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-optimized --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt' || exit 1" | ./waf shell || exit 1
+
+  # Not going through the waf shell can cause some concurrent file check errors:
   # mpirun -np "${mpi_np}" ./waf --run="basic-sim-main-full --run_dir='../${run_folder}'" 2>&1 | tee "../${run_folder}/logs_ns3/console.txt"
 
+  # Verify all logical processes ("systems") finished successfully
   for (( s=1; s<$((mpi_np)); s++ ))
   do
     if [[ $(< "../${run_folder}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
       exit 1
     fi
   done
+
 fi
