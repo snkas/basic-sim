@@ -32,7 +32,16 @@ if [ "${mpi_np}" == "0" ]; then
     exit 1
   fi
 else
-  mpirun -np "${mpi_np}" ./waf --run="basic-sim-main-full --run_dir='../${run_folder}'" 2>&1 | tee "../${run_folder}/logs_ns3/console.txt"
+
+  # Debug version:
+  echo "cd build/debug_all; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-debug --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt'" | ./waf shell
+
+  # Optimized version
+  # echo "cd build/optimized; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-optimized --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt'" | ./waf shell
+
+  # Causes some issues in file checks:
+  # mpirun -np "${mpi_np}" ./waf --run="basic-sim-main-full --run_dir='../${run_folder}'" 2>&1 | tee "../${run_folder}/logs_ns3/console.txt"
+
   for (( s=1; s<$((mpi_np)); s++ ))
   do
     if [[ $(< "../${run_folder}/logs_ns3/system_${s}_finished.txt") != "Yes" ]] ; then
