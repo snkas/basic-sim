@@ -107,8 +107,23 @@ def plot_ping(logs_ns3_dir, data_out_dir, pdf_out_dir, from_id, to_id, interval_
     # For all intervals determine the number of out-of-order
     current_interval = (0, interval_ns, 0)
     intervals = []
+
+    # Now we need to check which ones are out of order
+    # (a) It is marked as lost
+    # (b) Its reply arrives after that of the reply of one of the next pings
+    current_lowest_timestamp = 1000000000000000
+    is_out_of_order = [False] * len(ping_results)
+    for i in reversed(range(len(ping_results))):
+        entry = ping_results[i]
+        if entry["is_lost"]:
+            is_out_of_order[i] = True
+        else:
+            if entry["receive_reply_timestamp"] > current_lowest_timestamp:
+                is_out_of_order[i] = True
+            current_lowest_timestamp = min(current_lowest_timestamp, entry["receive_reply_timestamp"])
+
+    # Go forward to fill up the interval counts
     for i in range(len(ping_results)):
-        
         entry = ping_results[i]
 
         # Continue to fast-forward intervals until the next entry is in it
@@ -116,19 +131,8 @@ def plot_ping(logs_ns3_dir, data_out_dir, pdf_out_dir, from_id, to_id, interval_
             intervals.append(current_interval)
             current_interval = (current_interval[1], current_interval[1] + interval_ns, 0)
 
-        # Now we need to check if it is out of order
-        # (a) It is marked as lost, but any of the next pings did arrive
-        # (b) Its reply arrives after that of the reply of one of the next pings
-        is_out_of_order = False
-        for j in range(i + 1, len(ping_results)):
-            if ping_results[j]["receive_reply_timestamp"] < entry["receive_reply_timestamp"]:
-                is_out_of_order = True
-                break
-            if entry["is_lost"] and not ping_results[j]["is_lost"]:
-                is_out_of_order = True
-
         # Now it must be within current_interval
-        if is_out_of_order:
+        if is_out_of_order[i]:
             current_interval = (
                 current_interval[0],
                 current_interval[1],
