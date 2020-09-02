@@ -178,8 +178,13 @@ void TcpFlowScheduler::WriteResults() {
         uint32_t app_idx = 0;
         for (TcpFlowScheduleEntry& entry : m_schedule) {
 
-            // Retrieve statistics
+            // Retrieve application
             Ptr<TcpFlowSendApplication> flowSendApp = m_apps.at(app_idx).Get(0)->GetObject<TcpFlowSendApplication>();
+
+            // Finalize the detailed logs (if they are enabled)
+            flowSendApp->FinalizeDetailedLogs();
+
+            // Retrieve statistics
             bool is_completed = flowSendApp->IsCompleted();
             bool is_conn_failed = flowSendApp->IsConnFailed();
             bool is_closed_err = flowSendApp->IsClosedByError();

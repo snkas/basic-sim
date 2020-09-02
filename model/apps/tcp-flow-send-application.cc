@@ -166,12 +166,20 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
         );
         if (m_enableDetailedLogging) {
             std::ofstream ofs;
+
             ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId));
+            ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << GetAckedBytes() << std::endl;
             ofs.close();
+
             ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId));
+            // Congestion window is only set upon SYN reception, so retrieving it early will just yield 0
+            // As such there "is" basically no congestion window till then, so we are not going to write 0
             ofs.close();
             m_socket->TraceConnectWithoutContext ("CongestionWindow", MakeCallback (&TcpFlowSendApplication::CwndChange, this));
+
             ofs.open(m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId));
+            // At the socket creation, there is no RTT measurement, so retrieving it early will just yield 0
+            // As such there "is" basically no RTT measurement till then, so we are not going to write 0
             ofs.close();
             m_socket->TraceConnectWithoutContext ("RTT", MakeCallback (&TcpFlowSendApplication::RttChange, this));
         }
@@ -235,6 +243,7 @@ void TcpFlowSendApplication::ConnectionSucceeded(Ptr <Socket> socket) {
 void TcpFlowSendApplication::ConnectionFailed(Ptr <Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
     NS_LOG_LOGIC("TcpFlowSendApplication, Connection Failed");
+    m_completionTimeNs = Simulator::Now().GetNanoSeconds();
     m_connFailed = true;
     m_closedByError = false;
     m_closedNormally = false;
@@ -251,10 +260,10 @@ void TcpFlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
 
     // Log the progress as DataSend() is called anytime space in the transmission buffer frees up
     if (m_enableDetailedLogging) {
-        std::ofstream ofs;
-        ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
-        ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << (m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size()) << std::endl;
-        ofs.close();
+        InsertProgressLog(
+                Simulator::Now ().GetNanoSeconds (),
+                GetAckedBytes()
+        );
     }
 
 }
@@ -273,6 +282,7 @@ void TcpFlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
 }
 
 void TcpFlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
+    m_completionTimeNs = Simulator::Now().GetNanoSeconds();
     m_connFailed = false;
     m_closedByError = true;
     m_closedNormally = false;
@@ -312,19 +322,56 @@ bool TcpFlowSendApplication::IsClosedByError() {
 void
 TcpFlowSendApplication::CwndChange(uint32_t oldCwnd, uint32_t newCwnd)
 {
-    std::ofstream ofs;
-    ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
-    ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << newCwnd << std::endl;
-    ofs.close();
+    InsertCwndLog(Simulator::Now ().GetNanoSeconds (), newCwnd);
 }
 
 void
 TcpFlowSendApplication::RttChange (Time oldRtt, Time newRtt)
 {
+    InsertRttLog(Simulator::Now ().GetNanoSeconds (), newRtt.GetNanoSeconds());
+}
+
+void
+TcpFlowSendApplication::InsertCwndLog(int64_t timestamp, uint32_t cwnd_byte)
+{
+    std::ofstream ofs;
+    ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
+    ofs << m_tcpFlowId << "," << timestamp << "," << cwnd_byte << std::endl;
+    m_current_cwnd_byte = cwnd_byte;
+    ofs.close();
+}
+
+void
+TcpFlowSendApplication::InsertRttLog (int64_t timestamp, int64_t rtt_ns)
+{
     std::ofstream ofs;
     ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
-    ofs << m_tcpFlowId << "," << Simulator::Now ().GetNanoSeconds () << "," << newRtt.GetNanoSeconds() << std::endl;
+    ofs << m_tcpFlowId << "," << timestamp << "," << rtt_ns << std::endl;
+    m_current_rtt_ns = rtt_ns;
     ofs.close();
+}
+
+void
+TcpFlowSendApplication::InsertProgressLog (int64_t timestamp, int64_t progress_byte) {
+    std::ofstream ofs;
+    ofs.open (m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::ofstream::out | std::ofstream::app);
+    ofs << m_tcpFlowId << "," << timestamp << "," << progress_byte << std::endl;
+    ofs.close();
+}
+
+void
+TcpFlowSendApplication::FinalizeDetailedLogs() {
+    if (m_enableDetailedLogging) {
+        int64_t timestamp;
+        if (m_connFailed || m_closedByError || m_closedNormally) {
+            timestamp = m_completionTimeNs;
+        } else {
+            timestamp = Simulator::Now ().GetNanoSeconds ();
+        }
+        InsertCwndLog(timestamp, m_current_cwnd_byte);
+        InsertRttLog(timestamp, m_current_rtt_ns);
+        InsertProgressLog(timestamp, GetAckedBytes());
+    }
 }
 
 } // Namespace ns3

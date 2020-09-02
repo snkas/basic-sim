@@ -50,6 +50,7 @@ public:
   bool IsConnFailed();
   bool IsClosedByError();
   bool IsClosedNormally();
+  void FinalizeDetailedLogs();
 
 protected:
   virtual void DoDispose (void);
@@ -76,7 +77,9 @@ private:
   bool            m_closedByError;    //!< Whether the connection closed by error
   uint64_t        m_ackedBytes;       //!< Amount of acknowledged bytes cached after close of the socket
   bool            m_isCompleted;      //!< True iff the flow is completed fully AND closed normally
-  std::string m_additionalParameters; //!< Not used in this version of the application
+  std::string     m_additionalParameters; //!< Not used in this version of the application
+  uint32_t        m_current_cwnd_byte;     //!< Current congestion window (detailed logging)
+  int64_t         m_current_rtt_ns;        //!< Current last RTT sample (detailed logging)
 
   // TCP flow logging
   bool m_enableDetailedLogging;            //!< True iff you want to write detailed logs
@@ -90,8 +93,11 @@ private:
   void DataSend (Ptr<Socket>, uint32_t);
   void SocketClosedNormal(Ptr<Socket> socket);
   void SocketClosedError(Ptr<Socket> socket);
-  void RttChange(Time oldRtt, Time newRtt);
-  void CwndChange(uint32_t oldCwnd, uint32_t newCwnd);
+  void CwndChange(uint32_t, uint32_t newCwnd);
+  void RttChange (Time, Time newRtt);
+  void InsertCwndLog(int64_t timestamp, uint32_t cwnd_byte);
+  void InsertRttLog (int64_t timestamp, int64_t rtt_ns);
+  void InsertProgressLog (int64_t timestamp, int64_t progress_byte);
 
 };
 

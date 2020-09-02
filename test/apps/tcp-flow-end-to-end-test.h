@@ -200,7 +200,7 @@ public:
 
                 // Congestion window has to be positive and different
                 int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(cwnd_byte != prev_cwnd_byte);
+                ASSERT_TRUE(cwnd_byte != prev_cwnd_byte || (i == lines_cwnd_csv.size() - 1 && cwnd_byte == prev_cwnd_byte));
                 prev_cwnd_byte = cwnd_byte;
             }
 
@@ -232,7 +232,7 @@ public:
             // tcp_flow_[id]_rtt.csv
             std::vector<std::string> lines_rtt_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_rtt.csv");
             prev_timestamp_ns = 0;
-            int64_t prev_rtt_ns = 0;
+            int64_t prev_rtt_ns = -1;
             for (size_t i = 0; i < lines_rtt_csv.size(); i++) {
                 std::vector<std::string> line_spl = split_string(lines_rtt_csv.at(i), ",");
                 ASSERT_EQUAL(line_spl.size(), 3);
@@ -247,7 +247,8 @@ public:
 
                 // RTT has to be positive and different
                 int64_t rtt_ns = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(rtt_ns != prev_rtt_ns);
+                ASSERT_TRUE(rtt_ns >= 0);
+                ASSERT_TRUE(rtt_ns != prev_rtt_ns || (i == lines_rtt_csv.size() - 1 && rtt_ns == prev_rtt_ns));
                 prev_rtt_ns = rtt_ns;
             }
 
