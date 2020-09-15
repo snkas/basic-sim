@@ -5,7 +5,8 @@ You can either immediately start with the tutorial below, or read more documenta
 * `basic_simulation_and_run_folder.md` -- Basic concepts
 * `ptop_topology.md` -- Point-to-point topology
 * `flows_application.md` -- Flow application ("send from A to B a flow of size X at time T")
-* `link_utilization_tracking.md` -- Utilization tracking
+* `link_utilization_tracking.md` -- Link utilization tracking
+* `link_queue_tracking.md` -- Link queue tracking
 * `udp_burst_application.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
 * `pingmesh_application.md` -- Ping application ("send from A to B a ping at an interval I")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
@@ -159,6 +160,7 @@ We are going to install three different applications:
     #include "ns3/arbiter-ecmp-helper.h"
     #include "ns3/ipv4-arbiter-routing-helper.h"
     #include "ns3/ptop-link-utilization-tracker-helper.h"
+    #include "ns3/ptop-queue-utilization-tracker-helper.h"
     
     using namespace ns3;
     
@@ -188,6 +190,9 @@ We are going to install three different applications:
         // Install link utilization trackers
         PtopLinkUtilizationTrackerHelper linkUtilizationTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
     
+        // Install link queue trackers
+        PtopLinkQueueTrackerHelper linkQueueTrackerHelper = PtopLinkQueueTrackerHelper(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+       
         // Optimize TCP
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
     
@@ -214,6 +219,9 @@ We are going to install three different applications:
     
         // Write link utilization results
         linkUtilizationTrackerHelper.WriteResults();
+    
+        // Write link queue results
+        linkQueueTrackerHelper.WriteResults();
     
         // Finalize the simulation
         basicSimulation->Finalize();

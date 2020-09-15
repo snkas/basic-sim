@@ -10,6 +10,7 @@
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/ptop-link-utilization-tracker-helper.h"
+#include "ns3/ptop-link-queue-tracker-helper.h"
 
 using namespace ns3;
 
@@ -65,6 +66,9 @@ int main(int argc, char *argv[]) {
     // Install link utilization trackers
     PtopLinkUtilizationTrackerHelper linkUtilizationTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
 
+    // Install link queue trackers
+    PtopLinkQueueTrackerHelper linkQueueTrackerHelper = PtopLinkQueueTrackerHelper(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
@@ -79,6 +83,9 @@ int main(int argc, char *argv[]) {
 
     // Write link utilization results
     linkUtilizationTrackerHelper.WriteResults();
+
+    // Write link queue results
+    linkQueueTrackerHelper.WriteResults();
 
     // Finalize the simulation
     basicSimulation->Finalize();

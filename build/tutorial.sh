@@ -13,7 +13,7 @@ bash run_assist.sh "example_run_folders/tutorial" 0 || exit 1
 # Go plot helpers
 cd ../tools/plotting || exit 1
 
-# Utilization plots
+# Link utilization plots
 cd plot_link_utilization || exit 1
 python plot_link_utilization.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 0 1 || exit 1
 python plot_link_utilization.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 1 0 || exit 1
@@ -21,6 +21,16 @@ python plot_link_utilization.py ../../../build/example_run_folders/tutorial/logs
 python plot_link_utilization.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 2 0 || exit 1
 python plot_link_utilization.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 0 3 || exit 1
 python plot_link_utilization.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 3 0 || exit 1
+cd .. || exit 1
+
+# Link queue plots
+cd plot_link_queue || exit 1
+python plot_link_queue.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 0 1 || exit 1
+python plot_link_queue.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 1 0 || exit 1
+python plot_link_queue.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 0 2 || exit 1
+python plot_link_queue.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 2 0 || exit 1
+python plot_link_queue.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 0 3 || exit 1
+python plot_link_queue.py ../../../build/example_run_folders/tutorial/logs_ns3 ../../../build/example_run_folders/tutorial/logs_ns3/data ../../../build/example_run_folders/tutorial/logs_ns3/pdf 3 0 || exit 1
 cd .. || exit 1
 
 # Ping plots

@@ -6,6 +6,7 @@
 #include "topology-ptop-test.h"
 #include "arbiter-test.h"
 #include "ptop-link-utilization-test.h"
+#include "ptop-link-queue-test.h"
 #include "tcp-optimizer-test.h"
 
 using namespace ns3;
@@ -36,9 +37,13 @@ public:
         AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
 
-        // Point-to-point utilization tracking
+        // Point-to-point link utilization tracking
         AddTestCase(new PtopLinkUtilizationSimpleTestCase, TestCase::QUICK);
         AddTestCase(new PtopLinkUtilizationNotEnabledTestCase, TestCase::QUICK);
+
+        // Point-to-point link queue tracking
+        AddTestCase(new PtopLinkQueueSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new PtopLinkQueueNotEnabledTestCase, TestCase::QUICK);
 
         // TCP optimizer
         AddTestCase(new TcpOptimizerBasicTestCase, TestCase::QUICK);

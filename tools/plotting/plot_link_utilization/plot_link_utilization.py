@@ -35,7 +35,7 @@ def plot_link_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id,
     #
     # This effectively creates a step function as a continuous line, which can then be plotted by gnuplot.
     #
-    data_filename = "%s/utilization_%d_to_%d_fraction_in_intervals.csv" % (data_out_dir, from_node_id, to_node_id)
+    data_filename = "%s/link_utilization_%d_to_%d_fraction_in_intervals.csv" % (data_out_dir, from_node_id, to_node_id)
     with open(data_filename, "w+") as f_out:
         for i in range(num_entries):
             if from_list[i] == from_node_id and to_list[i] == to_node_id:
