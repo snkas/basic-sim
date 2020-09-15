@@ -18,11 +18,11 @@
  * Author: Simon, Hanjing
  */
 
-#include "ptop-utilization-tracker-helper.h"
+#include "ptop-link-utilization-tracker-helper.h"
 
 namespace ns3 {
 
-    PtopUtilizationTrackerHelper::PtopUtilizationTrackerHelper(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
+    PtopLinkUtilizationTrackerHelper::PtopLinkUtilizationTrackerHelper(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
         std::cout << "POINT-TO-POINT UTILIZATION TRACKING" << std::endl;
 
         // Save for writing results later after simulation is done
@@ -56,13 +56,13 @@ namespace ns3 {
 
                 // One tracker a -> b
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
-                    Ptr<PtopUtilizationTracker> tracker_a_b = CreateObject<PtopUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
+                    Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
                     m_utilization_trackers.push_back(std::make_pair(edge, tracker_a_b));
                 }
 
                 // One tracker b -> a
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
-                    Ptr<PtopUtilizationTracker> tracker_b_a = CreateObject<PtopUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
+                    Ptr<PtopLinkUtilizationTracker> tracker_b_a = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
                     m_utilization_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
                 }
 
@@ -72,15 +72,15 @@ namespace ns3 {
 
             // Determine filenames
             if (m_enable_distributed) {
-                m_filename_utilization_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_utilization.csv";
-                m_filename_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_utilization_compressed.csv";
-                m_filename_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_utilization_compressed.txt";
-                m_filename_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_utilization_summary.txt";
+                m_filename_utilization_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization.csv";
+                m_filename_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization_compressed.csv";
+                m_filename_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization_compressed.txt";
+                m_filename_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization_summary.txt";
             } else {
-                m_filename_utilization_csv = m_basicSimulation->GetLogsDir() + "/utilization.csv";
-                m_filename_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/utilization_compressed.csv";
-                m_filename_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/utilization_compressed.txt";
-                m_filename_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/utilization_summary.txt";
+                m_filename_utilization_csv = m_basicSimulation->GetLogsDir() + "/link_utilization.csv";
+                m_filename_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/link_utilization_compressed.csv";
+                m_filename_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/link_utilization_compressed.txt";
+                m_filename_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/link_utilization_summary.txt";
             }
 
             // Remove files if they are there
@@ -97,7 +97,7 @@ namespace ns3 {
         std::cout << std::endl;
     }
 
-    void PtopUtilizationTrackerHelper::WriteResults() {
+    void PtopLinkUtilizationTrackerHelper::WriteResults() {
         std::cout << "UTILIZATION TRACKING RESULTS" << std::endl;
 
         // Check if it is enabled explicitly
@@ -126,7 +126,7 @@ namespace ns3 {
             // Sort
             struct ascending_by_directed_link
             {
-                inline bool operator() (const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopUtilizationTracker>>& a, const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopUtilizationTracker>>& b)
+                inline bool operator() (const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkUtilizationTracker>>& a, const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkUtilizationTracker>>& b)
                 {
                     return (a.first.first == b.first.first ? a.first.second < b.first.second : a.first.first < b.first.first);
                 }
@@ -141,7 +141,7 @@ namespace ns3 {
                 std::pair<int64_t, int64_t> directed_edge = m_utilization_trackers[i].first;
 
                 // Tracker
-                Ptr<PtopUtilizationTracker> tracker = m_utilization_trackers[i].second;
+                Ptr<PtopLinkUtilizationTracker> tracker = m_utilization_trackers[i].second;
 
                 // Go over every utilization interval
                 const std::vector<std::tuple<int64_t, int64_t, int64_t>> intervals = tracker->FinalizeUtilization();

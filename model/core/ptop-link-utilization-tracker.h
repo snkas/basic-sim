@@ -18,8 +18,8 @@
  * Author: Simon, Hanjing
  */
 
-#ifndef PTOP_UTILIZATION_TRACKER_H
-#define PTOP_UTILIZATION_TRACKER_H
+#ifndef PTOP_LINK_UTILIZATION_TRACKER_H
+#define PTOP_LINK_UTILIZATION_TRACKER_H
 
 #include <map>
 #include <vector>
@@ -43,7 +43,7 @@
 
 namespace ns3 {
 
-    class PtopUtilizationTracker : public Object {
+    class PtopLinkUtilizationTracker : public Object {
 
     private:
 
@@ -61,7 +61,7 @@ namespace ns3 {
 
     public:
         static TypeId GetTypeId (void);
-        PtopUtilizationTracker(Ptr<PointToPointNetDevice> netDevice, int64_t interval_ns);
+        PtopLinkUtilizationTracker(Ptr<PointToPointNetDevice> netDevice, int64_t interval_ns);
         void NetDevicePhyTxBeginCallback(Ptr<Packet const>);
         void NetDevicePhyTxEndCallback(Ptr<Packet const>);
         void TrackUtilization(bool next_state_is_on);
@@ -70,4 +70,4 @@ namespace ns3 {
 
 }
 
-#endif // PTOP_UTILIZATION_TRACKER_H
+#endif // PTOP_LINK_UTILIZATION_TRACKER_H

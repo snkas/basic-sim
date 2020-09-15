@@ -5,7 +5,7 @@
 #include "exp-util-test.h"
 #include "topology-ptop-test.h"
 #include "arbiter-test.h"
-#include "ptop-utilization-test.h"
+#include "ptop-link-utilization-test.h"
 #include "tcp-optimizer-test.h"
 
 using namespace ns3;
@@ -37,8 +37,8 @@ public:
         AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
 
         // Point-to-point utilization tracking
-        AddTestCase(new PtopUtilizationSimpleTestCase, TestCase::QUICK);
-        AddTestCase(new PtopUtilizationNotEnabledTestCase, TestCase::QUICK);
+        AddTestCase(new PtopLinkUtilizationSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new PtopLinkUtilizationNotEnabledTestCase, TestCase::QUICK);
 
         // TCP optimizer
         AddTestCase(new TcpOptimizerBasicTestCase, TestCase::QUICK);

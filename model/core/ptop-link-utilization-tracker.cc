@@ -18,25 +18,25 @@
  * Author: Simon, Hanjing
  */
 
-#include "ptop-utilization-tracker.h"
+#include "ptop-link-utilization-tracker.h"
 
 namespace ns3 {
 
-    NS_OBJECT_ENSURE_REGISTERED (PtopUtilizationTracker);
-    TypeId PtopUtilizationTracker::GetTypeId (void)
+    NS_OBJECT_ENSURE_REGISTERED (PtopLinkUtilizationTracker);
+    TypeId PtopLinkUtilizationTracker::GetTypeId (void)
     {
-        static TypeId tid = TypeId ("ns3::PtopUtilizationTracker")
+        static TypeId tid = TypeId ("ns3::PtopLinkUtilizationTracker")
                 .SetParent<Object> ()
                 .SetGroupName("BasicSim")
         ;
         return tid;
     }
 
-    PtopUtilizationTracker::PtopUtilizationTracker(Ptr<PointToPointNetDevice> netDevice, int64_t interval_ns) {
+    PtopLinkUtilizationTracker::PtopLinkUtilizationTracker(Ptr<PointToPointNetDevice> netDevice, int64_t interval_ns) {
 
         // Register this tracker into the tracing callbacks of the network device
-        netDevice->TraceConnectWithoutContext("PhyTxBegin", MakeCallback(&PtopUtilizationTracker::NetDevicePhyTxBeginCallback, this));
-        netDevice->TraceConnectWithoutContext("PhyTxEnd", MakeCallback(&PtopUtilizationTracker::NetDevicePhyTxEndCallback, this));
+        netDevice->TraceConnectWithoutContext("PhyTxBegin", MakeCallback(&PtopLinkUtilizationTracker::NetDevicePhyTxBeginCallback, this));
+        netDevice->TraceConnectWithoutContext("PhyTxEnd", MakeCallback(&PtopLinkUtilizationTracker::NetDevicePhyTxEndCallback, this));
 
         // Interval
         m_interval_ns = interval_ns;
@@ -51,15 +51,15 @@ namespace ns3 {
 
     }
 
-    void PtopUtilizationTracker::NetDevicePhyTxBeginCallback(Ptr<Packet const>) {
+    void PtopLinkUtilizationTracker::NetDevicePhyTxBeginCallback(Ptr<Packet const>) {
         TrackUtilization(true);
     }
 
-    void PtopUtilizationTracker::NetDevicePhyTxEndCallback(Ptr<Packet const>) {
+    void PtopLinkUtilizationTracker::NetDevicePhyTxEndCallback(Ptr<Packet const>) {
         TrackUtilization(false);
     }
 
-    void PtopUtilizationTracker::TrackUtilization(bool next_state_is_on) {
+    void PtopLinkUtilizationTracker::TrackUtilization(bool next_state_is_on) {
 
         // Current time in nanoseconds
         int64_t now_ns = Simulator::Now().GetNanoSeconds();
@@ -100,7 +100,7 @@ namespace ns3 {
 
     }
 
-    const std::vector<std::tuple<int64_t, int64_t, int64_t>>& PtopUtilizationTracker::FinalizeUtilization() {
+    const std::vector<std::tuple<int64_t, int64_t, int64_t>>& PtopLinkUtilizationTracker::FinalizeUtilization() {
         TrackUtilization(!m_current_state_is_on); // End the remaining completed interval(s)
 
         // The final incomplete interval we also include

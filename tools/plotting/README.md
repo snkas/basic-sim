@@ -54,8 +54,8 @@ python plot_ping.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data
 
 Plotting utilization of link 5 -> 9:
 ```
-cd /path/to/tools/plotting/plot_utilization
-python plot_utilization.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
+cd /path/to/tools/plotting/plot_link_utilization
+python plot_link_utilization.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
 ```
 
 

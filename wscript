@@ -16,11 +16,11 @@ def build(bld):
         'model/core/arbiter-ptop.cc',
         'model/core/arbiter-ecmp.cc',
         'model/core/ipv4-arbiter-routing.cc',
-        'model/core/ptop-utilization-tracker.cc',
+        'model/core/ptop-link-utilization-tracker.cc',
 
         'helper/core/arbiter-ecmp-helper.cc',
         'helper/core/ipv4-arbiter-routing-helper.cc',
-        'helper/core/ptop-utilization-tracker-helper.cc',
+        'helper/core/ptop-link-utilization-tracker-helper.cc',
         'helper/core/tcp-optimizer.cc',
         'helper/core/point-to-point-ab-helper.cc',
 
@@ -57,11 +57,11 @@ def build(bld):
         'model/core/arbiter-ptop.h',
         'model/core/arbiter-ecmp.h',
         'model/core/ipv4-arbiter-routing.h',
-        'model/core/ptop-utilization-tracker.h',
+        'model/core/ptop-link-utilization-tracker.h',
 
         'helper/core/arbiter-ecmp-helper.h',
         'helper/core/ipv4-arbiter-routing-helper.h',
-        'helper/core/ptop-utilization-tracker-helper.h',
+        'helper/core/ptop-link-utilization-tracker-helper.h',
         'helper/core/tcp-optimizer.h',
         'helper/core/point-to-point-ab-helper.h',
 

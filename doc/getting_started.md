@@ -5,7 +5,7 @@ You can either immediately start with the tutorial below, or read more documenta
 * `basic_simulation_and_run_folder.md` -- Basic concepts
 * `ptop_topology.md` -- Point-to-point topology
 * `flows_application.md` -- Flow application ("send from A to B a flow of size X at time T")
-* `utilization_tracking.md` -- Utilization tracking
+* `link_utilization_tracking.md` -- Utilization tracking
 * `udp_burst_application.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
 * `pingmesh_application.md` -- Ping application ("send from A to B a ping at an interval I")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
@@ -158,7 +158,7 @@ We are going to install three different applications:
     #include "ns3/tcp-optimizer.h"
     #include "ns3/arbiter-ecmp-helper.h"
     #include "ns3/ipv4-arbiter-routing-helper.h"
-    #include "ns3/ptop-utilization-tracker-helper.h"
+    #include "ns3/ptop-link-utilization-tracker-helper.h"
     
     using namespace ns3;
     
@@ -185,8 +185,8 @@ We are going to install three different applications:
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
     
-        // Install utilization trackers
-        PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
+        // Install link utilization trackers
+        PtopLinkUtilizationTrackerHelper linkUtilizationTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
     
         // Optimize TCP
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
@@ -212,8 +212,8 @@ We are going to install three different applications:
         // Write pingmesh results
         pingmeshScheduler.WriteResults();
     
-        // Write utilization results
-        utilTrackerHelper.WriteResults();
+        // Write link utilization results
+        linkUtilizationTrackerHelper.WriteResults();
     
         // Finalize the simulation
         basicSimulation->Finalize();
@@ -244,9 +244,9 @@ We are going to install three different applications:
    |-- timing_results.{csv, txt}
    |-- tcp_flows.{csv, txt}
    |-- tcp_flow_{0, 1, 2}_{cwnd, progress, rtt}.csv
-   |-- utilization.csv
+   |-- link_utilization.csv
    |-- utilization_compressed.{csv, txt}
-   |-- utilization_summary.txt
+   |-- link_utilization_summary.txt
    |-- udp_bursts_{incoming, outgoing}.{csv, txt}
    |-- udp_burst_{0, 1}_{incoming, outgoing}.csv
    |-- pingmesh.{csv, txt}
@@ -281,7 +281,7 @@ We are going to install three different applications:
    3         2         0.07 ms               9.14 ms               0.05 ms         9.20 ms         17.05 ms        4.33 ms         396/400 (99%)                      
    ```
 
-10. For example, `utilization_summary.txt` will contain:
+10. For example, `link_utilization_summary.txt` will contain:
 
    ```
    From     To       Utilization

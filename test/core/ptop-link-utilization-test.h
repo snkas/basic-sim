@@ -7,7 +7,7 @@
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/traffic-control-layer.h"
 #include "ns3/fq-codel-queue-disc.h"
-#include "ns3/ptop-utilization-tracker-helper.h"
+#include "ns3/ptop-link-utilization-tracker-helper.h"
 #include "ns3/udp-burst-scheduler.h"
 
 using namespace ns3;
@@ -21,20 +21,20 @@ void cleanup_ptop_utilization_test() {
     remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/finished.txt");
     remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.txt");
     remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.csv");
-    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/utilization.csv");
-    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.csv");
-    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.txt");
-    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/utilization_summary.txt");
+    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization.csv");
+    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.csv");
+    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.txt");
+    remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_summary.txt");
     remove_dir_if_exists(ptop_utilization_test_dir + "/logs_ns3");
     remove_dir_if_exists(ptop_utilization_test_dir);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopUtilizationSimpleTestCase : public TestCase
+class PtopLinkUtilizationSimpleTestCase : public TestCase
 {
 public:
-    PtopUtilizationSimpleTestCase () : TestCase ("ptop-utilization simple") {};
+    PtopLinkUtilizationSimpleTestCase () : TestCase ("ptop-link-utilization simple") {};
     void DoRun () {
 
         mkdir_if_not_exists(ptop_utilization_test_dir);
@@ -82,7 +82,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
         
         // Install utilization trackers
-        PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
+        PtopLinkUtilizationTrackerHelper utilTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
@@ -101,9 +101,9 @@ public:
         }
         std::sort(dir_a_b_list.begin(), dir_a_b_list.end());
 
-        // utilization.csv
+        // link_utilization.csv
         std::vector<int64_t> correct_busy_time_ns;
-        std::vector<std::string> lines_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization.csv");
+        std::vector<std::string> lines_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization.csv");
         int line_i = 0;
         for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
             for (int j = 0; j < 20; j++) {
@@ -150,9 +150,9 @@ public:
             }
         }
 
-        // utilization_compressed.csv/txt
-        std::vector<std::string> lines_compressed_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.csv");
-        std::vector<std::string> lines_compressed_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.txt");
+        // link_utilization_compressed.csv/txt
+        std::vector<std::string> lines_compressed_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.csv");
+        std::vector<std::string> lines_compressed_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.txt");
 
         // They are the same, except one is human-readable
         ASSERT_EQUAL(lines_compressed_csv.size(), lines_compressed_txt.size() - 1);
@@ -223,8 +223,8 @@ public:
         ASSERT_EQUAL(counter_ns, 0);
         ASSERT_EQUAL(correct_busy_time_idx, (int64_t) (dir_a_b_list.size() * 20));
 
-        // utilization_summary.txt
-        std::vector<std::string> lines_summary_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/utilization_summary.txt");
+        // link_utilization_summary.txt
+        std::vector<std::string> lines_summary_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization_summary.txt");
         ASSERT_EQUAL(lines_summary_txt.size(), dir_a_b_list.size() + 1);
 
         // Correct exact header
@@ -267,10 +267,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopUtilizationNotEnabledTestCase : public TestCase
+class PtopLinkUtilizationNotEnabledTestCase : public TestCase
 {
 public:
-    PtopUtilizationNotEnabledTestCase () : TestCase ("ptop-utilization not-enabled") {};
+    PtopLinkUtilizationNotEnabledTestCase () : TestCase ("ptop-link-utilization not-enabled") {};
     void DoRun () {
 
         mkdir_if_not_exists(ptop_utilization_test_dir);
@@ -314,7 +314,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install utilization trackers
-        PtopUtilizationTrackerHelper utilTrackerHelper = PtopUtilizationTrackerHelper(basicSimulation, topology);
+        PtopLinkUtilizationTrackerHelper utilTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
@@ -326,10 +326,10 @@ public:
         basicSimulation->Finalize();
 
         // Nothing should have been logged
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/utilization.csv"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.csv"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/utilization_compressed.txt"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/utilization_summary.txt"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization.csv"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.csv"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.txt"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_summary.txt"));
 
         cleanup_ptop_utilization_test();
     }

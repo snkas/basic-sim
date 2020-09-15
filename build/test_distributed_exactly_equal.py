@@ -10,7 +10,7 @@ def test_distributed_exactly_equal(base_run_folder, multi_core_run_folder, num_c
         "tcp_flows.csv",
         "udp_bursts_incoming.csv",
         "udp_bursts_outgoing.csv",
-        "utilization.csv",
+        "link_utilization.csv",
     ]:
 
         # Skip the file if it does not exist in the base run folder

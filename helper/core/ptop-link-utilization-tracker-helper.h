@@ -18,26 +18,26 @@
  * Author: Simon, Hanjing
  */
 
-#ifndef PTOP_UTILIZATION_TRACKER_HELPER_H
-#define PTOP_UTILIZATION_TRACKER_HELPER_H
+#ifndef PTOP_LINK_UTILIZATION_TRACKER_HELPER_H
+#define PTOP_LINK_UTILIZATION_TRACKER_HELPER_H
 
 #define UTILIZATION_TRACKER_COMPRESSION_APPROXIMATELY_NOT_EQUAL 0.000001
 
 #include "ns3/basic-simulation.h"
 #include "ns3/topology-ptop.h"
-#include "ns3/ptop-utilization-tracker.h"
+#include "ns3/ptop-link-utilization-tracker.h"
 
 namespace ns3 {
 
-    class PtopUtilizationTrackerHelper
+    class PtopLinkUtilizationTrackerHelper
     {
 
     public:
-        PtopUtilizationTrackerHelper(Ptr<BasicSimulation> basicSimulation, Ptr<TopologyPtop> topology);
+        PtopLinkUtilizationTrackerHelper(Ptr<BasicSimulation> basicSimulation, Ptr<TopologyPtop> topology);
         void WriteResults();
 
     private:
-        std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PtopUtilizationTracker>>> m_utilization_trackers;
+        std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkUtilizationTracker>>> m_utilization_trackers;
         Ptr<BasicSimulation> m_basicSimulation;
         Ptr<TopologyPtop> m_topology;
         int64_t m_utilization_interval_ns;
@@ -57,4 +57,4 @@ namespace ns3 {
 
 } // namespace ns3
 
-#endif /* PTOP_UTILIZATION_TRACKER_HELPER_H */
+#endif /* PTOP_LINK_UTILIZATION_TRACKER_HELPER_H */
