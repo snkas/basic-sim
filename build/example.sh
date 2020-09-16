@@ -31,4 +31,4 @@ bash run_assist.sh "example_run_folders/fat_tree_k4_servers_poisson" 0 || exit 1
 cd ../tools/plotting/plot_tcp_flows_ecdfs || exit 1
 python plot_tcp_flows_ecdfs.py ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3 \
                                ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3/data \
-                               ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3/pdf
+                               ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3/pdf || exit 1
