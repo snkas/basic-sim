@@ -6,8 +6,10 @@ def plot_link_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_no
     local_shell = LocalShell()
 
     # Check that the plotting file is available
-    if (not local_shell.file_exists("plot_time_vs_link_queue_pkt.plt") or
-            not local_shell.file_exists("plot_time_vs_link_queue_byte.plt")):
+    if (
+        not local_shell.file_exists("plot_time_vs_link_queue_pkt.plt") or
+        not local_shell.file_exists("plot_time_vs_link_queue_byte.plt")
+    ):
         print("The gnuplot file(s) is not present.")
         print("Are you executing this python file inside the plot_link_queue directory?")
         exit(1)
@@ -47,8 +49,10 @@ def plot_link_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_no
     with open(data_filename, "w+") as f_out:
         for i in range(queue_pkt_num_entries):
             if queue_pkt_from_list[i] == from_node_id and queue_pkt_to_list[i] == to_node_id:
-                f_out.write("%.10f,%.10f\n" % (queue_pkt_interval_start_ns_list[i], queue_pkt_size_pkt_list[i]))
-                f_out.write("%.10f,%.10f\n" % (queue_pkt_interval_end_ns_list[i] - 0.000001, queue_pkt_size_pkt_list[i]))
+                f_out.write("%.10f,%.10f\n"
+                            % (queue_pkt_interval_start_ns_list[i], queue_pkt_size_pkt_list[i]))
+                f_out.write("%.10f,%.10f\n"
+                            % (queue_pkt_interval_end_ns_list[i] - 0.000001, queue_pkt_size_pkt_list[i]))
 
     # Plot time vs. queue (packets)
     pdf_filename = pdf_out_dir + "/plot_link_queue_pkt_" + str(from_node_id) + "_to_" + str(to_node_id) + ".pdf"
@@ -65,8 +69,10 @@ def plot_link_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_no
     with open(data_filename, "w+") as f_out:
         for i in range(queue_byte_num_entries):
             if queue_byte_from_list[i] == from_node_id and queue_byte_to_list[i] == to_node_id:
-                f_out.write("%.10f,%.10f\n" % (queue_byte_interval_start_ns_list[i], queue_byte_size_byte_list[i]))
-                f_out.write("%.10f,%.10f\n" % (queue_byte_interval_end_ns_list[i] - 0.000001, queue_byte_size_byte_list[i]))
+                f_out.write("%.10f,%.10f\n"
+                            % (queue_byte_interval_start_ns_list[i], queue_byte_size_byte_list[i]))
+                f_out.write("%.10f,%.10f\n"
+                            % (queue_byte_interval_end_ns_list[i] - 0.000001, queue_byte_size_byte_list[i]))
 
     # Plot time vs. queue (byte)
     pdf_filename = pdf_out_dir + "/plot_link_queue_byte_" + str(from_node_id) + "_to_" + str(to_node_id) + ".pdf"

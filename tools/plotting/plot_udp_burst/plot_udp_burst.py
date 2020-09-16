@@ -97,7 +97,7 @@ def plot_udp_burst(logs_ns3_dir, data_out_dir, pdf_out_dir, udp_burst_id, interv
         not local_shell.file_exists("plot_udp_burst_time_vs_amount_sent.plt") or
         not local_shell.file_exists("plot_udp_burst_time_vs_amount_arrived.plt") or
         not local_shell.file_exists("plot_udp_burst_time_vs_sent_rate.plt") or
-        not local_shell.file_exists("plot_udp_burst_time_vs_arrival_rate.plt") or
+        not local_shell.file_exists("plot_udp_burst_time_vs_arrived_rate.plt") or
         not local_shell.file_exists("plot_udp_burst_time_vs_one_way_latency.plt")
     ):
         print("The gnuplot files are not present.")

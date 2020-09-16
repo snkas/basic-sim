@@ -11,11 +11,14 @@ def test_distributed_exactly_equal(base_run_folder, multi_core_run_folder, num_c
         "udp_bursts_incoming.csv",
         "udp_bursts_outgoing.csv",
         "link_utilization.csv",
+        "link_queue_pkt.csv",
+        "link_queue_byte.csv",
     ]:
 
-        # Skip the file if it does not exist in the base run folder
+        # Exit with error if the file does not exist
         if not local_shell.file_exists("%s/logs_ns3/%s" % (base_run_folder, f)):
-            continue
+            print("Missing: " + "%s/logs_ns3/%s" % (base_run_folder, f))
+            exit(1)
 
         # Base lines
         base_lines = []

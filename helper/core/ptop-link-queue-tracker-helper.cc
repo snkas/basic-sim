@@ -42,6 +42,8 @@ namespace ns3 {
             m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
             m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
+            // TODO: Add additional parameter to specifically select links
+
             // Go over every edge in the topology
             for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
 
@@ -67,8 +69,8 @@ namespace ns3 {
 
             // Determine filenames
             if (m_enable_distributed) {
-                m_filename_link_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "link_queue_pkt.csv";
-                m_filename_link_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "link_queue_byte.csv";
+                m_filename_link_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_queue_pkt.csv";
+                m_filename_link_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_queue_byte.csv";
             } else {
                 m_filename_link_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/link_queue_pkt.csv";
                 m_filename_link_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/link_queue_byte.csv";

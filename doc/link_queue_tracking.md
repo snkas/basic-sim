@@ -64,14 +64,12 @@ which requires a topology (which is recommended).
 
 3. After the run, in your code add:
 
-   TODO: Improve this
    ```c++
-   const std::vector<std::tuple<int64_t, int64_t, int64_t>> intervals = tracker->FinalizeUtilization();
-   for (size_t j = 0; j < intervals.size(); j++) {
-       int64_t interval_start_ns = std::get<0>(intervals[j]);
-       int64_t interval_end_ns = std::get<1>(intervals[j]);
-       int64_t interval_busy_time_ns = std::get<2>(intervals[j]);
-       double interval_utilization = ((double) interval_busy_time_ns) / (double) (interval_end_ns - interval_start_ns);
+   const std::vector<std::tuple<int64_t, int64_t, int64_t>> log_entries_pkt = tracker->GetIntervalsNumPackets();
+   for (size_t j = 0; j < log_entries_pkt.size(); j++) {
+       int64_t interval_start_ns = std::get<0>(log_entries_pkt[j]);
+       int64_t interval_end_ns = std::get<1>(log_entries_pkt[j]);
+       int64_t interval_queue_num_packets = std::get<2>(log_entries_pkt[j]);
        // ... then do something with it, print it
    }
    ```
