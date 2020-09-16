@@ -36,49 +36,39 @@ namespace ns3 {
 
         // Register this tracker into the tracing callbacks of the network device
         m_queue = netDevice->GetQueue();
+
+        // Logging number of packets in the queue
+        m_log_update_helper_queue_pkt = LogUpdateHelper();
+        m_log_update_helper_queue_pkt.Update(0, 0);
+        m_queue->TraceConnectWithoutContext("PacketsInQueue", MakeCallback(&PtopLinkQueueTracker::NetDevicePacketsInQueueCallback, this));
         
         // Logging bytes in the queue
-        m_current_num_bytes = 0;
-        m_current_num_bytes_timestamp = 0;
+        m_log_update_helper_queue_byte = LogUpdateHelper();
+        m_log_update_helper_queue_byte.Update(0, 0);
         m_queue->TraceConnectWithoutContext("BytesInQueue", MakeCallback(&PtopLinkQueueTracker::NetDeviceBytesInQueueCallback, this));
-        
-        // Logging number of packets in the queue
-        m_current_num_packets = 0;
-        m_current_num_packets_timestamp = 0;
-        m_queue->TraceConnectWithoutContext("PacketsInQueue", MakeCallback(&PtopLinkQueueTracker::NetDevicePacketsInQueueCallback, this));
 
-    }
-
-    void PtopLinkQueueTracker::NetDeviceBytesInQueueCallback(uint32_t, uint32_t num_bytes) {
-        int64_t now_ns = (int64_t) Simulator::Now().GetNanoSeconds();
-        if (now_ns != m_current_num_bytes_timestamp) {
-            m_log_time_num_bytes.push_back(std::make_tuple(m_current_num_bytes_timestamp, m_current_num_bytes));
-        }
-        m_current_num_bytes = num_bytes;
-        m_current_num_bytes_timestamp = now_ns;
     }
 
     void PtopLinkQueueTracker::NetDevicePacketsInQueueCallback(uint32_t, uint32_t num_packets) {
-        int64_t now_ns = (int64_t) Simulator::Now().GetNanoSeconds();
-        if (now_ns != m_current_num_packets_timestamp) {
-            m_log_time_num_packets.push_back(std::make_tuple(m_current_num_packets_timestamp, m_current_num_packets));
-        }
-        m_current_num_packets = num_packets;
-        m_current_num_packets_timestamp = now_ns;
+        m_log_update_helper_queue_pkt.Update(
+                (int64_t) Simulator::Now().GetNanoSeconds(),
+                num_packets
+        );
     }
 
-    const std::vector<std::tuple<int64_t, int64_t>>& PtopLinkQueueTracker::GetLogTimeNumBytes() {
-        // Log the last known value
-        m_log_time_num_bytes.push_back(std::make_tuple(m_current_num_bytes_timestamp, m_current_num_bytes));
-
-        return m_log_time_num_bytes;
+    void PtopLinkQueueTracker::NetDeviceBytesInQueueCallback(uint32_t, uint32_t num_bytes) {
+        m_log_update_helper_queue_byte.Update(
+                (int64_t) Simulator::Now().GetNanoSeconds(),
+                num_bytes
+        );
     }
 
-    const std::vector<std::tuple<int64_t, int64_t>>& PtopLinkQueueTracker::GetLogTimeNumPackets() {
-        // Log the last known value
-        m_log_time_num_packets.push_back(std::make_tuple(m_current_num_packets_timestamp, m_current_num_packets));
+    const std::vector<std::tuple<int64_t, int64_t, int64_t>>& PtopLinkQueueTracker::GetIntervalsNumPackets() {
+        return m_log_update_helper_queue_pkt.Finalize((int64_t) Simulator::Now().GetNanoSeconds());
+    }
 
-        return m_log_time_num_packets;
+    const std::vector<std::tuple<int64_t, int64_t, int64_t>>& PtopLinkQueueTracker::GetIntervalsNumBytes() {
+        return m_log_update_helper_queue_byte.Finalize((int64_t) Simulator::Now().GetNanoSeconds());
     }
 
 }

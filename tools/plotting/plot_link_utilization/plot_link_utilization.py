@@ -40,8 +40,8 @@ def plot_link_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id,
         for i in range(num_entries):
             if from_list[i] == from_node_id and to_list[i] == to_node_id:
                 utilization_fraction = busy_ns_list[i] / (range_end_ns_list[i] - range_start_ns_list[i])
-                f_out.write("%f,%f\n" % (range_start_ns_list[i], utilization_fraction))
-                f_out.write("%f,%f\n" % (range_end_ns_list[i] - 0.000001, utilization_fraction))
+                f_out.write("%.10f,%.10f\n" % (range_start_ns_list[i], utilization_fraction))
+                f_out.write("%.10f,%.10f\n" % (range_end_ns_list[i] - 0.000001, utilization_fraction))
 
     # Plot time vs. utilization
     pdf_filename = pdf_out_dir + "/plot_link_utilization_" + str(from_node_id) + "_to_" + str(to_node_id) + ".pdf"

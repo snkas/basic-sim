@@ -151,8 +151,8 @@ def plot_ping(logs_ns3_dir, data_out_dir, pdf_out_dir, from_id, to_id, interval_
     data_out_of_order_filename = "%s/ping_%d_to_%d_out_of_order_in_intervals.csv" % (data_out_dir, from_id, to_id)
     with open(data_out_of_order_filename, "w+") as f_out:
         for i in range(len(intervals)):
-            f_out.write("%d,%d,%f,%f\n" % (from_id, to_id, intervals[i][0], intervals[i][2]))
-            f_out.write("%d,%d,%f,%f\n" % (from_id, to_id, intervals[i][1] - 0.000001, intervals[i][2]))
+            f_out.write("%d,%d,%.10f,%.10f\n" % (from_id, to_id, intervals[i][0], intervals[i][2]))
+            f_out.write("%d,%d,%.10f,%.10f\n" % (from_id, to_id, intervals[i][1] - 0.000001, intervals[i][2]))
     print(" > Calculated in intervals of " + str(interval_ns / 1e6) + " ms")
     print(" > Data line format..... [from_id],[to_id],[time moment (ns)],[# of out-of-order]")
     print(" > Produced data file... " + data_out_of_order_filename)

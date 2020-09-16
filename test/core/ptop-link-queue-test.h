@@ -112,37 +112,44 @@ public:
             // State variables when checking
             int64_t current_from_to_idx = -1;
             std::pair<int64_t, int64_t> current_from_to = std::make_pair(-1, -1);
-            int64_t previous_time_ns = -1;
+            int64_t previous_interval_end_ns = 0;
+            int64_t prev_num_packets_or_bytes = -1;
 
             // Go over every line
             for (size_t line_i = 0; line_i < lines_csv.size(); line_i++) {
                 std::string line = lines_csv[line_i];
-                std::vector<std::string> comma_split = split_string(line, ",", 4);
+                std::vector<std::string> comma_split = split_string(line, ",", 5);
                 int64_t from_node_id = parse_positive_int64(comma_split[0]);
                 int64_t to_node_id = parse_positive_int64(comma_split[1]);
-                int64_t time_ns = parse_positive_int64(comma_split[2]);
-                int64_t num_packets_or_bytes = parse_positive_int64(comma_split[3]); // TODO: Test it is different from previous
+                int64_t interval_start_ns = parse_positive_int64(comma_split[2]);
+                int64_t interval_end_ns = parse_positive_int64(comma_split[3]);
+                int64_t num_packets_or_bytes = parse_positive_int64(comma_split[4]);
 
                 // From-to has to be ordered and matching
                 if (from_node_id != current_from_to.first || to_node_id != current_from_to.second) {
-                    previous_time_ns = -1;
+                    previous_interval_end_ns = 0;
+                    prev_num_packets_or_bytes = -1;
                     current_from_to_idx += 1;
                     current_from_to = dir_a_b_list[current_from_to_idx];
-                    ASSERT_EQUAL(time_ns, 0); // The first entry must have zero time
+                    ASSERT_EQUAL(interval_start_ns, 0); // The first entry must have zero time
                 }
                 ASSERT_TRUE(from_node_id == current_from_to.first);
                 ASSERT_TRUE(to_node_id == current_from_to.second);
 
-                // Time must be strongly ascending
-                ASSERT_TRUE(time_ns > previous_time_ns);
-                previous_time_ns = time_ns;
+                // Time intervals must match up
+                ASSERT_EQUAL(interval_start_ns, previous_interval_end_ns);
+                previous_interval_end_ns = interval_end_ns;
+
+                // Value must be different
+                ASSERT_NOT_EQUAL(prev_num_packets_or_bytes, num_packets_or_bytes);
+                prev_num_packets_or_bytes = num_packets_or_bytes;
 
                 // Now we check that the number of packets/bytes make sense given the traffic started
                 if (from_node_id == 1 && to_node_id == 3) {
-                    if (time_ns >= 251000000) {
+                    if (interval_start_ns >= 251000000) {
                         ASSERT_TRUE(num_packets_or_bytes > 0);
                     }
-                    if (time_ns >= 400000000) {
+                    if (interval_start_ns >= 400000000) {
                         if (file_choice == 0) {
                             ASSERT_TRUE(num_packets_or_bytes >= 99);
                         } else {

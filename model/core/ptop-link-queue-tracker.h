@@ -39,6 +39,7 @@
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/log-update-helper.h"
 
 
 namespace ns3 {
@@ -51,20 +52,16 @@ namespace ns3 {
         Ptr<Queue<Packet>> m_queue;
 
         // State
-        int64_t m_current_num_bytes;
-        int64_t m_current_num_bytes_timestamp;
-        std::vector<std::tuple<int64_t, int64_t>> m_log_time_num_bytes;
-        int64_t m_current_num_packets;
-        int64_t m_current_num_packets_timestamp;
-        std::vector<std::tuple<int64_t, int64_t>> m_log_time_num_packets;
+        LogUpdateHelper m_log_update_helper_queue_pkt;
+        LogUpdateHelper m_log_update_helper_queue_byte;
 
     public:
         static TypeId GetTypeId (void);
         PtopLinkQueueTracker(Ptr<PointToPointNetDevice> netDevice);
-        void NetDeviceBytesInQueueCallback(uint32_t, uint32_t num_bytes);
         void NetDevicePacketsInQueueCallback(uint32_t, uint32_t num_packets);
-        const std::vector<std::tuple<int64_t, int64_t>>& GetLogTimeNumBytes();
-        const std::vector<std::tuple<int64_t, int64_t>>& GetLogTimeNumPackets();
+        void NetDeviceBytesInQueueCallback(uint32_t, uint32_t num_bytes);
+        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumPackets();
+        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumBytes();
     };
 
 }

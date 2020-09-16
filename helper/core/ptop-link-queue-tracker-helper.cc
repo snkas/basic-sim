@@ -122,32 +122,34 @@ namespace ns3 {
                 Ptr<PtopLinkQueueTracker> tracker = m_queue_trackers[i].second;
 
                 // Queue size in packets
-                const std::vector<std::tuple<int64_t, int64_t>> log_entries_pkt = tracker->GetLogTimeNumPackets();
+                const std::vector<std::tuple<int64_t, int64_t, int64_t>> log_entries_pkt = tracker->GetIntervalsNumPackets();
                 for (size_t j = 0; j < log_entries_pkt.size(); j++) {
 
                     // Write plain to the CSV file:
-                    // <from>,<to>,<time (ns)>,<number of packets>
+                    // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<number of packets>
                     fprintf(file_link_queue_pkt_csv,
-                            "%d,%d,%" PRId64 ",%" PRId64 "\n",
+                            "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
                             std::get<0>(log_entries_pkt[j]),
-                            std::get<1>(log_entries_pkt[j])
+                            std::get<1>(log_entries_pkt[j]),
+                            std::get<2>(log_entries_pkt[j])
                     );
                 }
 
                 // Queue size in byte
-                const std::vector<std::tuple<int64_t, int64_t>> log_entries_byte = tracker->GetLogTimeNumBytes();
+                const std::vector<std::tuple<int64_t, int64_t, int64_t>> log_entries_byte = tracker->GetIntervalsNumBytes();
                 for (size_t j = 0; j < log_entries_byte.size(); j++) {
 
                     // Write plain to the CSV file:
-                    // <from>,<to>,<time (ns)>,<number of bytes>
+                    // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<number of bytes>
                     fprintf(file_link_queue_byte_csv,
-                            "%d,%d,%" PRId64 ",%" PRId64 "\n",
+                            "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
                             std::get<0>(log_entries_byte[j]),
-                            std::get<1>(log_entries_byte[j])
+                            std::get<1>(log_entries_byte[j]),
+                            std::get<2>(log_entries_byte[j])
                     );
                 }
 

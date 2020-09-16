@@ -9,6 +9,7 @@ def build(bld):
     module.source = [
         'model/core/basic-simulation.cc',
         'model/core/exp-util.cc',
+        'model/core/log-update-helper.cc',
         'model/core/topology-ptop.cc',
         'model/core/topology-ptop-queue-selector-default.cc',
         'model/core/topology-ptop-tc-qdisc-selector-default.cc',
@@ -51,6 +52,7 @@ def build(bld):
     headers.source = [
         'model/core/basic-simulation.h',
         'model/core/exp-util.h',
+        'model/core/log-update-helper.h',
         'model/core/topology.h',
         'model/core/topology-ptop.h',
         'model/core/topology-ptop-queue-selector-default.h',

@@ -66,4 +66,4 @@ set key spacing 2
 #####################################
 ### PLOTS
 set datafile separator ","
-plot    "[DATA-FILE]" using ($1/1000000000):($2) title "" w lp ls 1, \
+plot    "[DATA-FILE]" using ($1/1000000000):($2) title "" w l ls 1, \

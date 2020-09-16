@@ -53,8 +53,8 @@ def generate_udp_burst_sent_rate_csv(data_out_dir, udp_burst_id, outgoing_time_n
     with open(filename, "w+") as f_out:
         for i in range(len(intervals)):
             rate_megabit_per_s = intervals[i][2] * 8000.0 / interval_ns 
-            f_out.write("%d,%f,%f\n" % (udp_burst_id, intervals[i][0], rate_megabit_per_s))
-            f_out.write("%d,%f,%f\n" % (udp_burst_id, intervals[i][1] - 0.000001, rate_megabit_per_s))
+            f_out.write("%d,%.10f,%.10f\n" % (udp_burst_id, intervals[i][0], rate_megabit_per_s))
+            f_out.write("%d,%.10f,%.10f\n" % (udp_burst_id, intervals[i][1] - 0.000001, rate_megabit_per_s))
     print("Produced data file: " + filename)
     return filename
 
@@ -65,8 +65,8 @@ def generate_udp_burst_arrived_rate_csv(data_out_dir, udp_burst_id, incoming_tim
     with open(filename, "w+") as f_out:
         for i in range(len(intervals)):
             rate_megabit_per_s = intervals[i][2] * 8000.0 / interval_ns
-            f_out.write("%d,%f,%f\n" % (udp_burst_id, intervals[i][0], rate_megabit_per_s))
-            f_out.write("%d,%f,%f\n" % (udp_burst_id, intervals[i][1] - 0.000001, rate_megabit_per_s))
+            f_out.write("%d,%.10f,%.10f\n" % (udp_burst_id, intervals[i][0], rate_megabit_per_s))
+            f_out.write("%d,%.10f,%.10f\n" % (udp_burst_id, intervals[i][1] - 0.000001, rate_megabit_per_s))
     print("Produced data file: " + filename)
     return filename
 
@@ -93,12 +93,16 @@ def plot_udp_burst(logs_ns3_dir, data_out_dir, pdf_out_dir, udp_burst_id, interv
     local_shell = exputil.LocalShell()
 
     # Check that all plotting files are available
-    # if not local_shell.file_exists("plot_udp_burst_time_vs_amount_arrived.plt") or \
-    #         not local_shell.file_exists("plot_udp_burst_time_vs_latency.plt") or \
-    #         not local_shell.file_exists("plot_udp_burst_time_vs_arrival_rate.plt"):
-    #     print("The gnuplot files are not present.")
-    #     print("Are you executing this python file inside the plot_udp_burst directory?")
-    #     exit(1)
+    if (
+        not local_shell.file_exists("plot_udp_burst_time_vs_amount_sent.plt") or
+        not local_shell.file_exists("plot_udp_burst_time_vs_amount_arrived.plt") or
+        not local_shell.file_exists("plot_udp_burst_time_vs_sent_rate.plt") or
+        not local_shell.file_exists("plot_udp_burst_time_vs_arrival_rate.plt") or
+        not local_shell.file_exists("plot_udp_burst_time_vs_one_way_latency.plt")
+    ):
+        print("The gnuplot files are not present.")
+        print("Are you executing this python file inside the plot_udp_burst directory?")
+        exit(1)
 
     # Create the output directories if they don't exist yet
     local_shell.make_full_dir(data_out_dir)

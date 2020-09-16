@@ -54,8 +54,8 @@ def generate_tcp_flow_rate_csv(logs_ns3_dir, data_out_dir, tcp_flow_id, interval
     with open(data_filename, "w+") as f_out:
         for i in range(len(intervals)):
             rate_megabit_per_s = intervals[i][2] / 125000.0 * (1e9 / interval_ns)
-            f_out.write("%d,%f,%f\n" % (tcp_flow_id, intervals[i][0], rate_megabit_per_s))
-            f_out.write("%d,%f,%f\n" % (tcp_flow_id, intervals[i][1] - 0.000001, rate_megabit_per_s))
+            f_out.write("%d,%.10f,%.10f\n" % (tcp_flow_id, intervals[i][0], rate_megabit_per_s))
+            f_out.write("%d,%.10f,%.10f\n" % (tcp_flow_id, intervals[i][1] - 0.000001, rate_megabit_per_s))
 
     # Show what is produced
     print("Interval: " + str(interval_ns / 1000000.0) + " ms")
