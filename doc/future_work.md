@@ -19,6 +19,9 @@ The backlog of additional work that can be done on the `basic-sim` module:
   - https://www.nsnam.org/doxygen/point-to-point-net-device_8cc_source.html
   - https://www.nsnam.org/doxygen/simple-error-model_8cc_source.html
   - https://www.nsnam.org/doxygen/error-model_8cc_source.html
+  
+* Unbuffered version of `log-update-helper.cc/h` which directly writes to file -- this can
+  be used for TCP cwnd / progress / RTT tracking.
 
 When upgrading to a new version of ns-3, be sure to check:
 
