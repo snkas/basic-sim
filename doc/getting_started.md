@@ -2,15 +2,15 @@
 
 You can either immediately start with the tutorial below, or read more documentation:
 
-* `basic_simulation_and_run_folder.md` -- Basic concepts
+* `basic_simulation_and_run_folder.md` -- Basic concepts of the framework
 * `ptop_topology.md` -- Point-to-point topology
-* `flows_application.md` -- Flow application ("send from A to B a flow of size X at time T")
+* `arbiter_routing.md` -- A new type of routing with more flexibility
 * `link_utilization_tracking.md` -- Link utilization tracking
 * `link_queue_tracking.md` -- Link queue tracking
+* `flows_application.md` -- Flow application ("send from A to B a flow of size X at time T")
 * `udp_burst_application.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
 * `pingmesh_application.md` -- Ping application ("send from A to B a ping at an interval I")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
-* `arbiter_routing.md` -- A new type of routing with more flexibility
 * `future_work.md` -- To find out what can be extended / improved
 
 

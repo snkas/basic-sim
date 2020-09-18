@@ -49,4 +49,9 @@ It encompasses the following files:
 
 ## Getting started: creating your own arbiter
 
-If you want to implement your own arbiter, you should create a class which inherits from `Arbiter` if you have a novel (non point-to-point) topology. If you have a point-to-point topology, you can inherit it from `ArbiterPtop`. Effectively, you only have to implement one function, and you are good to go. However, of course you need to calculate some routing state possibly. For an example of calculating routing state, take a look at the `ArbiterEcmpHelper`.
+If you want to implement your own arbiter, you should create a class which inherits 
+from `Arbiter` if you have a novel (non point-to-point) topology. If you have a 
+point-to-point topology, you can inherit from `ArbiterPtop`. Effectively, you 
+only have to implement one function, and you are good to go. However, of course 
+you need to calculate some routing state possibly. For an example of calculating 
+routing state, take a look at the `ArbiterEcmpHelper`.

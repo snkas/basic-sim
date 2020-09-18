@@ -102,11 +102,13 @@ link_interface_traffic_control_qdisc=disabled
 
 * `switches` (type: set of node identifiers)
 
-  All node identifiers which are switches expressed as `set(a, b, c)`, e.g.: `set(5, 6)` means node 5 and 7 are switches.
+  All node identifiers which are switches expressed as `set(a, b, c)`, 
+  e.g.: `set(5, 6)` means node 5 and 7 are switches.
   
 * `switches_which_are_tors` (type: set of node identifiers)
 
-  All node identifiers which are also ToRs expressed as `set(a, b, c)` (type: set of node identifiers).
+  All node identifiers which are also ToRs expressed as `set(a, b, c)` 
+  (type: set of node identifiers).
   
 * `servers` (type: set of node identifiers)
 
@@ -114,11 +116,17 @@ link_interface_traffic_control_qdisc=disabled
   
 * `undirected_edges` (type: set of undirected edges)
 
-  All undirected edges, expressed as `set(a-b, b-c)`, e.g.: `set(0-2, 2-3)` means two undirected edges, between 0 and 2, and between 2 and 3.
+  All undirected edges, expressed as `set(a-b, b-c)`, e.g.: `set(0-2, 2-3)` 
+  means two undirected edges, between 0 and 2, and between 2 and 3.
   
 * `all_nodes_are_endpoints` (optional) (type: boolean)
 
-  Whether to allow all nodes to be endpoints for applications or not. Normally, the topology only considers servers (or in absence thereof: ToRs) as valid endpoints. Setting this to `true` will have the topology return all nodes as valid endpoints. This is a soft enforce, meaning that only code that checks with topology explicitly will adhere to the endpoints the topology claims are permissible for applications.
+  Whether to allow all nodes to be endpoints for applications or not. 
+  Normally, the topology only considers servers (or in absence thereof: ToRs) 
+  as valid endpoints. Setting this to `true` will have the topology return 
+  all nodes as valid endpoints. This is a soft enforce, meaning that only 
+  code that checks with topology explicitly will adhere to the endpoints the 
+  topology claims are permissible for applications.
 
 * `link_channel_delay_ns` (type: undirected edge (two-link) mapping or a global value; a positive integer)
 
@@ -128,7 +136,7 @@ link_interface_traffic_control_qdisc=disabled
 
   Data rate set for links (Mbit/s). 
  
-* `link_device` (type: directed edge (link) mapping or a global value; `drop_tail(<integer>p)` or `drop_tail(<integer>B)`  for respectively packets or bytes)
+* `link_device_queue` (type: directed edge (link) mapping or a global value; `drop_tail(<integer>p)` or `drop_tail(<integer>B)`  for respectively packets or bytes)
 
   Queue implementation for link devices. Only DropTail is right now implemented.
   
@@ -136,7 +144,11 @@ link_interface_traffic_control_qdisc=disabled
 
    Interface traffic control queueing discipline for links.
 
-All mandatory properties must be present. Empty sets are permitted. Empty lines and lines starting with a comment sign (#) are permitted. Besides it just defining a graph, the following rules apply:
+All mandatory properties must be present. Empty sets are permitted. 
+Empty lines and lines starting with a comment sign (#) are permitted. 
+Besides it just defining a graph, the following rules apply:
 
 * If there are servers defined, they can only have edges to a ToR.
-* There is only a semantic difference between switches, switches which are ToRs and servers. If there are servers, only servers should be valid endpoints for applications. If there are no servers, ToRs should be valid endpoints instead.
+* There is only a semantic difference between switches, switches which 
+  are ToRs and servers. If there are servers, only servers should be 
+  valid endpoints for applications. If there are no servers, ToRs should be valid endpoints instead.
