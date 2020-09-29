@@ -38,7 +38,7 @@ namespace ns3 {
         int64_t m_udp_burst_id;
         int64_t m_from_node_id;
         int64_t m_to_node_id;
-        int64_t m_target_rate_megabit_per_s;
+        double m_target_rate_megabit_per_s;
         int64_t m_start_time_ns;
         int64_t m_duration_ns;
         std::string m_additional_parameters;

@@ -47,7 +47,7 @@ public:
         config_file.close();
 
         std::ofstream schedule_file(udp_burst_schedule_reader_test_dir + "/udp_burst_schedule.csv");
-        schedule_file << "0,0,1,1000,123456,20000,a=c,test14" << std::endl;
+        schedule_file << "0,0,1,1000.3,123456,20000,a=c,test14" << std::endl;
         schedule_file << "1,7,3,1,7488338,1356567,a=b2," << std::endl;
         schedule_file.close();
 
@@ -74,7 +74,7 @@ public:
         ASSERT_EQUAL(schedule[0].GetUdpBurstId(), 0);
         ASSERT_EQUAL(schedule[0].GetFromNodeId(), 0);
         ASSERT_EQUAL(schedule[0].GetToNodeId(), 1);
-        ASSERT_EQUAL(schedule[0].GetTargetRateMegabitPerSec(), 1000);
+        ASSERT_EQUAL(schedule[0].GetTargetRateMegabitPerSec(), 1000.3);
         ASSERT_EQUAL(schedule[0].GetStartTimeNs(), 123456);
         ASSERT_EQUAL(schedule[0].GetDurationNs(), 20000);
         ASSERT_EQUAL(schedule[0].GetAdditionalParameters(), "a=c");
@@ -187,6 +187,12 @@ public:
         // Negative UDP burst rate
         schedule_file = std::ofstream(udp_burst_schedule_reader_test_dir + "/udp_burst_schedule.csv");
         schedule_file << "0,3,1,-33,100002,2000009,xyz,abc" << std::endl;
+        schedule_file.close();
+        ASSERT_EXCEPTION(read_udp_burst_schedule(udp_burst_schedule_reader_test_dir + "/udp_burst_schedule.csv", topology, 10000000));
+
+        // Zero UDP burst rate
+        schedule_file = std::ofstream(udp_burst_schedule_reader_test_dir + "/udp_burst_schedule.csv");
+        schedule_file << "0,3,1,0,100002,2000009,xyz,abc" << std::endl;
         schedule_file.close();
         ASSERT_EXCEPTION(read_udp_burst_schedule(udp_burst_schedule_reader_test_dir + "/udp_burst_schedule.csv", topology, 10000000));
 

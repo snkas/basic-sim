@@ -47,6 +47,11 @@ std::vector<UdpBurstInfo> read_udp_burst_schedule(const std::string& filename, P
             std::string additional_parameters = comma_split[6];
             std::string metadata = comma_split[7];
 
+            // Zero target rate
+            if (target_rate_megabit_per_s == 0.0) {
+                throw std::invalid_argument("UDP burst target rate is zero.");
+            }
+
             // Must be weakly ascending start time
             if (prev_start_time_ns > start_time_ns) {
                 throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with UDP burst ID: %" PRId64 ", violation: %" PRId64 ")\n", udp_burst_id, start_time_ns));
