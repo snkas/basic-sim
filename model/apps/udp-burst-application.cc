@@ -27,6 +27,7 @@
 #include "ns3/socket-factory.h"
 #include "ns3/packet.h"
 #include "ns3/uinteger.h"
+#include "ns3/abort.h"
 
 #include "udp-burst-application.h"
 
@@ -74,6 +75,7 @@ namespace ns3 {
 
     void
     UdpBurstApplication::RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress, bool enable_precise_logging) {
+        NS_ABORT_MSG_IF(burstInfo.GetFromNodeId() != this->GetNode()->GetId(), "Source node identifier is not that of this node.");
         if (m_outgoing_bursts.size() >= 1 && burstInfo.GetStartTimeNs() < std::get<0>(m_outgoing_bursts[m_outgoing_bursts.size() - 1]).GetStartTimeNs()) {
             throw std::runtime_error("Bursts must be added weakly ascending on start time");
         }
@@ -90,6 +92,7 @@ namespace ns3 {
 
     void
     UdpBurstApplication::RegisterIncomingBurst(UdpBurstInfo burstInfo, bool enable_precise_logging) {
+        NS_ABORT_MSG_IF(burstInfo.GetToNodeId() != this->GetNode()->GetId(), "Destination node identifier is not that of this node.");
         m_incoming_bursts.push_back(burstInfo);
         m_incoming_bursts_received_counter[burstInfo.GetUdpBurstId()] = 0;
         m_incoming_bursts_enable_precise_logging[burstInfo.GetUdpBurstId()] = enable_precise_logging;
