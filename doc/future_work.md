@@ -22,6 +22,9 @@ The backlog of additional work that can be done on the `basic-sim` module:
   
 * Unbuffered version of `log-update-helper.cc/h` which directly writes to file -- this can
   be used for TCP cwnd / progress / RTT tracking.
+  
+* Check where we can replace the [] operator with .at() for std::vector's and std::map's
+  (for example in the UDP application and point-to-point arbiter)
 
 When upgrading to a new version of ns-3, be sure to check:
 
