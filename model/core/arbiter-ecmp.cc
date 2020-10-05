@@ -28,6 +28,10 @@ int32_t ArbiterEcmp::TopologyPtopDecide(int32_t source_node_id, int32_t target_n
     return m_candidate_list[target_node_id][hash % s];
 }
 
+ArbiterEcmp::~ArbiterEcmp() {
+    // Left empty intentionally
+}
+
 /**
  * Calculates a hash from the 5-tuple.
  *

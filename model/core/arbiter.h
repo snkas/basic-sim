@@ -43,6 +43,7 @@ class Arbiter : public Object
 public:
     static TypeId GetTypeId (void);
     Arbiter(Ptr<Node> this_node, NodeContainer nodes);
+    virtual ~Arbiter();
 
     /**
      * Resolve the node identifier from an IP address.

@@ -37,6 +37,10 @@ ArbiterPtop::ArbiterPtop(
 
 }
 
+ArbiterPtop::~ArbiterPtop() {
+    // Left empty intentionally
+}
+
 ArbiterResult ArbiterPtop::Decide(
         int32_t source_node_id,
         int32_t target_node_id,

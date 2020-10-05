@@ -45,6 +45,14 @@ namespace ns3 {
 
     class PtopLinkUtilizationTracker : public Object {
 
+    public:
+        static TypeId GetTypeId (void);
+        PtopLinkUtilizationTracker(Ptr<PointToPointNetDevice> netDevice, int64_t interval_ns);
+        void NetDevicePhyTxBeginCallback(Ptr<Packet const>);
+        void NetDevicePhyTxEndCallback(Ptr<Packet const>);
+        void TrackUtilization(bool next_state_is_on);
+        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& FinalizeUtilization();
+
     private:
 
         // Parameters
@@ -59,13 +67,6 @@ namespace ns3 {
         bool m_current_state_is_on;
         std::vector<std::tuple<int64_t, int64_t, int64_t>> m_intervals;
 
-    public:
-        static TypeId GetTypeId (void);
-        PtopLinkUtilizationTracker(Ptr<PointToPointNetDevice> netDevice, int64_t interval_ns);
-        void NetDevicePhyTxBeginCallback(Ptr<Packet const>);
-        void NetDevicePhyTxEndCallback(Ptr<Packet const>);
-        void TrackUtilization(bool next_state_is_on);
-        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& FinalizeUtilization();
     };
 
 }

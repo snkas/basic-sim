@@ -25,6 +25,7 @@ public:
             Ptr<TopologyPtop> topology,
             std::vector<std::vector<uint32_t>> candidate_list
     );
+    virtual ~ArbiterEcmp();
 
     // ECMP implementation
     int32_t TopologyPtopDecide(

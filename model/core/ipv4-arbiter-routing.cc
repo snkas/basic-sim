@@ -52,6 +52,10 @@ namespace ns3 {
         NS_LOG_FUNCTION(this);
     }
 
+    Ipv4ArbiterRouting::~Ipv4ArbiterRouting() {
+        NS_LOG_FUNCTION(this);
+    }
+
     /**
      * Lookup the route towards the destination.
      * Does not handle local delivery.
@@ -210,10 +214,6 @@ namespace ns3 {
 
         }
 
-    }
-
-    Ipv4ArbiterRouting::~Ipv4ArbiterRouting() {
-        NS_LOG_FUNCTION(this);
     }
 
     void

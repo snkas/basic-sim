@@ -46,6 +46,14 @@ namespace ns3 {
 
     class PtopLinkQueueTracker : public Object {
 
+    public:
+        static TypeId GetTypeId (void);
+        PtopLinkQueueTracker(Ptr<PointToPointNetDevice> netDevice);
+        void NetDevicePacketsInQueueCallback(uint32_t, uint32_t num_packets);
+        void NetDeviceBytesInQueueCallback(uint32_t, uint32_t num_bytes);
+        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumPackets();
+        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumBytes();
+
     private:
 
         // Parameters
@@ -55,13 +63,6 @@ namespace ns3 {
         LogUpdateHelper m_log_update_helper_queue_pkt;
         LogUpdateHelper m_log_update_helper_queue_byte;
 
-    public:
-        static TypeId GetTypeId (void);
-        PtopLinkQueueTracker(Ptr<PointToPointNetDevice> netDevice);
-        void NetDevicePacketsInQueueCallback(uint32_t, uint32_t num_packets);
-        void NetDeviceBytesInQueueCallback(uint32_t, uint32_t num_bytes);
-        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumPackets();
-        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumBytes();
     };
 
 }

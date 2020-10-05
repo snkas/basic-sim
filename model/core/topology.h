@@ -10,6 +10,7 @@ class Topology : public Object
 {
 public:
     static TypeId GetTypeId (void);
+    virtual ~Topology() {}
     virtual const NodeContainer& GetNodes() = 0;
     virtual int64_t GetNumNodes() = 0;
     virtual bool IsValidEndpoint(int64_t node_id) = 0;

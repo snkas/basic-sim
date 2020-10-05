@@ -46,6 +46,7 @@ class TopologyPtopQueueSelector : public Object {
 public:
     static TypeId GetTypeId(void);
     TopologyPtopQueueSelector() {};
+    virtual ~TopologyPtopQueueSelector() {};
     virtual std::pair<ObjectFactory, QueueSize> ParseQueueValue(Ptr<TopologyPtop> topology, std::string value) = 0;
 };
 
@@ -53,6 +54,7 @@ class TopologyPtopTcQdiscSelector : public Object {
 public:
     static TypeId GetTypeId(void);
     TopologyPtopTcQdiscSelector() {};
+    virtual ~TopologyPtopTcQdiscSelector() {};
     virtual std::pair<bool, TrafficControlHelper> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value) = 0;
 };
 
@@ -72,6 +74,7 @@ public:
             Ptr<BasicSimulation> basicSimulation,
             const Ipv4RoutingHelper& ipv4RoutingHelper
     );
+    virtual ~TopologyPtop();
 
     // Parsers to assist
     std::map<std::pair<int64_t, int64_t>, std::string> ParseUndirectedEdgeMap(std::string value);

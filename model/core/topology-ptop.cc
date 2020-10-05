@@ -85,7 +85,11 @@ TopologyPtop::TopologyPtop(
         CreateObject<TopologyPtopQueueSelectorDefault>(),
         CreateObject<TopologyPtopTcQdiscSelectorDefault>()
 ) {
-  // Left empty on purpose
+  // Left empty intentionally
+}
+
+TopologyPtop::~TopologyPtop() {
+    // Left empty intentionally
 }
 
 /**

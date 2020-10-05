@@ -53,6 +53,10 @@ Arbiter::Arbiter(Ptr<Node> this_node, NodeContainer nodes) {
 
 }
 
+Arbiter::~Arbiter() {
+    // Left empty intentionally
+}
+
 uint32_t Arbiter::ResolveNodeIdFromIp(uint32_t ip) {
     m_ip_to_node_id_it = m_ip_to_node_id.find(ip);
     if (m_ip_to_node_id_it != m_ip_to_node_id.end()) {
