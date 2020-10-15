@@ -46,9 +46,6 @@ namespace ns3 {
         uint32_t GetMaxUdpPayloadSizeByte();
         void RegisterOutgoingBurst(UdpBurstInfo burstInfo, InetSocketAddress targetAddress, bool enable_precise_logging);
         void RegisterIncomingBurst(UdpBurstInfo burstInfo, bool enable_precise_logging);
-        void StartNextBurst();
-        void BurstSendOut(size_t internal_burst_idx);
-        void TransmitFullPacket(size_t internal_burst_idx);
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> GetOutgoingBurstsInformation();
         std::vector<std::tuple<UdpBurstInfo, uint64_t>> GetIncomingBurstsInformation();
         uint64_t GetSentCounterOf(int64_t udp_burst_id);
@@ -61,6 +58,9 @@ namespace ns3 {
         virtual void StartApplication (void);
         virtual void StopApplication (void);
         void HandleRead (Ptr<Socket> socket);
+        void StartNextBurst();
+        void BurstSendOut(size_t internal_burst_idx);
+        void TransmitFullPacket(size_t internal_burst_idx);
 
         uint16_t m_port;      //!< Port on which we listen for incoming packets.
         uint32_t m_max_udp_payload_size_byte;  //!< Maximum size of UDP payload before getting fragmented

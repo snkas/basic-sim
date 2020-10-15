@@ -139,9 +139,10 @@ namespace ns3 {
         int64_t now_ns = Simulator::Now().GetNanoSeconds();
 
         // If this function is called, there must be a next burst
-        if (m_next_internal_burst_idx >= m_outgoing_bursts.size() || std::get<0>(m_outgoing_bursts[m_next_internal_burst_idx]).GetStartTimeNs() != now_ns) {
-            throw std::runtime_error("No next burst available; this function should not have been called.");
-        }
+        NS_ABORT_MSG_IF(
+            m_next_internal_burst_idx >= m_outgoing_bursts.size() || std::get<0>(m_outgoing_bursts[m_next_internal_burst_idx]).GetStartTimeNs() != now_ns,
+            "No next burst available; this function should not have been called."
+        );
 
         // Start the self-calling (and self-ending) process of sending out packets of the burst
         BurstSendOut(m_next_internal_burst_idx);
