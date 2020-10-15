@@ -336,6 +336,36 @@ std::set<int64_t> parse_set_positive_int64(const std::string str) {
 }
 
 /**
+ * Parse string into a set of directed pair of positive int64s, or throw an exception.
+ *
+ * @param str  Input string
+ *
+ * @return Direct int64 pair set
+ */
+std::set<std::pair<int64_t, int64_t>> parse_set_directed_pair_positive_int64(const std::string str) {
+    std::set<std::string> string_set = parse_set_string(str);
+    std::set<std::pair<int64_t, int64_t>> directed_pair_set;
+    for (std::string s : string_set) {
+        std::vector<std::string> split_by_directed_arrow = split_string(s, "->", 2);
+        int64_t a = parse_positive_int64(split_by_directed_arrow.at(0));
+        int64_t b = parse_positive_int64(split_by_directed_arrow.at(1));
+        if (a == b) {
+            throw std::invalid_argument(format_string("Directed pair cannot be to itself: %s", s.c_str()));
+        }
+        directed_pair_set.insert(std::make_pair(a, b));
+    }
+    if (string_set.size() != directed_pair_set.size()) {
+        throw std::invalid_argument(
+                format_string(
+                        "Direct pair set %s contains int64->int64 duplicates",
+                        str.c_str()
+                )
+        );
+    }
+    return directed_pair_set;
+}
+
+/**
  * Parse list string (i.e., list(...)) into a real list without whitespace.
  * If it is incorrect format, throw an exception.
  *

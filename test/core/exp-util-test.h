@@ -146,8 +146,21 @@ public:
         ASSERT_EXCEPTION(parse_boolean("falselytrue"));
 
         // Set string
-        std::set <std::string> set_a = parse_set_string("set(a, b, 1245, , 77)");
+        std::set<std::string> set_a = parse_set_string("set(a, b, 1245, , 77)");
         ASSERT_EQUAL(set_a.size(), 5);
+        ASSERT_TRUE(set_a.find("a") != set_a.end());
+        ASSERT_TRUE(set_a.find("b") != set_a.end());
+        ASSERT_TRUE(set_a.find("1245") != set_a.end());
+        ASSERT_TRUE(set_a.find("") != set_a.end());
+        ASSERT_TRUE(set_a.find("77") != set_a.end());
+
+        set_a = parse_set_string("set()");
+        ASSERT_EQUAL(set_a.size(), 0);
+
+        set_a = parse_set_string("set(a )");
+        ASSERT_EQUAL(set_a.size(), 1);
+        ASSERT_TRUE(set_a.find("a") != set_a.end());
+
         ASSERT_EXCEPTION(parse_set_string("seta, b, 1245, , 77)"));
         ASSERT_EXCEPTION(parse_set_string("a, b, c"));
         ASSERT_EXCEPTION(parse_set_string("set(a, b, c"));
@@ -228,6 +241,32 @@ public:
         ASSERT_EXCEPTION(parse_map_string("map(:i,:i)"));
         ASSERT_EXCEPTION(parse_map_string("map(i:,i:)"));
         ASSERT_EXCEPTION(parse_map_string("map(:,:)"));
+
+        // Directed int64 pair set
+        std::set<std::pair<int64_t, int64_t>> directed_pair_set;
+
+        directed_pair_set = parse_set_directed_pair_positive_int64("set(3->5, 8->9, 0->3)");
+        ASSERT_EQUAL(directed_pair_set.size(), 3);
+        ASSERT_TRUE(directed_pair_set.find(std::make_pair(3, 5)) != directed_pair_set.end());
+        ASSERT_TRUE(directed_pair_set.find(std::make_pair(8, 9)) != directed_pair_set.end());
+        ASSERT_TRUE(directed_pair_set.find(std::make_pair(0, 3)) != directed_pair_set.end());
+
+        directed_pair_set = parse_set_directed_pair_positive_int64("set(0->1)");
+        ASSERT_EQUAL(directed_pair_set.size(), 1);
+        ASSERT_TRUE(directed_pair_set.find(std::make_pair(0, 1)) != directed_pair_set.end());
+
+        directed_pair_set = parse_set_directed_pair_positive_int64("set()");
+        ASSERT_EQUAL(directed_pair_set.size(), 0);
+
+        directed_pair_set = parse_set_directed_pair_positive_int64("set(  )");
+        ASSERT_EQUAL(directed_pair_set.size(), 0);
+
+        ASSERT_EXCEPTION(parse_set_directed_pair_positive_int64("set(0->1"));
+        ASSERT_EXCEPTION(parse_set_directed_pair_positive_int64("set(0->1))"));
+        ASSERT_EXCEPTION(parse_set_directed_pair_positive_int64("set(3->-1)"));
+        ASSERT_EXCEPTION(parse_set_directed_pair_positive_int64("set(4->->5)"));
+        ASSERT_EXCEPTION(parse_set_directed_pair_positive_int64("set(4->-3"));
+        ASSERT_EXCEPTION(parse_set_directed_pair_positive_int64("set(4->3,3->4,4 ->3"));
 
     }
 };

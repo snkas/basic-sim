@@ -42,25 +42,16 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
         } else {
 
             // Only between select pairs
-            std::set<std::string> string_set = parse_set_string(pingmesh_endpoints_pair_str);
-            for (std::string s : string_set) {
-                std::vector<std::string> spl = split_string(s, "->", 2);
-                int64_t a = parse_positive_int64(spl[0]);
-                int64_t b = parse_positive_int64(spl[1]);
-                if (a == b) {
-                    throw std::invalid_argument(format_string("Cannot have pingmesh pair to itself on node %" PRIu64 "", a));
+            std::set<std::pair<int64_t, int64_t>> string_set = parse_set_directed_pair_positive_int64(pingmesh_endpoints_pair_str);
+            for (std::pair<int64_t, int64_t> p : string_set) {
+                if (!m_topology->IsValidEndpoint(p.first)) {
+                    throw std::invalid_argument(format_string("Left node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", p.first));
                 }
-                if (!m_topology->IsValidEndpoint(a)) {
-                    throw std::invalid_argument(format_string("Left node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", a));
+                if (!m_topology->IsValidEndpoint(p.second)) {
+                    throw std::invalid_argument(format_string("Right node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", p.second));
                 }
-                if (!m_topology->IsValidEndpoint(b)) {
-                    throw std::invalid_argument(format_string("Right node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", b));
-                }
-                if (std::find(m_pingmesh_endpoint_pairs.begin(), m_pingmesh_endpoint_pairs.end(), std::make_pair(a, b)) != m_pingmesh_endpoint_pairs.end()) {
-                    throw std::invalid_argument(format_string("Duplicate pingmesh pair (%" PRIu64 " -> %" PRIu64 ")", a, b));
-                }
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[a] == m_system_id) {
-                    m_pingmesh_endpoint_pairs.push_back(std::make_pair(a, b));
+                if (!m_enable_distributed || m_distributed_node_system_id_assignment[p.first] == m_system_id) {
+                    m_pingmesh_endpoint_pairs.push_back(std::make_pair(p.first, p.second));
                 }
             }
 
