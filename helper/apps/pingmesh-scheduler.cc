@@ -56,6 +56,9 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
                 if (!m_topology->IsValidEndpoint(b)) {
                     throw std::invalid_argument(format_string("Right node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", b));
                 }
+                if (std::find(m_pingmesh_endpoint_pairs.begin(), m_pingmesh_endpoint_pairs.end(), std::make_pair(a, b)) != m_pingmesh_endpoint_pairs.end()) {
+                    throw std::invalid_argument(format_string("Duplicate pingmesh pair (%" PRIu64 " -> %" PRIu64 ")", a, b));
+                }
                 if (!m_enable_distributed || m_distributed_node_system_id_assignment[a] == m_system_id) {
                     m_pingmesh_endpoint_pairs.push_back(std::make_pair(a, b));
                 }
@@ -232,17 +235,17 @@ void PingmeshScheduler::WriteResults() {
 
             // Write nicely formatted to the text
             char str_latency_to_there_ms[100];
-            sprintf(str_latency_to_there_ms, "%.2f ms", nanosec_to_millisec(mean_latency_to_there_ns));
+            sprintf(str_latency_to_there_ms, "%.2f ms", mean_latency_to_there_ns == -1 ? -1 : nanosec_to_millisec(mean_latency_to_there_ns));
             char str_latency_from_there_ms[100];
-            sprintf(str_latency_from_there_ms, "%.2f ms", nanosec_to_millisec(mean_latency_from_there_ns));
+            sprintf(str_latency_from_there_ms, "%.2f ms", mean_latency_from_there_ns == -1 ? -1 : nanosec_to_millisec(mean_latency_from_there_ns));
             char str_min_rtt_ms[100];
-            sprintf(str_min_rtt_ms, "%.2f ms", nanosec_to_millisec(min_rtt_ns));
+            sprintf(str_min_rtt_ms, "%.2f ms", min_rtt_ns == -1 ? -1 : nanosec_to_millisec(min_rtt_ns));
             char str_mean_rtt_ms[100];
-            sprintf(str_mean_rtt_ms, "%.2f ms", nanosec_to_millisec(mean_rtt_ns));
+            sprintf(str_mean_rtt_ms, "%.2f ms", mean_rtt_ns == -1 ? -1 : nanosec_to_millisec(mean_rtt_ns));
             char str_max_rtt_ms[100];
-            sprintf(str_max_rtt_ms, "%.2f ms", nanosec_to_millisec(max_rtt_ns));
+            sprintf(str_max_rtt_ms, "%.2f ms", max_rtt_ns == -1 ? -1 : nanosec_to_millisec(max_rtt_ns));
             char str_sample_std_rtt_ms[100];
-            sprintf(str_sample_std_rtt_ms, "%.2f ms", nanosec_to_millisec(sample_std_rtt_ns));
+            sprintf(str_sample_std_rtt_ms, "%.2f ms", sample_std_rtt_ns == -1 ? -1 : nanosec_to_millisec(sample_std_rtt_ns));
             fprintf(
                     file_txt, "%-10" PRId64 "%-10" PRId64 "%-22s%-22s%-16s%-16s%-16s%-16s%d/%d (%d%%)\n",
                     from_node_id, to_node_id, str_latency_to_there_ms, str_latency_from_there_ms, str_min_rtt_ms, str_mean_rtt_ms, str_max_rtt_ms, str_sample_std_rtt_ms, total, sent, (int) std::round(((double) total / (double) sent) * 100.0)

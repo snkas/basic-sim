@@ -187,6 +187,9 @@ public:
                 min_rtt_ns = std::min(min_rtt_ns, valid_rtt);
                 max_rtt_ns = std::max(max_rtt_ns, valid_rtt);
             }
+            if (!any_valid) {
+                min_rtt_ns = -1;
+            }
             double mean_rtt_ns = any_valid ? sum_rtt_ns / list_rtt_ns_valid.at(j).size() : -1;
             double sum_rtt_min_mean_sq_ns = 0.0;
             for (int64_t valid_rtt : list_rtt_ns_valid.at(j)) {
@@ -195,17 +198,17 @@ public:
             double sample_std_rtt_ns = any_valid ? (list_rtt_ns_valid.at(j).size() > 1 ? std::sqrt(sum_rtt_min_mean_sq_ns / (list_rtt_ns_valid.at(j).size() - 1)) : 0) : -1;
 
             // Match log with the above calculated RTTs
-            ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[2]), expected_mean_latency_there / 1e6, 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[2]), (expected_mean_latency_there == -1 ? -1 : expected_mean_latency_there / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[3], "ms");
-            ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[4]), expected_mean_latency_back / 1e6, 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[4]), (expected_mean_latency_back == -1 ? -1 : expected_mean_latency_back / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[5], "ms");
-            ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[6]), min_rtt_ns / 1e6, 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[6]), (min_rtt_ns == -1 ? -1 : min_rtt_ns / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[7], "ms");
-            ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[8]), mean_rtt_ns / 1e6, 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[8]), (mean_rtt_ns == -1 ? -1 : mean_rtt_ns / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[9], "ms");
-            ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[10]), max_rtt_ns / 1e6, 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[10]), (max_rtt_ns == -1 ? -1 : max_rtt_ns / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[11], "ms");
-            ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), sample_std_rtt_ns / 1e6, 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[12]), (sample_std_rtt_ns == -1 ? -1 : sample_std_rtt_ns / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[13], "ms");
             ASSERT_EQUAL(line_spl[14], std::to_string(list_rtt_ns_valid.at(j).size()) + "/" + std::to_string(list_rtt_ns.at(j).size()));
             ASSERT_EQUAL(line_spl[15], "(" + std::to_string((int) std::round(((double) list_rtt_ns_valid.at(j).size() / (double) list_rtt_ns.at(j).size()) * 100.0)) + "%)");
@@ -525,6 +528,218 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PingmeshEndToEndOnePairNoRecTestCase : public PingmeshEndToEndTestCase
+{
+public:
+    PingmeshEndToEndOnePairNoRecTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end one-pair-no-rec") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        // 0.049999999 seconds, every 10ms a ping, but takes 50ms to return back
+        write_basic_config(49999999, 10000000, "set(2->1)");
+        write_six_topology();
+
+        // Ping pairs
+        std::vector<std::pair<int64_t, int64_t>> ping_pairs;
+        ping_pairs.push_back(std::make_pair(2, 1));
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        PingmeshScheduler pingmeshScheduler(basicSimulation, topology);
+        basicSimulation->Run();
+        pingmeshScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // To store the results
+        std::vector<std::vector<int64_t>> list_latency_there_ns;
+        std::vector<std::vector<int64_t>> list_latency_back_ns;
+        std::vector<std::vector<int64_t>> list_rtt_ns;
+
+        // Perform the run and get results
+        validate_pingmesh_logs(
+                49999999,
+                temp_dir,
+                ping_pairs,
+                list_latency_there_ns,
+                list_latency_back_ns,
+                list_rtt_ns
+        );
+
+        // Check the actual values
+        for (size_t i = 0; i < ping_pairs.size(); i++) {
+            for (int64_t latency_there_ns : list_latency_there_ns.at(i)) {
+                ASSERT_EQUAL(latency_there_ns, -1);
+            }
+            for (int64_t latency_back_ns : list_latency_back_ns.at(i)) {
+                ASSERT_EQUAL(latency_back_ns, -1);
+            }
+            for (int64_t rtt_ns : list_rtt_ns.at(i)) {
+                ASSERT_EQUAL(rtt_ns, -1);
+            }
+            ASSERT_EQUAL(list_latency_there_ns.at(i).size(), 5);
+            ASSERT_EQUAL(list_latency_back_ns.at(i).size(), 5);
+            ASSERT_EQUAL(list_rtt_ns.at(i).size(), 5);
+        }
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PingmeshEndToEndInvalidPairEqualTestCase : public PingmeshEndToEndTestCase
+{
+public:
+    PingmeshEndToEndInvalidPairEqualTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-pair-equal") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        // 5 seconds, every 100ms a ping
+        write_basic_config(5000000000, 100000000, "set(2->2)");
+        write_six_topology();
+
+        // Initialize basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
+
+        basicSimulation->Finalize();
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PingmeshEndToEndInvalidPairATestCase : public PingmeshEndToEndTestCase
+{
+public:
+    PingmeshEndToEndInvalidPairATestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-pair-a") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        // 5 seconds, every 100ms a ping
+        write_basic_config(5000000000, 100000000, "set(6->3)");
+        write_six_topology();
+
+        // Initialize basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
+
+        basicSimulation->Finalize();
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PingmeshEndToEndInvalidPairBTestCase : public PingmeshEndToEndTestCase
+{
+public:
+    PingmeshEndToEndInvalidPairBTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-pair-b") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        // 5 seconds, every 100ms a ping
+        write_basic_config(5000000000, 100000000, "set(2->6)");
+        write_six_topology();
+
+        // Initialize basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
+
+        basicSimulation->Finalize();
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PingmeshEndToEndInvalidDuplicatePairTestCase : public PingmeshEndToEndTestCase
+{
+public:
+    PingmeshEndToEndInvalidDuplicatePairTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-duplicate-pair") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        // 5 seconds, every 100ms a ping
+        write_basic_config(5000000000, 100000000, "set(2->3,3-> 5,3->1,3->5,1->0)");
+        write_six_topology();
+
+        // Initialize basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
+
+        basicSimulation->Finalize();
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
