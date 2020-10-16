@@ -10,6 +10,31 @@ fi
 echo "Unzipping clean ns-3 (no overwrites)"
 unzip -n ${NS3_VERSION}.zip || exit 1
 
+# Removing non-dependent modules for quicker compilation
+echo "Removing modules in ${NS3_VERSION}/src/ on which basic-sim is not dependent on"
+cd "${NS3_VERSION}/src" || exit 1
+for src_module in */ ; do
+
+  # Check if the folder is one of the dependent modules
+  is_dependency=0
+  for dependency in "core" "internet" "applications" "point-to-point" "traffic-control" "bridge" "network" "config-store" "stats" "mpi"
+  do
+    if [ "${src_module}" == "${dependency}/" ]; then
+      is_dependency=1
+    fi
+  done
+
+  # If not, the module can be removed from the src/ directory
+  if [ "${is_dependency}" != "1" ]; then
+    echo "Removing non-dependent module: ${src_module}"
+    rm -rf "${src_module}"
+  fi
+
+done
+
+# Return to build directory
+cd ../../ || exit 1
+
 # Create the basic-sim module
 mkdir -p ${NS3_VERSION}/contrib/basic-sim || exit 1
 
