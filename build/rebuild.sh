@@ -11,7 +11,7 @@ for src_module in */ ; do
 
   # Check if the folder is one of the dependent modules
   is_dependency=0
-  for dependency in "core" "internet" "applications" "point-to-point" "traffic-control" "bridge" "network" "config-store" "stats" "mpi"
+  for dependency in "core" "internet" "applications" "point-to-point" "traffic-control" "bridge" "network" "config-store" "stats" "mpi" "visualizer"
   do
     if [ "${src_module}" == "${dependency}/" ]; then
       is_dependency=1
