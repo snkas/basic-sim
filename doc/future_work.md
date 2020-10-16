@@ -2,10 +2,6 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Link filters for link (net-device) utilization tracker helper
-
-* Link filters for link (net-device) queue tracker helper
-
 * Incorporate a parameterized selector for RED as queueing discipline
   in the topology configuration (as RED is commonly used)
   

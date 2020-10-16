@@ -42,8 +42,8 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
         } else {
 
             // Only between select pairs
-            std::set<std::pair<int64_t, int64_t>> string_set = parse_set_directed_pair_positive_int64(pingmesh_endpoints_pair_str);
-            for (std::pair<int64_t, int64_t> p : string_set) {
+            std::set<std::pair<int64_t, int64_t>> directed_pair_set = parse_set_directed_pair_positive_int64(pingmesh_endpoints_pair_str);
+            for (std::pair<int64_t, int64_t> p : directed_pair_set) {
                 if (!m_topology->IsValidEndpoint(p.first)) {
                     throw std::invalid_argument(format_string("Left node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", p.first));
                 }

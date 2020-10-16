@@ -41,29 +41,45 @@ namespace ns3 {
             m_system_id = m_basicSimulation->GetSystemId();
             m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
             m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
+            std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_utilization_tracking_enable_for_links", "all");
 
             // Read in parameters
             m_utilization_interval_ns = parse_geq_one_int64(m_basicSimulation->GetConfigParamOrFail("link_utilization_tracking_interval_ns"));
             std::cout << "  > Utilization aggregation interval... " << m_utilization_interval_ns << " ns" << std::endl;
-            // TODO: Add additional parameter to specifically select links
 
-            // Go over every edge in the topology
-            for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
+            // Pairs
+            if (enable_for_links_str == "all") {
 
-                // Edge a -- b
-                std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
-                std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges()[i];
+                // Go over every edge in the topology
+                for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
 
-                // One tracker a -> b
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
-                    Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
-                    m_utilization_trackers.push_back(std::make_pair(edge, tracker_a_b));
+                    // Edge a -- b
+                    std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
+                    std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges()[i];
+
+                    // One tracker a -> b
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
+                        Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
+                        m_utilization_trackers.push_back(std::make_pair(edge, tracker_a_b));
+                    }
+
+                    // One tracker b -> a
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
+                        Ptr<PtopLinkUtilizationTracker> tracker_b_a = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
+                        m_utilization_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
+                    }
+
                 }
 
-                // One tracker b -> a
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
-                    Ptr<PtopLinkUtilizationTracker> tracker_b_a = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
-                    m_utilization_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
+            } else {
+
+                // Only between select links
+                std::set<std::pair<int64_t, int64_t>> enable_for_links_set = parse_set_directed_pair_positive_int64(enable_for_links_str);
+                for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[p.first] == m_system_id) {
+                        Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(m_topology->GetNetDeviceForLink(p), m_utilization_interval_ns);
+                        m_utilization_trackers.push_back(std::make_pair(p, tracker_a_b));
+                    }
                 }
 
             }

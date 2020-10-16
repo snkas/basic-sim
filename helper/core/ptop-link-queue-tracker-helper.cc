@@ -41,29 +41,45 @@ namespace ns3 {
             m_system_id = m_basicSimulation->GetSystemId();
             m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
             m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
+            std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_queue_tracking_enable_for_links", "all");
 
-            // TODO: Add additional parameter to specifically select links
+            // Pairs
+            if (enable_for_links_str == "all") {
 
-            // Go over every edge in the topology
-            for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
+                // Go over every edge in the topology
+                for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
 
-                // Edge a -- b
-                std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
-                std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges()[i];
+                    // Edge a -- b
+                    std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
+                    std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges()[i];
 
-                // One tracker a -> b
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
-                    Ptr<PtopLinkQueueTracker> tracker_a_b = CreateObject<PtopLinkQueueTracker>(edge_net_devices.first);
-                    m_queue_trackers.push_back(std::make_pair(edge, tracker_a_b));
+                    // One tracker a -> b
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
+                        Ptr<PtopLinkQueueTracker> tracker_a_b = CreateObject<PtopLinkQueueTracker>(edge_net_devices.first);
+                        m_queue_trackers.push_back(std::make_pair(edge, tracker_a_b));
+                    }
+
+                    // One tracker b -> a
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
+                        Ptr<PtopLinkQueueTracker> tracker_b_a = CreateObject<PtopLinkQueueTracker>(edge_net_devices.second);
+                        m_queue_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
+                    }
+
                 }
 
-                // One tracker b -> a
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
-                    Ptr<PtopLinkQueueTracker> tracker_b_a = CreateObject<PtopLinkQueueTracker>(edge_net_devices.second);
-                    m_queue_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
+            } else {
+
+                // Only between select links
+                std::set<std::pair<int64_t, int64_t>> enable_for_links_set = parse_set_directed_pair_positive_int64(enable_for_links_str);
+                for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[p.first] == m_system_id) {
+                        Ptr<PtopLinkQueueTracker> tracker_a_b = CreateObject<PtopLinkQueueTracker>(m_topology->GetNetDeviceForLink(p));
+                        m_queue_trackers.push_back(std::make_pair(p, tracker_a_b));
+                    }
                 }
 
             }
+
             std::cout << "  > Tracking link (net-device) queue on " << m_queue_trackers.size() << " point-to-point network devices" << std::endl;
             m_basicSimulation->RegisterTimestamp("Install link (net-device) queue trackers");
 

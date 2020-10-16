@@ -21,6 +21,7 @@ which requires a topology (which is recommended).
 
    ```
    enable_link_queue_tracking=true
+   link_queue_tracking_enable_for_links=all
    ```
 
 2. In your code, import the helper:
@@ -80,7 +81,12 @@ which requires a topology (which is recommended).
 You MUST set the following key in `config_ns3.properties` for queue tracking to be enabled:
 
 * `enable_link_queue_tracking` : 
-  True iff link qeuue tracking on all links should be enabled (boolean value, either `true` or `false`)
+  True iff link queue tracking on all links should be enabled (boolean value, either `true` or `false`)
+
+The following CAN be set:
+
+* `link_queue_tracking_enable_for_links` : 
+  Select which links queue tracking should be enabled (either `all` or set of links (directed edges) `set(a->b, ...)`)
 
 
 **The link queue log files**

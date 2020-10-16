@@ -44,10 +44,12 @@ public:
 
         // Point-to-point link utilization tracking
         AddTestCase(new PtopLinkUtilizationSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new PtopLinkUtilizationSpecificLinksTestCase, TestCase::QUICK);
         AddTestCase(new PtopLinkUtilizationNotEnabledTestCase, TestCase::QUICK);
 
         // Point-to-point link queue tracking
         AddTestCase(new PtopLinkQueueSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new PtopLinkQueueSpecificLinksTestCase, TestCase::QUICK);
         AddTestCase(new PtopLinkQueueNotEnabledTestCase, TestCase::QUICK);
 
         // TCP optimizer

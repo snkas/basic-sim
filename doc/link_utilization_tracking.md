@@ -20,6 +20,7 @@ which requires a topology (which is recommended).
    ```
    enable_link_utilization_tracking=true
    link_utilization_tracking_interval_ns=100000000
+   link_utilization_tracking_enable_for_links=all
    ```
 
 2. In your code, import the helper:
@@ -80,9 +81,20 @@ which requires a topology (which is recommended).
 
 You MUST set the following key in `config_ns3.properties` for utilization tracking to be enabled:
 
-* `enable_link_utilization_tracking` : True iff link utilization tracking on all links should be enabled (boolean value, either `true` or `false`)
-* `link_utilization_tracking_interval_ns` : The aggregation interval, this effectively determines the granularity of the utilization results. Setting it too low will cause a lot of overhead, setting it too high will make the results less fine. (positive integer value in nanoseconds)
+* `enable_link_utilization_tracking` : True iff link utilization tracking on all links 
+  should be enabled (boolean value, either `true` or `false`)
+  
+* `link_utilization_tracking_interval_ns` : The aggregation interval, this effectively 
+  determines the granularity of the utilization results. Setting it too low will cause a 
+  lot of overhead, setting it too high will make the results less fine. (positive integer
+  value in nanoseconds)
 
+
+The following CAN be set:
+
+* `link_utilization_tracking_enable_for_links` : 
+  Select which links utilization tracking should be enabled (either `all` or set of links 
+  (directed edges) `set(a->b, ...)`)
 
 **The link utilization log files**
 
