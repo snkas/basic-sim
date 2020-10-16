@@ -440,3 +440,52 @@ public:
 
     }
 };
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class ArbiterEcmpTooManyNodesTestCase : public TestCase
+{
+public:
+    ArbiterEcmpTooManyNodesTestCase () : TestCase ("routing-arbiter-ecmp too-many-nodes") {};
+    void DoRun () {
+        prepare_arbiter_test_config();
+
+        // String for the nodes
+        std::string nodes = "set(";
+        for (int i = 0; i < 40001; i++) {
+            if (i != 0) {
+                nodes += "," + std::to_string(i);
+            } else {
+                nodes += std::to_string(i);
+            }
+        }
+        nodes += ")";
+
+        // Topology with > 40000 nodes
+        std::ofstream topology_file;
+        topology_file.open (arbiter_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=40001" << std::endl;
+        topology_file << "num_undirected_edges=0" << std::endl;
+        topology_file << "switches=" << nodes << std::endl;
+        topology_file << "switches_which_are_tors=" << nodes << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set()" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // Create topology
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(arbiter_test_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ASSERT_EXCEPTION(ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology));
+
+        // Clean-up
+        basicSimulation->Finalize();
+        cleanup_arbiter_test();
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
