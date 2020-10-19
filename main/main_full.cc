@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
-    // Schedule flows
+    // Schedule TCP flows
     TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
 
     // Schedule UDP bursts
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     // Run simulation
     basicSimulation->Run();
 
-    // Write flow results
+    // Write TCP flow results
     tcpFlowScheduler.WriteResults();
 
     // Write UDP burst results
