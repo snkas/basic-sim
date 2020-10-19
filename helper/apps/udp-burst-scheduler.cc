@@ -89,7 +89,7 @@ namespace ns3 {
             // Install sink on each endpoint node
             std::cout << "  > Setting up UDP burst applications on all endpoint nodes" << std::endl;
             for (int64_t endpoint : m_topology->GetEndpoints()) {
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
+                if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(endpoint) == m_system_id) {
 
                     // Setup the application
                     UdpBurstHelper udpBurstHelper(1026, m_basicSimulation->GetLogsDir());

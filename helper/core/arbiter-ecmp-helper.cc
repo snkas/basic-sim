@@ -90,10 +90,10 @@ std::vector<std::vector<std::vector<uint32_t>>> ArbiterEcmpHelper::CalculateGlob
     for (std::pair<int64_t, int64_t> edge : topology->GetUndirectedEdges()) {
         for (int j = 0; j < n; j++) {
             if (dist[edge.first * n + j] - 1 == dist[edge.second * n + j]) {
-                global_candidate_list[edge.first][j].push_back(edge.second);
+                global_candidate_list.at(edge.first).at(j).push_back(edge.second);
             }
             if (dist[edge.second * n + j] - 1 == dist[edge.first * n + j]) {
-                global_candidate_list[edge.second][j].push_back(edge.first);
+                global_candidate_list.at(edge.second).at(j).push_back(edge.first);
             }
         }
     }

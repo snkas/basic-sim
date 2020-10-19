@@ -50,17 +50,17 @@ namespace ns3 {
                 for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
 
                     // Edge a -- b
-                    std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
-                    std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges()[i];
+                    std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges().at(i);
+                    std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges().at(i);
 
                     // One tracker a -> b
-                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.first) == m_system_id) {
                         Ptr<PtopLinkQueueTracker> tracker_a_b = CreateObject<PtopLinkQueueTracker>(edge_net_devices.first);
                         m_queue_trackers.push_back(std::make_pair(edge, tracker_a_b));
                     }
 
                     // One tracker b -> a
-                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.second) == m_system_id) {
                         Ptr<PtopLinkQueueTracker> tracker_b_a = CreateObject<PtopLinkQueueTracker>(edge_net_devices.second);
                         m_queue_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
                     }
@@ -72,7 +72,7 @@ namespace ns3 {
                 // Only between select links
                 std::set<std::pair<int64_t, int64_t>> enable_for_links_set = parse_set_directed_pair_positive_int64(enable_for_links_str);
                 for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
-                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[p.first] == m_system_id) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
                         Ptr<PtopLinkQueueTracker> tracker_a_b = CreateObject<PtopLinkQueueTracker>(m_topology->GetNetDeviceForLink(p));
                         m_queue_trackers.push_back(std::make_pair(p, tracker_a_b));
                     }
@@ -134,10 +134,10 @@ namespace ns3 {
             for (size_t i = 0; i < m_queue_trackers.size(); i++) {
 
                 // Retrieve the corresponding directed edge
-                std::pair<int64_t, int64_t> directed_edge = m_queue_trackers[i].first;
+                std::pair<int64_t, int64_t> directed_edge = m_queue_trackers.at(i).first;
 
                 // Tracker
-                Ptr<PtopLinkQueueTracker> tracker = m_queue_trackers[i].second;
+                Ptr<PtopLinkQueueTracker> tracker = m_queue_trackers.at(i).second;
 
                 // Queue size in packets
                 const std::vector<std::tuple<int64_t, int64_t, int64_t>> log_entries_pkt = tracker->GetIntervalsNumPackets();
@@ -149,9 +149,9 @@ namespace ns3 {
                             "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
-                            std::get<0>(log_entries_pkt[j]),
-                            std::get<1>(log_entries_pkt[j]),
-                            std::get<2>(log_entries_pkt[j])
+                            std::get<0>(log_entries_pkt.at(j)),
+                            std::get<1>(log_entries_pkt.at(j)),
+                            std::get<2>(log_entries_pkt.at(j))
                     );
                 }
 
@@ -165,9 +165,9 @@ namespace ns3 {
                             "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
-                            std::get<0>(log_entries_byte[j]),
-                            std::get<1>(log_entries_byte[j]),
-                            std::get<2>(log_entries_byte[j])
+                            std::get<0>(log_entries_byte.at(j)),
+                            std::get<1>(log_entries_byte.at(j)),
+                            std::get<2>(log_entries_byte.at(j))
                     );
                 }
 

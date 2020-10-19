@@ -168,8 +168,8 @@ UdpRttClient::HandleRead(Ptr <Socket> socket) {
         uint32_t seqNo = incomingSeqTs.GetSeq();
 
         // Update the local timestamps
-        m_replyTimestamps[seqNo] = incomingSeqTs.GetTs().GetNanoSeconds();
-        m_receiveReplyTimestamps[seqNo] = Simulator::Now().GetNanoSeconds();
+        m_replyTimestamps.at(seqNo) = incomingSeqTs.GetTs().GetNanoSeconds();
+        m_receiveReplyTimestamps.at(seqNo) = Simulator::Now().GetNanoSeconds();
 
 
     }

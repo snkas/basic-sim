@@ -30,7 +30,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
             // All-to-all for all endpoints
             std::set<int64_t> endpoints = m_topology->GetEndpoints();
             for (int64_t i : endpoints) {
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[i] == m_system_id) {
+                if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(i) == m_system_id) {
                     for (int64_t j : endpoints) {
                         if (i != j) {
                             m_pingmesh_endpoint_pairs.push_back(std::make_pair(i, j));
@@ -50,7 +50,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
                 if (!m_topology->IsValidEndpoint(p.second)) {
                     throw std::invalid_argument(format_string("Right node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", p.second));
                 }
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment[p.first] == m_system_id) {
+                if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
                     m_pingmesh_endpoint_pairs.push_back(std::make_pair(p.first, p.second));
                 }
             }
@@ -88,7 +88,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
         // Install echo server on each node
         std::cout << "  > Setting up " << endpoints.size() << " pingmesh servers" << std::endl;
         for (int64_t i : endpoints) {
-            if (!m_enable_distributed || m_distributed_node_system_id_assignment[i] == m_system_id) {
+            if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(i) == m_system_id) {
                 UdpRttServerHelper echoServerHelper(1025);
                 ApplicationContainer app = echoServerHelper.Install(m_nodes.Get(i));
                 app.Start(Seconds(0.0));
@@ -155,7 +155,7 @@ void PingmeshScheduler::WriteResults() {
 
         // Go over the applications, write each ping's result
         for (uint32_t i = 0; i < m_apps.size(); i++) {
-            Ptr<UdpRttClient> client = m_apps[i].Get(0)->GetObject<UdpRttClient>();
+            Ptr<UdpRttClient> client = m_apps.at(i).Get(0)->GetObject<UdpRttClient>();
 
             // Data about this pair
             int64_t from_node_id = client->GetFromNodeId();
@@ -172,19 +172,19 @@ void PingmeshScheduler::WriteResults() {
             for (uint32_t j = 0; j < sent; j++) {
 
                 // Outcome
-                bool reply_arrived = replyTimestamps[j] != -1;
+                bool reply_arrived = replyTimestamps.at(j) != -1;
                 std::string reply_arrived_str = reply_arrived ? "YES" : "LOST";
 
                 // Latencies
-                int64_t latency_to_there_ns = reply_arrived ? replyTimestamps[j] - sendRequestTimestamps[j] : -1;
-                int64_t latency_from_there_ns = reply_arrived ? receiveReplyTimestamps[j] - replyTimestamps[j] : -1;
+                int64_t latency_to_there_ns = reply_arrived ? replyTimestamps.at(j) - sendRequestTimestamps.at(j) : -1;
+                int64_t latency_from_there_ns = reply_arrived ? receiveReplyTimestamps.at(j) - replyTimestamps.at(j) : -1;
                 int64_t rtt_ns = reply_arrived ? latency_to_there_ns + latency_from_there_ns : -1;
 
                 // Write plain to the csv
                 fprintf(
                         file_csv,
                         "%" PRId64 ",%" PRId64 ",%u,%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%" PRId64 ",%s\n",
-                        from_node_id, to_node_id, j, sendRequestTimestamps[j], replyTimestamps[j], receiveReplyTimestamps[j],
+                        from_node_id, to_node_id, j, sendRequestTimestamps.at(j), replyTimestamps.at(j), receiveReplyTimestamps.at(j),
                         latency_to_there_ns, latency_from_there_ns, rtt_ns, reply_arrived_str.c_str()
                 );
 
@@ -204,9 +204,9 @@ void PingmeshScheduler::WriteResults() {
             double mean_rtt_ns = (sum_latency_to_there_ns + sum_latency_from_there_ns) / total;
             double sum_sq = 0.0;
             for (uint32_t j = 0; j < rtts_ns.size(); j++) {
-                min_rtt_ns = std::min(min_rtt_ns, rtts_ns[j]);
-                max_rtt_ns = std::max(max_rtt_ns, rtts_ns[j]);
-                sum_sq += std::pow(rtts_ns[j] - mean_rtt_ns, 2);
+                min_rtt_ns = std::min(min_rtt_ns, rtts_ns.at(j));
+                max_rtt_ns = std::max(max_rtt_ns, rtts_ns.at(j));
+                sum_sq += std::pow(rtts_ns.at(j) - mean_rtt_ns, 2);
             }
             double sample_std_rtt_ns;
             double mean_latency_to_there_ns;

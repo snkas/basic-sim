@@ -26,7 +26,7 @@ namespace ns3 {
 void TcpFlowScheduler::StartNextFlow(int i) {
 
     // Fetch the flow to start
-    TcpFlowScheduleEntry& entry = m_schedule[i];
+    TcpFlowScheduleEntry& entry = m_schedule.at(i);
     int64_t now_ns = Simulator::Now().GetNanoSeconds();
     NS_ASSERT(now_ns == entry.GetStartTimeNs());
 
@@ -48,7 +48,7 @@ void TcpFlowScheduler::StartNextFlow(int i) {
 
     // If there is a next flow to start, schedule its start
     if (i + 1 != (int) m_schedule.size()) {
-        int64_t next_flow_ns = m_schedule[i + 1].GetStartTimeNs();
+        int64_t next_flow_ns = m_schedule.at(i + 1).GetStartTimeNs();
         Simulator::Schedule(NanoSeconds(next_flow_ns - now_ns), &TcpFlowScheduler::StartNextFlow, this, i + 1);
     }
 
@@ -95,7 +95,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         if (m_enable_distributed) {
             std::vector<TcpFlowScheduleEntry> filtered_schedule;
             for (TcpFlowScheduleEntry &entry : complete_schedule) {
-                if (m_distributed_node_system_id_assignment[entry.GetFromNodeId()] == m_system_id) {
+                if (m_distributed_node_system_id_assignment.at(entry.GetFromNodeId()) == m_system_id) {
                     filtered_schedule.push_back(entry);
                 }
             }
@@ -128,7 +128,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Install sink on each endpoint node
         std::cout << "  > Setting up TCP flow sinks" << std::endl;
         for (int64_t endpoint : m_topology->GetEndpoints()) {
-            if (!m_enable_distributed || m_distributed_node_system_id_assignment[endpoint] == m_system_id) {
+            if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(endpoint) == m_system_id) {
                 TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
                 ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
                 app.Start(Seconds(0.0));
@@ -139,7 +139,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Setup start of first source application
         std::cout << "  > Setting up traffic TCP flow starter" << std::endl;
         if (m_schedule.size() > 0) {
-            Simulator::Schedule(NanoSeconds(m_schedule[0].GetStartTimeNs()), &TcpFlowScheduler::StartNextFlow, this, 0);
+            Simulator::Schedule(NanoSeconds(m_schedule.at(0).GetStartTimeNs()), &TcpFlowScheduler::StartNextFlow, this, 0);
         }
         m_basicSimulation->RegisterTimestamp("Setup traffic TCP flow starter");
 

@@ -54,17 +54,17 @@ namespace ns3 {
                 for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
 
                     // Edge a -- b
-                    std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
-                    std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges()[i];
+                    std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges().at(i);
+                    std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>> edge_net_devices = m_topology->GetNetDevicesForEdges().at(i);
 
                     // One tracker a -> b
-                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.first] == m_system_id) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.first) == m_system_id) {
                         Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
                         m_utilization_trackers.push_back(std::make_pair(edge, tracker_a_b));
                     }
 
                     // One tracker b -> a
-                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[edge.second] == m_system_id) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.second) == m_system_id) {
                         Ptr<PtopLinkUtilizationTracker> tracker_b_a = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
                         m_utilization_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
                     }
@@ -76,7 +76,7 @@ namespace ns3 {
                 // Only between select links
                 std::set<std::pair<int64_t, int64_t>> enable_for_links_set = parse_set_directed_pair_positive_int64(enable_for_links_str);
                 for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
-                    if (!m_enable_distributed || m_distributed_node_system_id_assignment[p.first] == m_system_id) {
+                    if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
                         Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(m_topology->GetNetDeviceForLink(p), m_utilization_interval_ns);
                         m_utilization_trackers.push_back(std::make_pair(p, tracker_a_b));
                     }
@@ -154,10 +154,10 @@ namespace ns3 {
             for (size_t i = 0; i < m_utilization_trackers.size(); i++) {
 
                 // Retrieve the corresponding directed edge
-                std::pair<int64_t, int64_t> directed_edge = m_utilization_trackers[i].first;
+                std::pair<int64_t, int64_t> directed_edge = m_utilization_trackers.at(i).first;
 
                 // Tracker
-                Ptr<PtopLinkUtilizationTracker> tracker = m_utilization_trackers[i].second;
+                Ptr<PtopLinkUtilizationTracker> tracker = m_utilization_trackers.at(i).second;
 
                 // Go over every utilization interval
                 const std::vector<std::tuple<int64_t, int64_t, int64_t>> intervals = tracker->FinalizeUtilization();
@@ -165,8 +165,8 @@ namespace ns3 {
                 int64_t utilization_busy_sum_ns = 0;
                 int64_t running_busy_sum_ns = 0;
                 for (size_t j = 0; j < intervals.size(); j++) {
-                    utilization_busy_sum_ns += std::get<2>(intervals[j]);
-                    running_busy_sum_ns += std::get<2>(intervals[j]);
+                    utilization_busy_sum_ns += std::get<2>(intervals.at(j));
+                    running_busy_sum_ns += std::get<2>(intervals.at(j));
 
                     // Write plain to the uncompressed CSV file:
                     // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<amount of busy in this interval (ns)>
@@ -174,17 +174,17 @@ namespace ns3 {
                             "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
-                            std::get<0>(intervals[j]),
-                            std::get<1>(intervals[j]),
-                            std::get<2>(intervals[j])
+                            std::get<0>(intervals.at(j)),
+                            std::get<1>(intervals.at(j)),
+                            std::get<2>(intervals.at(j))
                     );
 
                     // Compressed version:
                     // Only write if it is the last one, or if the utilization is sufficiently different from the next
                     bool print_compressed_line = (j == intervals.size() - 1);
                     if (!print_compressed_line) {
-                        double util_j = ((double) std::get<2>(intervals[j])) / (double) (std::get<1>(intervals[j]) - std::get<0>(intervals[j]));
-                        double util_j_next = ((double) std::get<2>(intervals[j + 1])) / (double) (std::get<1>(intervals[j + 1]) - std::get<0>(intervals[j + 1]));
+                        double util_j = ((double) std::get<2>(intervals.at(j))) / (double) (std::get<1>(intervals.at(j)) - std::get<0>(intervals.at(j)));
+                        double util_j_next = ((double) std::get<2>(intervals.at(j + 1))) / (double) (std::get<1>(intervals.at(j + 1)) - std::get<0>(intervals.at(j + 1)));
                         if (std::abs(util_j - util_j_next) >= UTILIZATION_TRACKER_COMPRESSION_APPROXIMATELY_NOT_EQUAL) { // Approximately not equal
                             print_compressed_line = true;
                         }
@@ -198,7 +198,7 @@ namespace ns3 {
                                 (int) directed_edge.first,
                                 (int) directed_edge.second,
                                 interval_left_side_ns,
-                                std::get<1>(intervals[j]),
+                                std::get<1>(intervals.at(j)),
                                 running_busy_sum_ns
                         );
 
@@ -208,11 +208,11 @@ namespace ns3 {
                                 (int) directed_edge.first,
                                 (int) directed_edge.second,
                                 interval_left_side_ns / 1000000.0,
-                                std::get<1>(intervals[j]) / 1000000.0,
-                                ((double) running_busy_sum_ns) / ((double) (std::get<1>(intervals[j]) - interval_left_side_ns)) * 100.0
+                                std::get<1>(intervals.at(j)) / 1000000.0,
+                                ((double) running_busy_sum_ns) / ((double) (std::get<1>(intervals.at(j)) - interval_left_side_ns)) * 100.0
                         );
 
-                        interval_left_side_ns = std::get<1>(intervals[j]);
+                        interval_left_side_ns = std::get<1>(intervals.at(j));
                         running_busy_sum_ns = 0;
 
                     }
@@ -223,7 +223,7 @@ namespace ns3 {
                         "%-8d %-8d %.2f%%\n",
                         (int) directed_edge.first,
                         (int) directed_edge.second,
-                        ((double) utilization_busy_sum_ns) / (std::get<1>(intervals[intervals.size() - 1])) * 100.0
+                        ((double) utilization_busy_sum_ns) / (std::get<1>(intervals.at(intervals.size() - 1))) * 100.0
                 );
 
             }
