@@ -27,11 +27,11 @@ ArbiterPtop::ArbiterPtop(
     // Save which interface is for which neighbor node id
     m_neighbor_node_id_to_if_idx = std::vector<uint32_t>(m_topology->GetNumNodes(), 0);
     for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
-        std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges()[i];
+        std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges().at(i);
         if (edge.first == m_node_id) {
-            m_neighbor_node_id_to_if_idx[edge.second] = interface_idxs_for_edges[i].first;
+            m_neighbor_node_id_to_if_idx.at(edge.second) = interface_idxs_for_edges.at(i).first;
         } else if (edge.second == m_node_id) {
-            m_neighbor_node_id_to_if_idx[edge.first] = interface_idxs_for_edges[i].second;
+            m_neighbor_node_id_to_if_idx.at(edge.first) = interface_idxs_for_edges.at(i).second;
         }
     }
 
@@ -70,7 +70,7 @@ ArbiterResult ArbiterPtop::Decide(
         }
 
         // Convert the neighbor node id to the interface index of the edge which connects to it
-        uint32_t selected_if_idx = m_neighbor_node_id_to_if_idx[selected_node_id];
+        uint32_t selected_if_idx = m_neighbor_node_id_to_if_idx.at(selected_node_id);
         if (selected_if_idx == 0) {
             throw std::runtime_error(format_string(
                     "The selected next node %d is not a neighbor of node %d.",

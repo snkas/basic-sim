@@ -141,23 +141,23 @@ void BasicSimulation::ConfigureSimulation() {
         m_distributed_node_system_id_assignment = parse_list_positive_int64(GetConfigParamOrFail("distributed_node_system_id_assignment"));
         std::vector<int> system_id_counter(m_systems_count, 0);
         for (uint32_t i = 0; i < m_distributed_node_system_id_assignment.size(); i++) {
-            if (m_distributed_node_system_id_assignment[i] < 0 || m_distributed_node_system_id_assignment[i] >= m_systems_count) {
+            if (m_distributed_node_system_id_assignment.at(i) < 0 || m_distributed_node_system_id_assignment.at(i) >= m_systems_count) {
                 throw std::invalid_argument(
                         format_string(
                                 "Node %d is assigned to an invalid system id %" PRId64 " (k=%" PRId64 ")",
                         i,
-                        m_distributed_node_system_id_assignment[i],
+                        m_distributed_node_system_id_assignment.at(i),
                         m_systems_count
                 )
                 );
             }
-            system_id_counter[m_distributed_node_system_id_assignment[i]]++;
+            system_id_counter.at(m_distributed_node_system_id_assignment.at(i))++;
         }
 
         // All good, showing summary
         printf("  > System information:\n");
         for (uint32_t i = 0; i < m_systems_count; i++) {
-            printf("    >> System %d has %d node(s)\n", i, system_id_counter[i]);
+            printf("    >> System %d has %d node(s)\n", i, system_id_counter.at(i));
         }
 
     } else {
@@ -312,8 +312,8 @@ void BasicSimulation::StoreTimingResults() {
             // Format text line
             std::string line = format_string(
                     "[%7.1f - %7.1f] (%.1f s) :: %s",
-                    (t_prev - m_timestamps[0].second) / 1e9,
-                    (ts.second - m_timestamps[0].second) / 1e9,
+                    (t_prev - m_timestamps.at(0).second) / 1e9,
+                    (ts.second - m_timestamps.at(0).second) / 1e9,
                     (ts.second - t_prev) / 1e9,
                     ts.first.c_str()
             );

@@ -440,12 +440,12 @@ std::vector<std::pair<std::string, std::string>> parse_map_string(const std::str
 
         // Split by colon and insert into result
         std::vector<std::string> colon_split_list = split_string(s, ":", 2);
-        result.push_back(std::make_pair(trim(colon_split_list[0]), trim(colon_split_list[1])));
+        result.push_back(std::make_pair(trim(colon_split_list.at(0)), trim(colon_split_list.at(1))));
 
         // Check if it was a duplicate key
-        key_set.insert(trim(colon_split_list[0]));
+        key_set.insert(trim(colon_split_list.at(0)));
         if (result.size() != key_set.size()) {
-            throw std::invalid_argument(format_string("Duplicate key: %s", trim(colon_split_list[0]).c_str()));
+            throw std::invalid_argument(format_string("Duplicate key: %s", trim(colon_split_list.at(0)).c_str()));
         }
 
     }
@@ -527,7 +527,7 @@ std::map<std::string, std::string> read_config(const std::string& filename) {
         while (getline(config_file, line)) {
 
             // Skip commented lines
-            if (trim(line).empty() || line.c_str()[0] == '#') {
+            if (trim(line).empty() || line.at(0) == '#') {
                 continue;
             }
 
@@ -535,8 +535,8 @@ std::map<std::string, std::string> read_config(const std::string& filename) {
             std::vector<std::string> equals_split = split_string(line, "=", 2);
 
             // Trim whitespace
-            std::string key = trim(equals_split[0]);
-            std::string value = remove_start_end_double_quote_if_present(trim(equals_split[1]));
+            std::string key = trim(equals_split.at(0));
+            std::string value = remove_start_end_double_quote_if_present(trim(equals_split.at(1)));
 
             // Check key does not exist yet
             if (config.find(key) != config.end()) {
@@ -544,7 +544,7 @@ std::map<std::string, std::string> read_config(const std::string& filename) {
             }
 
             // Save into config
-            config[key] = value;
+            config.insert(std::make_pair(key, value));
 
         }
         config_file.close();
@@ -567,7 +567,7 @@ std::map<std::string, std::string> read_config(const std::string& filename) {
 std::string get_param_or_fail(const std::string& param_key, std::map<std::string, std::string>& config) {
 
     if (config.find(param_key) != config.end()) {
-        return config[param_key];
+        return config.at(param_key);
     } else {
         throw std::invalid_argument(format_string("Necessary parameter '%s' is not set.", param_key.c_str()));
     }
@@ -586,7 +586,7 @@ std::string get_param_or_fail(const std::string& param_key, std::map<std::string
 std::string get_param_or_default(const std::string& param_key, std::string default_value, std::map<std::string, std::string>& config) {
 
     if (config.find(param_key) != config.end()) {
-        return config[param_key];
+        return config.at(param_key);
     } else {
         return default_value;
     }

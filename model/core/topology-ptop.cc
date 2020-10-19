@@ -170,8 +170,8 @@ void TopologyPtop::ParseTopologyGraph() {
     std::set<std::string> string_set = parse_set_string(tmp);
     for (std::string s : string_set) {
         std::vector<std::string> spl = split_string(s, "-", 2);
-        int64_t a = parse_positive_int64(spl[0]);
-        int64_t b = parse_positive_int64(spl[1]);
+        int64_t a = parse_positive_int64(spl.at(0));
+        int64_t b = parse_positive_int64(spl.at(1));
         if (a == b) {
             throw std::invalid_argument(format_string("Cannot have edge to itself on node %" PRIu64 "", a));
         }
@@ -186,8 +186,8 @@ void TopologyPtop::ParseTopologyGraph() {
         }
         m_undirected_edges.push_back(std::make_pair(a, b));
         m_undirected_edges_set.insert(std::make_pair(a, b));
-        m_adjacency_list[a].insert(b);
-        m_adjacency_list[b].insert(a);
+        m_adjacency_list.at(a).insert(b);
+        m_adjacency_list.at(b).insert(a);
     }
 
     // Sort them for convenience
@@ -219,7 +219,7 @@ void TopologyPtop::ParseTopologyGraph() {
 
     // Servers must be connected to ToRs only
     for (int64_t node_id : m_servers) {
-        for (int64_t neighbor_id : m_adjacency_list[node_id]) {
+        for (int64_t neighbor_id : m_adjacency_list.at(node_id)) {
             if (m_switches_which_are_tors.find(neighbor_id) == m_switches_which_are_tors.end()) {
                 throw std::invalid_argument(format_string("Server node %" PRId64 " has an edge to node %" PRId64 " which is not a ToR.", node_id, neighbor_id));
             }
@@ -269,8 +269,8 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseUndirected
 
         // Find the a-b
         std::vector<std::string> dash_split_list = split_string(p.first, "-", 2);
-        int64_t a = parse_positive_int64(dash_split_list[0]);
-        int64_t b = parse_positive_int64(dash_split_list[1]);
+        int64_t a = parse_positive_int64(dash_split_list.at(0));
+        int64_t b = parse_positive_int64(dash_split_list.at(1));
         if (b < a) {
             throw std::invalid_argument(format_string("As a convention, the left node id must be smaller than the right node id: %" PRIu64 "-%" PRIu64 "", a, b));
         }
@@ -286,7 +286,7 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseUndirected
         }
 
         // Add to mapping
-        result[std::make_pair(a, b)] = p.second;
+        result.insert(std::make_pair(std::make_pair(a, b), p.second));
 
     }
 
@@ -313,8 +313,8 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseDirectedEd
 
         // Find the a -> b
         std::vector<std::string> dash_split_list = split_string(p.first, "->", 2);
-        int64_t a = parse_positive_int64(dash_split_list[0]);
-        int64_t b = parse_positive_int64(dash_split_list[1]);
+        int64_t a = parse_positive_int64(dash_split_list.at(0));
+        int64_t b = parse_positive_int64(dash_split_list.at(1));
 
         // No duplicates in the mapping
         if (result.find(std::make_pair(a, b)) != result.end()) {
@@ -327,7 +327,7 @@ std::map<std::pair<int64_t, int64_t>, std::string> TopologyPtop::ParseDirectedEd
         }
 
         // Add to mapping
-        result[std::make_pair(a, b)] = p.second;
+        result.insert(std::make_pair(std::make_pair(a, b), p.second));
 
     }
 
@@ -352,14 +352,14 @@ void TopologyPtop::ParseLinkChannelDelayNsProperty() {
         // Create default mapping
         int64_t link_channel_delay_ns = parse_positive_int64(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            m_link_channel_delay_ns_mapping[p] = link_channel_delay_ns;
+            m_link_channel_delay_ns_mapping.insert(std::make_pair(p, link_channel_delay_ns));
         }
         std::cout << "    >> Single global value... " << link_channel_delay_ns << " ns" << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> undirected_edge_mapping = ParseUndirectedEdgeMap(value);
         for (auto const& entry : undirected_edge_mapping) {
-            m_link_channel_delay_ns_mapping[entry.first] = parse_positive_int64(entry.second);
+            m_link_channel_delay_ns_mapping.insert(std::make_pair(entry.first, parse_positive_int64(entry.second)));
         }
         std::cout << "    >> Per link channel mapping was read" << std::endl;
     }
@@ -379,15 +379,15 @@ void TopologyPtop::ParseLinkDeviceDataRateMegabitPerSecProperty() {
         // Create default mapping
         double link_device_data_rate_megabit_per_s = parse_positive_double(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            m_link_device_data_rate_megabit_per_s_mapping[p] = link_device_data_rate_megabit_per_s;
-            m_link_device_data_rate_megabit_per_s_mapping[std::make_pair(p.second, p.first)] = link_device_data_rate_megabit_per_s;
+            m_link_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(p, link_device_data_rate_megabit_per_s));
+            m_link_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_data_rate_megabit_per_s));
         }
         std::cout << "    >> Single global value... " << link_device_data_rate_megabit_per_s << " Mbit/s" << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_data_rate_megabit_per_s_mapping[entry.first] = parse_positive_double(entry.second);
+            m_link_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(entry.first, parse_positive_double(entry.second)));
         }
         std::cout << "    >> Per link device mapping was read" << std::endl;
     }
@@ -407,15 +407,15 @@ void TopologyPtop::ParseLinkDeviceQueueProperty() {
         // Create default mapping
         std::pair<ObjectFactory, QueueSize> link_device_queue = m_queueSelector->ParseQueueValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            m_link_device_queue_mapping[p] = link_device_queue;
-            m_link_device_queue_mapping[std::make_pair(p.second, p.first)] = link_device_queue;
+            m_link_device_queue_mapping.insert(std::make_pair(p, link_device_queue));
+            m_link_device_queue_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_queue));
         }
         std::cout << "    >> Single global value... " << link_device_queue.first << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_queue_mapping[entry.first] = m_queueSelector->ParseQueueValue(this, entry.second);
+            m_link_device_queue_mapping.insert(std::make_pair(entry.first, m_queueSelector->ParseQueueValue(this, entry.second)));
         }
         std::cout << "    >> Per link device mapping was read" << std::endl;
     }
@@ -435,15 +435,15 @@ void TopologyPtop::ParseLinkDeviceReceiveErrorModelProperty() {
         // Create default mapping
         std::pair<bool, Ptr<ErrorModel>> link_device_receive_error_model = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            m_link_device_receive_error_model_mapping[p] = link_device_receive_error_model;
-            m_link_device_receive_error_model_mapping[std::make_pair(p.second, p.first)] = link_device_receive_error_model;
+            m_link_device_receive_error_model_mapping.insert(std::make_pair(p, link_device_receive_error_model));
+            m_link_device_receive_error_model_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_receive_error_model));
         }
         std::cout << "    >> Single global value... " << value << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_receive_error_model_mapping[entry.first] = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, entry.second);
+            m_link_device_receive_error_model_mapping.insert(std::make_pair(entry.first, m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, entry.second)));
         }
         std::cout << "    >> Per link device receive error model mapping was read" << std::endl;
     }
@@ -521,15 +521,15 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
         // Create default mapping
         std::pair<bool, TrafficControlHelper> link_interface_traffic_control_qdisc = m_tcQdiscSelector->ParseTcQdiscValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            m_link_interface_traffic_control_qdisc_mapping[p] = link_interface_traffic_control_qdisc;
-            m_link_interface_traffic_control_qdisc_mapping[std::make_pair(p.second, p.first)] = link_interface_traffic_control_qdisc;
+            m_link_interface_traffic_control_qdisc_mapping.insert(std::make_pair(p, link_interface_traffic_control_qdisc));
+            m_link_interface_traffic_control_qdisc_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_interface_traffic_control_qdisc));
         }
         std::cout << "    >> Single global value... " << value << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_interface_traffic_control_qdisc_mapping[entry.first] = m_tcQdiscSelector->ParseTcQdiscValue(this, entry.second);
+            m_link_interface_traffic_control_qdisc_mapping.insert(std::make_pair(entry.first, m_tcQdiscSelector->ParseTcQdiscValue(this, entry.second)));
         }
         std::cout << "    >> Per link interface mapping was read" << std::endl;
     }
@@ -672,8 +672,8 @@ void TopologyPtop::SetupLinks() {
         uint32_t b_if_idx = container.Get(1)->GetIfIndex();
         m_interface_idxs_for_edges.push_back(std::make_pair(a_if_idx, b_if_idx));
         m_net_devices_for_edges.push_back(std::make_pair(netDeviceA, netDeviceB));
-        m_link_to_net_device[edge_a_to_b] = netDeviceA;
-        m_link_to_net_device[edge_b_to_a] = netDeviceB;
+        m_link_to_net_device.insert(std::make_pair(edge_a_to_b, netDeviceA));
+        m_link_to_net_device.insert(std::make_pair(edge_b_to_a, netDeviceB));
 
     }
 
@@ -742,7 +742,7 @@ const std::vector<std::set<int64_t>>& TopologyPtop::GetAllAdjacencyLists() {
 }
 
 const std::set<int64_t>& TopologyPtop::GetAdjacencyList(int64_t node_id) {
-    return m_adjacency_list[node_id];
+    return m_adjacency_list.at(node_id);
 }
 
 int64_t TopologyPtop::GetWorstCaseRttEstimateNs() {

@@ -24,8 +24,8 @@ ArbiterEcmp::ArbiterEcmp(
 
 int32_t ArbiterEcmp::TopologyPtopDecide(int32_t source_node_id, int32_t target_node_id, const std::set<int64_t>& neighbor_node_ids, Ptr<const Packet> pkt, Ipv4Header const &ipHeader, bool is_request_for_source_ip_so_no_next_header) {
     uint32_t hash = ComputeFiveTupleHash(ipHeader, pkt, m_node_id, is_request_for_source_ip_so_no_next_header);
-    int s = m_candidate_list[target_node_id].size();
-    return m_candidate_list[target_node_id][hash % s];
+    int s = m_candidate_list.at(target_node_id).size();
+    return m_candidate_list.at(target_node_id).at(hash % s);
 }
 
 ArbiterEcmp::~ArbiterEcmp() {
@@ -112,7 +112,7 @@ std::string ArbiterEcmp::StringReprOfForwardingState() {
     for (int i = 0; i < m_topology->GetNumNodes(); i++) {
         res << "  -> " << i << ": {";
         bool first = true;
-        for (int j : m_candidate_list[i]) {
+        for (int j : m_candidate_list.at(i)) {
             if (!first) {
                 res << ",";
             }
