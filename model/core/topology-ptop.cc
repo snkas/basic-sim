@@ -405,12 +405,12 @@ void TopologyPtop::ParseLinkDeviceQueueProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::pair<ObjectFactory, QueueSize> link_device_queue = m_queueSelector->ParseQueueValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            std::pair<ObjectFactory, QueueSize> link_device_queue = m_queueSelector->ParseQueueValue(this, value);
             m_link_device_queue_mapping.insert(std::make_pair(p, link_device_queue));
             m_link_device_queue_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_queue));
         }
-        std::cout << "    >> Single global value... " << link_device_queue.first << std::endl;
+        std::cout << "    >> Single global value... " << m_queueSelector->ParseQueueValue(this, value).first << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
@@ -433,8 +433,8 @@ void TopologyPtop::ParseLinkDeviceReceiveErrorModelProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::pair<bool, Ptr<ErrorModel>> link_device_receive_error_model = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            std::pair<bool, Ptr<ErrorModel>> link_device_receive_error_model = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, value);
             m_link_device_receive_error_model_mapping.insert(std::make_pair(p, link_device_receive_error_model));
             m_link_device_receive_error_model_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_receive_error_model));
         }
@@ -519,8 +519,8 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        std::pair<bool, TrafficControlHelper> link_interface_traffic_control_qdisc = m_tcQdiscSelector->ParseTcQdiscValue(this, value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            std::pair<bool, TrafficControlHelper> link_interface_traffic_control_qdisc = m_tcQdiscSelector->ParseTcQdiscValue(this, value);
             m_link_interface_traffic_control_qdisc_mapping.insert(std::make_pair(p, link_interface_traffic_control_qdisc));
             m_link_interface_traffic_control_qdisc_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_interface_traffic_control_qdisc));
         }
