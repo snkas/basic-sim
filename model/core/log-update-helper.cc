@@ -20,11 +20,11 @@
 
 #include "log-update-helper.h"
 
-LogUpdateHelper::LogUpdateHelper() : LogUpdateHelper(true, false, "") {
+LogUpdateHelper::LogUpdateHelper() : LogUpdateHelper(true, false, "", "") {
     // Left empty intentionally
 }
 
-LogUpdateHelper::LogUpdateHelper(bool save_in_memory, bool save_to_file, std::string save_filename) {
+LogUpdateHelper::LogUpdateHelper(bool save_in_memory, bool save_to_file, std::string save_filename, std::string file_line_prefix) {
     m_last_update_value = -1;
     m_interval_alpha_value = -1;
     m_last_interval_check_time = -1;
@@ -36,6 +36,7 @@ LogUpdateHelper::LogUpdateHelper(bool save_in_memory, bool save_to_file, std::st
     m_save_in_memory = save_in_memory;
     m_save_to_file = save_to_file;
     m_save_filename = save_filename;
+    m_file_line_prefix = file_line_prefix;
     if (m_save_to_file) {
         m_save_file_stream.open(m_save_filename, std::fstream::out);
     }
@@ -84,7 +85,7 @@ void LogUpdateHelper::Update(int64_t time, int64_t value) {
                         m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, m_interval_beta_left_time, m_interval_alpha_value));
                     }
                     if (m_save_to_file) {
-                        m_save_file_stream << m_interval_alpha_left_time << "," << m_interval_beta_left_time << "," << m_interval_alpha_value << std::endl;
+                        m_save_file_stream << m_file_line_prefix << m_interval_alpha_left_time << "," << m_interval_alpha_value << std::endl;
                     }
 
                     // And make beta interval become alpha
@@ -127,7 +128,8 @@ const std::vector<std::tuple<int64_t, int64_t, int64_t>>& LogUpdateHelper::Final
                 m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, time, m_last_update_value));
             }
             if (m_save_to_file) {
-                m_save_file_stream << m_interval_alpha_left_time << "," << time << "," << m_last_update_value << std::endl;
+                m_save_file_stream << m_file_line_prefix << m_interval_alpha_left_time << "," << m_last_update_value << std::endl;
+                m_save_file_stream << m_file_line_prefix << time << "," << m_last_update_value << std::endl;
             }
         }
 
@@ -140,7 +142,8 @@ const std::vector<std::tuple<int64_t, int64_t, int64_t>>& LogUpdateHelper::Final
                 m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, time, m_interval_alpha_value));
             }
             if (m_save_to_file) {
-                m_save_file_stream << m_interval_alpha_left_time << "," << time << "," << m_interval_alpha_value << std::endl;
+                m_save_file_stream << m_file_line_prefix << m_interval_alpha_left_time << "," << m_interval_alpha_value << std::endl;
+                m_save_file_stream << m_file_line_prefix << time << "," << m_interval_alpha_value << std::endl;
             }
 
         // If the last two intervals have different values, save separately
@@ -149,14 +152,19 @@ const std::vector<std::tuple<int64_t, int64_t, int64_t>>& LogUpdateHelper::Final
                 m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, m_interval_beta_left_time, m_interval_alpha_value));
             }
             if (m_save_to_file) {
-                m_save_file_stream << m_interval_alpha_left_time << "," << m_interval_beta_left_time << "," << m_interval_alpha_value << std::endl;
+                m_save_file_stream << m_file_line_prefix << m_interval_alpha_left_time << "," << m_interval_alpha_value << std::endl;
             }
             if (m_interval_beta_left_time != time) {
                 if (m_save_in_memory) {
                     m_log_time_value.push_back(std::make_tuple(m_interval_beta_left_time, time, m_last_update_value));
                 }
                 if (m_save_to_file) {
-                    m_save_file_stream << m_interval_beta_left_time << "," << time << "," << m_last_update_value << std::endl;
+                    m_save_file_stream << m_file_line_prefix << m_interval_beta_left_time << "," << m_last_update_value << std::endl;
+                    m_save_file_stream << m_file_line_prefix << time << "," << m_last_update_value << std::endl;
+                }
+            } else {
+                if (m_save_to_file) {
+                    m_save_file_stream << m_file_line_prefix << m_interval_beta_left_time << "," << m_interval_alpha_value << std::endl;
                 }
             }
         }

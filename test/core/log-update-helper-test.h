@@ -145,18 +145,33 @@ class LogUpdateHelperValidWithFileTestCase : public TestCase {
 public:
     LogUpdateHelperValidWithFileTestCase() : TestCase("log-update-helper valid-with-file") {};
 
-    std::vector<std::tuple<int64_t, int64_t, int64_t>> read_result_from_file(std::string filename) {
-        std::vector<std::tuple<int64_t, int64_t, int64_t>> res;
+    void read_result_from_file(std::string filename, std::vector<std::tuple<int64_t, int64_t, int64_t>>& res) {
+        res.clear();
         std::vector<std::string> content = read_file_direct(filename);
+        int64_t prev_timestamp = -1;
+        int64_t prev_value = 0;
+        size_t i = 0;
         for (std::string line : content) {
-            std::vector<std::string> spl = split_string(line, ",", 3);
-            res.push_back(std::make_tuple(
-                   parse_int64(spl.at(0)),
-                   parse_int64(spl.at(1)),
-                   parse_int64(spl.at(2))
-            ));
+            std::vector<std::string> spl = split_string(line, ",", 2);
+            int64_t timestamp = parse_int64(spl.at(0));
+            int64_t value = parse_int64(spl.at(1));
+            if (prev_timestamp != -1) {
+                res.push_back(std::make_tuple(
+                        prev_timestamp,
+                        timestamp,
+                        prev_value
+                ));
+            }
+            if (i == content.size() - 1) {
+                ASSERT_EQUAL(value, prev_value);
+            } else if (i != 0) {
+                ASSERT_NOT_EQUAL(value, prev_value);
+            }
+            ASSERT_TRUE(timestamp > prev_timestamp);
+            prev_timestamp = timestamp;
+            prev_value = value;
+            i += 1;
         }
-        return res;
     }
 
     void DoRun() {
@@ -165,32 +180,32 @@ public:
         LogUpdateHelper logUpdateHelper;
 
         // Empty end at t = 0
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         result = logUpdateHelper.Finalize(0);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 0);
         ASSERT_EQUAL(result.size(), 0);
 
         // Empty end at t = not 0
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         result = logUpdateHelper.Finalize(100);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 0);
         ASSERT_EQUAL(file_result.size(), 0);
 
         // One entry, but it finalizes at the moment
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(0, 9);
         result = logUpdateHelper.Finalize(0);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 0);
         ASSERT_EQUAL(file_result.size(), 0);
 
         // One entry, it finalizes sometime later
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(0, 9);
         result = logUpdateHelper.Finalize(77);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 1);
         ASSERT_EQUAL(std::get<0>(result[0]), 0);
         ASSERT_EQUAL(std::get<1>(result[0]), 77);
@@ -201,10 +216,10 @@ public:
         ASSERT_EQUAL(std::get<2>(file_result[0]), 9);
 
         // One entry, it finalizes one tick later
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(0, -1);
         result = logUpdateHelper.Finalize(1);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 1);
         ASSERT_EQUAL(std::get<0>(result[0]), 0);
         ASSERT_EQUAL(std::get<1>(result[0]), 1);
@@ -215,10 +230,10 @@ public:
         ASSERT_EQUAL(std::get<2>(file_result[0]), -1);
 
         // One entry later, it finalizes sometime later
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(3, -100);
         result = logUpdateHelper.Finalize(7);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 1);
         ASSERT_EQUAL(std::get<0>(result[0]), 3);
         ASSERT_EQUAL(std::get<1>(result[0]), 7);
@@ -229,12 +244,12 @@ public:
         ASSERT_EQUAL(std::get<2>(file_result[0]), -100);
 
         // One entry later, gets updated a bunch, gets merged, it finalizes sometime later
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(3, -100);
         logUpdateHelper.Update(3, -100);
         logUpdateHelper.Update(5, -100);
         result = logUpdateHelper.Finalize(7);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 1);
         ASSERT_EQUAL(std::get<0>(result[0]), 3);
         ASSERT_EQUAL(std::get<1>(result[0]), 7);
@@ -245,12 +260,12 @@ public:
         ASSERT_EQUAL(std::get<2>(file_result[0]), -100);
 
         // One entry later, gets updated a bunch, last value is different but at finalization moment
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(3, -100);
         logUpdateHelper.Update(3, -100);
         logUpdateHelper.Update(7, -99);
         result = logUpdateHelper.Finalize(7);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 1);
         ASSERT_EQUAL(std::get<0>(result[0]), 3);
         ASSERT_EQUAL(std::get<1>(result[0]), 7);
@@ -260,14 +275,13 @@ public:
         ASSERT_EQUAL(std::get<1>(file_result[0]), 7);
         ASSERT_EQUAL(std::get<2>(file_result[0]), -100);
 
-
         // Two entries, last value is different but at finalization moment
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(3, -100);
         logUpdateHelper.Update(5, 87);
         logUpdateHelper.Update(7, -99);
         result = logUpdateHelper.Finalize(7);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 2);
         ASSERT_EQUAL(std::get<0>(result[0]), 3);
         ASSERT_EQUAL(std::get<1>(result[0]), 5);
@@ -284,12 +298,12 @@ public:
         ASSERT_EQUAL(std::get<2>(file_result[1]), 87);
         
         // Many entries
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         for (int i = 0; i < 100; i++) {
             logUpdateHelper.Update(i, i * 2);
         }
         result = logUpdateHelper.Finalize(900);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 100);
         ASSERT_EQUAL(file_result.size(), 100);
         for (int i = 0; i < 100; i++) {
@@ -302,13 +316,13 @@ public:
         }
 
         // Many entries with overwrite
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(3, -100);
         logUpdateHelper.Update(5, 87);
         logUpdateHelper.Update(5, 33);
         logUpdateHelper.Update(5, 44);
         result = logUpdateHelper.Finalize(7);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 2);
         ASSERT_EQUAL(std::get<0>(result[0]), 3);
         ASSERT_EQUAL(std::get<1>(result[0]), 5);
@@ -325,13 +339,13 @@ public:
         ASSERT_EQUAL(std::get<2>(file_result[1]), 44);
 
         // Many entries with merge
-        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp");
+        logUpdateHelper = LogUpdateHelper(true, true, "log-update-helper.tmp", "");
         logUpdateHelper.Update(3, 1234567);
         logUpdateHelper.Update(5, 1234567);
         logUpdateHelper.Update(7, 7573);
         logUpdateHelper.Update(7, 1234567);
         result = logUpdateHelper.Finalize(9);
-        file_result = read_result_from_file("log-update-helper.tmp");
+        read_result_from_file("log-update-helper.tmp", file_result);
         ASSERT_EQUAL(result.size(), 1);
         ASSERT_EQUAL(std::get<0>(result[0]), 3);
         ASSERT_EQUAL(std::get<1>(result[0]), 9);
@@ -357,7 +371,7 @@ public:
         LogUpdateHelper logUpdateHelper;
 
         // Both in-memory and file save are disabled
-        ASSERT_EXCEPTION(LogUpdateHelper(false, false, "some-file.txt"));
+        ASSERT_EXCEPTION(LogUpdateHelper(false, false, "some-file.txt", ""));
 
         // Update negative time
         logUpdateHelper = LogUpdateHelper();

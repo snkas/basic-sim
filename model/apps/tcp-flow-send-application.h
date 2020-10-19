@@ -29,6 +29,7 @@
 #include "ns3/ptr.h"
 #include "ns3/string.h"
 #include "ns3/traced-callback.h"
+#include "ns3/log-update-helper.h"
 
 namespace ns3 {
 
@@ -78,8 +79,9 @@ private:
   uint64_t        m_ackedBytes;       //!< Amount of acknowledged bytes cached after close of the socket
   bool            m_isCompleted;      //!< True iff the flow is completed fully AND closed normally
   std::string     m_additionalParameters; //!< Not used in this version of the application
-  uint32_t        m_current_cwnd_byte;     //!< Current congestion window (detailed logging)
-  int64_t         m_current_rtt_ns;        //!< Current last RTT sample (detailed logging)
+  LogUpdateHelper m_log_update_helper_progress_byte; //!< Progress detailed logging
+  LogUpdateHelper m_log_update_helper_cwnd_byte;     //!< Congestion window detailed logging
+  LogUpdateHelper m_log_update_helper_rtt_ns;        //!< RTT estimate detailed logging
 
   // TCP flow logging
   bool m_enableDetailedLogging;            //!< True iff you want to write detailed logs
@@ -95,9 +97,6 @@ private:
   void SocketClosedError(Ptr<Socket> socket);
   void CwndChange(uint32_t, uint32_t newCwnd);
   void RttChange (Time, Time newRtt);
-  void InsertCwndLog(int64_t timestamp, uint32_t cwnd_byte);
-  void InsertRttLog (int64_t timestamp, int64_t rtt_ns);
-  void InsertProgressLog (int64_t timestamp, int64_t progress_byte);
 
 };
 

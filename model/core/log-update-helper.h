@@ -39,7 +39,7 @@ class LogUpdateHelper {
 
 public:
     LogUpdateHelper();
-    LogUpdateHelper(bool save_in_memory, bool save_to_file, std::string save_filename);
+    LogUpdateHelper(bool save_in_memory, bool save_to_file, std::string save_filename, std::string file_line_prefix);
     void Update(int64_t time, int64_t value);
     const std::vector<std::tuple<int64_t, int64_t, int64_t>>& Finalize(int64_t time);
 
@@ -54,6 +54,7 @@ private:
     bool m_save_in_memory;
     bool m_save_to_file;
     std::string m_save_filename;
+    std::string m_file_line_prefix;
     std::fstream m_save_file_stream;
 };
 

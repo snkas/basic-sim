@@ -129,7 +129,15 @@ You MUST set the following keys in `config_ns3.properties`:
 
 The following are OPTIONAL in `config_ns3.properties`:
 
-* `tcp_flow_enable_logging_for_tcp_flow_ids` : Set of flow identifiers for which you want logging to file for progress, cwnd and RTT (located at `logs_dir/tcp_flow_[id]_{progress, cwnd, rtt}.csv`). Example value: `set(0, 1`) to log for flows 0 and 1. The file format is: `[tcp_flow_id],[now_in_ns],[progress_byte/cwnd_byte/rtt_ns])`.
+* `tcp_flow_enable_logging_for_tcp_flow_ids` : Set of flow identifiers for 
+  which you want logging to file for progress, cwnd and RTT 
+  (located at `logs_dir/tcp_flow_[id]_{progress, cwnd, rtt}.csv`). 
+  Example value: `set(0, 1)` to log for flows 0 and 1.
+  The file format is: 
+  
+  ```
+  [tcp_flow_id],[now_in_ns],[progress_byte/cwnd_byte/rtt_ns]
+  ```
 
 **tcp_flow_schedule.csv**
 
