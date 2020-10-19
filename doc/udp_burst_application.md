@@ -108,7 +108,7 @@ You MUST set the following keys in `config_ns3.properties`:
 
 The following are OPTIONAL in `config_ns3.properties`:
 
-* `udp_burst_enable_logging_for_udp_burst_ids` : Set of UDP burst identifiers for which you want logging of the sent/receive timestamps (located at `logs_dir/udp_burst_[id]_{outgoing, incoming}.csv`). Example value: `set(0, 1`) to log for UDP bursts 0 and 1. 
+* `udp_burst_enable_logging_for_udp_burst_ids` : Set of UDP burst identifiers for which you want logging of the sent/receive timestamps (located at `logs_dir/udp_burst_[id]_{outgoing, incoming}.csv`). Example value: `set(0, 1)` to log for UDP bursts 0 and 1. 
 
    The file formats are: `[udp_burst_id],[seq_no],[sent_in_ns]` (outgoing), and `[udp_burst_id],[seq_no],[received_in_ns]` (incoming).
 
