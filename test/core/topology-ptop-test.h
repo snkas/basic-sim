@@ -158,7 +158,7 @@ public:
         topology_file << "link_channel_delay_ns=map(0-4: 400,1-4: 500,2-4: 600,3-4: 700,4-5: 900,4-6: 10000,4-7: 11000)" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=map(0->4: 2.8,1->4: 3.1,2->4: 3.4,3->4: 3.7,4->5: 4.7,4->6: 5.4,4->7: 6.1,4->0: 1.2,4->1: 1.9,4->2: 2.6,4->3: 3.3,5->4: 4.3,6->4: 4.6,7->4: 4.9)" << std::endl;
         topology_file << "link_device_queue=map(0->4: drop_tail(4p),1->4: drop_tail(4B),2->4: drop_tail(4p),3->4: drop_tail(4B),4->5: drop_tail(5p),4->6: drop_tail(6p),4->7: drop_tail(7p),4->0: drop_tail(77p),4->1: drop_tail(1p),4->2: drop_tail(2p),4->3: drop_tail(3p),5->4: drop_tail(4B),6->4: drop_tail(4p),7->4: drop_tail(4B))" << std::endl;
-        topology_file << "link_device_receive_error_model=map(0->4: iid_uniform_random_pkt(0.0), 1->4: iid_uniform_random_pkt(0.1), 2->4: iid_uniform_random_pkt(0.2), 3->4: iid_uniform_random_pkt(0.3), 5->4:iid_uniform_random_pkt(0.5), 6->4:iid_uniform_random_pkt(0.6), 7->4:iid_uniform_random_pkt(0.7), 4->0: iid_uniform_random_pkt(0.4), 4->1: none, 4->2: iid_uniform_random_pkt(0.4), 4->3: none, 4->5: none, 4->6: iid_uniform_random_pkt(0.4), 4->7: none)" << std::endl;
+        topology_file << "link_device_receive_error_model=map(0->4: iid_uniform_random_pkt(0.0), 1->4: iid_uniform_random_pkt(0.1), 2->4: iid_uniform_random_pkt(0.2), 3->4: iid_uniform_random_pkt(0.3), 5->4:iid_uniform_random_pkt(0.5), 6->4:iid_uniform_random_pkt(0.6), 7->4:iid_uniform_random_pkt(0.7), 4->0: iid_uniform_random_pkt(0.4), 4->1: none, 4->2: iid_uniform_random_pkt(0.4), 4->3: none, 4->5: none, 4->6: iid_uniform_random_pkt(0.400000), 4->7: iid_uniform_random_pkt(1.0))" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=map(0->4: default, 1->4: fq_codel_better_rtt, 2->4: disabled, 3->4: default, 5->4:disabled, 6->4:default, 7->4:fq_codel_better_rtt, 4->0: disabled, 4->1: fq_codel_better_rtt, 4->2: default, 4->3: disabled, 4->5: default, 4->6: disabled, 4->7: fq_codel_better_rtt)" << std::endl;
         topology_file.close();
         
@@ -250,12 +250,18 @@ public:
                 PointerValue ptr2;
                 device->GetAttribute("ReceiveErrorModel", ptr2);
                 Ptr<ErrorModel> errorModel = ptr2.Get<ErrorModel>();
-                if (link.first % 2 == 0) {
+                if (link.first == 7 && link.second == 4) {
                     Ptr<RateErrorModel> rateErrorModel = errorModel->GetObject<RateErrorModel>();
-                    ASSERT_EQUAL_APPROX(rateErrorModel->GetRate(), link.second * 0.1, 0.000000001);
+                    ASSERT_EQUAL(rateErrorModel->GetRate(), 1.0);
                     ASSERT_EQUAL(rateErrorModel->GetUnit(), RateErrorModel::ErrorUnit::ERROR_UNIT_PACKET);
                 } else {
-                    ASSERT_EQUAL(errorModel, 0);
+                    if (link.first % 2 == 0) {
+                        Ptr <RateErrorModel> rateErrorModel = errorModel->GetObject<RateErrorModel>();
+                        ASSERT_EQUAL_APPROX(rateErrorModel->GetRate(), link.second * 0.1, 0.000000001);
+                        ASSERT_EQUAL(rateErrorModel->GetUnit(), RateErrorModel::ErrorUnit::ERROR_UNIT_PACKET);
+                    } else {
+                        ASSERT_EQUAL(errorModel, 0);
+                    }
                 }
 
                 // Traffic control queueing discipline (based on formula (a * 2 + b * 7) % 3 = {0, 1, 2} = {fq_codel_better_rtt, default, disabled)
