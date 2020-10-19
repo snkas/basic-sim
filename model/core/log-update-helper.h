@@ -39,6 +39,7 @@ class LogUpdateHelper {
 
 public:
     LogUpdateHelper();
+    LogUpdateHelper(bool save_in_memory, bool save_to_file, std::string save_filename);
     void Update(int64_t time, int64_t value);
     const std::vector<std::tuple<int64_t, int64_t, int64_t>>& Finalize(int64_t time);
 
@@ -50,6 +51,10 @@ private:
     int64_t m_interval_alpha_left_time;
     int64_t m_interval_beta_left_time;
 
+    bool m_save_in_memory;
+    bool m_save_to_file;
+    std::string m_save_filename;
+    std::fstream m_save_file_stream;
 };
 
 #endif // LOG_UPDATE_HELPER_H

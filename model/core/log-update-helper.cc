@@ -20,12 +20,25 @@
 
 #include "log-update-helper.h"
 
-LogUpdateHelper::LogUpdateHelper() {
+LogUpdateHelper::LogUpdateHelper() : LogUpdateHelper(true, false, "") {
+    // Left empty intentionally
+}
+
+LogUpdateHelper::LogUpdateHelper(bool save_in_memory, bool save_to_file, std::string save_filename) {
     m_last_update_value = -1;
     m_interval_alpha_value = -1;
     m_last_interval_check_time = -1;
     m_interval_alpha_left_time = -1;
     m_interval_beta_left_time = -1;
+    if (!save_in_memory && !save_to_file) {
+        throw std::invalid_argument("Log updater helper needs at least either to save to memory or to file.");
+    }
+    m_save_in_memory = save_in_memory;
+    m_save_to_file = save_to_file;
+    m_save_filename = save_filename;
+    if (m_save_to_file) {
+        m_save_file_stream.open(m_save_filename, std::fstream::out);
+    }
 }
 
 void LogUpdateHelper::Update(int64_t time, int64_t value) {
@@ -67,7 +80,12 @@ void LogUpdateHelper::Update(int64_t time, int64_t value) {
                 } else { // If not, save
 
                     // Save the alpha interval
-                    m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, m_interval_beta_left_time, m_interval_alpha_value));
+                    if (m_save_in_memory) {
+                        m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, m_interval_beta_left_time, m_interval_alpha_value));
+                    }
+                    if (m_save_to_file) {
+                        m_save_file_stream << m_interval_alpha_left_time << "," << m_interval_beta_left_time << "," << m_interval_alpha_value << std::endl;
+                    }
 
                     // And make beta interval become alpha
                     m_interval_alpha_left_time = m_interval_beta_left_time;
@@ -105,7 +123,12 @@ const std::vector<std::tuple<int64_t, int64_t, int64_t>>& LogUpdateHelper::Final
     // Only have for one time moment, as such only alpha
     if (m_interval_alpha_left_time != -1 && m_interval_beta_left_time == -1) {
         if (m_interval_alpha_left_time != time) {
-            m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, time, m_last_update_value));
+            if (m_save_in_memory) {
+                m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, time, m_last_update_value));
+            }
+            if (m_save_to_file) {
+                m_save_file_stream << m_interval_alpha_left_time << "," << time << "," << m_last_update_value << std::endl;
+            }
         }
 
     // If there is a beta interval, save the (guaranteed non-empty) alpha interval and the beta interval
@@ -113,18 +136,38 @@ const std::vector<std::tuple<int64_t, int64_t, int64_t>>& LogUpdateHelper::Final
 
         // If the last two intervals can be merged
         if (m_interval_alpha_value == m_last_update_value) {
-            m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, time, m_interval_alpha_value));
+            if (m_save_in_memory) {
+                m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, time, m_interval_alpha_value));
+            }
+            if (m_save_to_file) {
+                m_save_file_stream << m_interval_alpha_left_time << "," << time << "," << m_interval_alpha_value << std::endl;
+            }
 
         // If the last two intervals have different values, save separately
         } else {
-            m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, m_interval_beta_left_time, m_interval_alpha_value));
+            if (m_save_in_memory) {
+                m_log_time_value.push_back(std::make_tuple(m_interval_alpha_left_time, m_interval_beta_left_time, m_interval_alpha_value));
+            }
+            if (m_save_to_file) {
+                m_save_file_stream << m_interval_alpha_left_time << "," << m_interval_beta_left_time << "," << m_interval_alpha_value << std::endl;
+            }
             if (m_interval_beta_left_time != time) {
-                m_log_time_value.push_back(std::make_tuple(m_interval_beta_left_time, time, m_last_update_value));
+                if (m_save_in_memory) {
+                    m_log_time_value.push_back(std::make_tuple(m_interval_beta_left_time, time, m_last_update_value));
+                }
+                if (m_save_to_file) {
+                    m_save_file_stream << m_interval_beta_left_time << "," << time << "," << m_last_update_value << std::endl;
+                }
             }
         }
 
     }
 
-    // Return final resulting log
+    // Close to save file stream if it was opened
+    if (m_save_to_file) {
+        m_save_file_stream.close();
+    }
+
+    // Return final resulting log, which will be empty if save in memory is not enabled
     return m_log_time_value;
 }

@@ -26,6 +26,7 @@ public:
 
         // Log update helper
         AddTestCase(new LogUpdateHelperValidTestCase, TestCase::QUICK);
+        AddTestCase(new LogUpdateHelperValidWithFileTestCase, TestCase::QUICK);
         AddTestCase(new LogUpdateHelperInvalidTestCase, TestCase::QUICK);
 
         // Point-to-point topology
