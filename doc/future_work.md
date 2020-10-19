@@ -5,17 +5,6 @@ The backlog of additional work that can be done on the `basic-sim` module:
 * Incorporate a parameterized selector for RED as queueing discipline
   in the topology configuration (as RED is commonly used)
   
-* In the point-to-point topology model, add a mapping option for
-  the error model for each link, something along the lines of:
-  ```
-  link_arrival_error_model=map(0->1: iid_uniform_random(pkt, 0.01), 1->0: iid_uniform_random(pkt, 0.02))
-  ```
-  
-  Links:
-  - https://www.nsnam.org/doxygen/point-to-point-net-device_8cc_source.html
-  - https://www.nsnam.org/doxygen/simple-error-model_8cc_source.html
-  - https://www.nsnam.org/doxygen/error-model_8cc_source.html
-  
 * Unbuffered version of `log-update-helper.cc/h` which directly writes to file -- this can
   be used for TCP cwnd / progress / RTT tracking.
   

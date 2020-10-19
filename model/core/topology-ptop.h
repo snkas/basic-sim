@@ -50,6 +50,14 @@ public:
     virtual std::pair<ObjectFactory, QueueSize> ParseQueueValue(Ptr<TopologyPtop> topology, std::string value) = 0;
 };
 
+class TopologyPtopReceiveErrorModelSelector : public Object {
+public:
+    static TypeId GetTypeId(void);
+    TopologyPtopReceiveErrorModelSelector() {};
+    virtual ~TopologyPtopReceiveErrorModelSelector() {};
+    virtual std::pair<bool, Ptr<ErrorModel>> ParseReceiveErrorModelValue(Ptr<TopologyPtop> topology, std::string value) = 0;
+};
+
 class TopologyPtopTcQdiscSelector : public Object {
 public:
     static TypeId GetTypeId(void);
@@ -68,6 +76,7 @@ public:
             Ptr<BasicSimulation> basicSimulation,
             const Ipv4RoutingHelper& ipv4RoutingHelper,
             Ptr<TopologyPtopQueueSelector> queueSelector,
+            Ptr<TopologyPtopReceiveErrorModelSelector> receiveErrorModelSelector,
             Ptr<TopologyPtopTcQdiscSelector> tcQdiscSelector
     );
     TopologyPtop(
@@ -111,9 +120,11 @@ private:
     void ParseLinkChannelDelayNsProperty();
     void ParseLinkDeviceDataRateMegabitPerSecProperty();
     void ParseLinkDeviceQueueProperty();
+    void ParseLinkDeviceReceiveErrorModelProperty();
     void ParseLinkInterfaceTrafficControlQdiscProperty();
     void ParseTopologyLinkProperties();
     Ptr<TopologyPtopQueueSelector> m_queueSelector;
+    Ptr<TopologyPtopReceiveErrorModelSelector> m_receiveErrorModelSelector;
     Ptr<TopologyPtopTcQdiscSelector> m_tcQdiscSelector;
 
     // Estimations
@@ -139,6 +150,7 @@ private:
     std::map<std::pair<int64_t, int64_t>, int64_t> m_link_channel_delay_ns_mapping;
     std::map<std::pair<int64_t, int64_t>, double> m_link_device_data_rate_megabit_per_s_mapping;
     std::map<std::pair<int64_t, int64_t>, std::pair<ObjectFactory, QueueSize>> m_link_device_queue_mapping;
+    std::map<std::pair<int64_t, int64_t>, std::pair<bool, Ptr<ErrorModel>>> m_link_device_receive_error_model_mapping;
     std::map<std::pair<int64_t, int64_t>, std::pair<bool, TrafficControlHelper>> m_link_interface_traffic_control_qdisc_mapping;
 
     // Estimations

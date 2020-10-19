@@ -49,6 +49,7 @@ public:
         topology_file << "link_channel_delay_ns=" << link_channel_delay_ns << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=" << link_device_data_rate_megabit_per_s << std::endl;
         topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
     }
@@ -462,6 +463,75 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
+class UdpBurstEndToEndLossTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndLossTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end loss") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 5000000000;
+
+        // One-to-one, 5s
+        write_basic_config(simulation_end_time_ns, 123456, "0,1,2,3,4,5,6");
+        double bandwidth_rate = 5.0;
+
+        // Topology with loss
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,1,2,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,1-2,1-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=" << bandwidth_rate << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_device_receive_error_model=map(0->1: iid_uniform_random_pkt(0.3), 1->0: iid_uniform_random_pkt(1.0), 1->2: none, 2->1: iid_uniform_random_pkt(0.4), 1->3: none, 3->1: none)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // A UDP burst each way
+        std::vector<UdpBurstInfo> schedule;
+        schedule.push_back(UdpBurstInfo(0, 0, 1, bandwidth_rate / 2.0, 0, 5000000000, "", ""));
+        schedule.push_back(UdpBurstInfo(1, 1, 0, bandwidth_rate, 0, 5000000000, "", ""));
+        schedule.push_back(UdpBurstInfo(2, 2, 1, bandwidth_rate, 0, 5000000000, "", ""));
+        schedule.push_back(UdpBurstInfo(3, 1, 2, bandwidth_rate, 0, 5000000000, "", ""));
+        schedule.push_back(UdpBurstInfo(4, 1, 3, bandwidth_rate, 0, 5000000000, "", ""));
+        schedule.push_back(UdpBurstInfo(5, 3, 1, bandwidth_rate, 0, 5000000000, "", ""));
+        schedule.push_back(UdpBurstInfo(6, 0, 1, bandwidth_rate / 2.0, 0, 5000000000, "", ""));
+
+        // Perform the run
+        std::vector<double> list_outgoing_rate_megabit_per_s;
+        std::vector<double> list_incoming_rate_megabit_per_s;
+        test_run_and_validate_udp_burst_logs(simulation_end_time_ns, temp_dir, schedule, list_outgoing_rate_megabit_per_s, list_incoming_rate_megabit_per_s);
+
+        // Loss enacted is accounted for
+        ASSERT_EQUAL(list_outgoing_rate_megabit_per_s.size(), 7);
+        ASSERT_EQUAL_APPROX(list_outgoing_rate_megabit_per_s.at(0), bandwidth_rate / 2.0, 0.01);
+        ASSERT_EQUAL_APPROX(list_outgoing_rate_megabit_per_s.at(1), bandwidth_rate, 0.01);
+        ASSERT_EQUAL_APPROX(list_outgoing_rate_megabit_per_s.at(2), bandwidth_rate, 0.01);
+        ASSERT_EQUAL_APPROX(list_outgoing_rate_megabit_per_s.at(3), bandwidth_rate, 0.01);
+        ASSERT_EQUAL_APPROX(list_outgoing_rate_megabit_per_s.at(4), bandwidth_rate, 0.01);
+        ASSERT_EQUAL_APPROX(list_outgoing_rate_megabit_per_s.at(5), bandwidth_rate, 0.01);
+        ASSERT_EQUAL_APPROX(list_outgoing_rate_megabit_per_s.at(6), bandwidth_rate / 2.0, 0.01);
+
+        ASSERT_EQUAL(list_incoming_rate_megabit_per_s.size(), 7);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(0), bandwidth_rate / 2.0 * (1.0 - 0.3), 0.1);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(1), bandwidth_rate * (1.0 - 1.0), 0.1);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(2), bandwidth_rate * (1.0 - 0.4), 0.1);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(3), bandwidth_rate, 0.1);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(4), bandwidth_rate, 0.1);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(5), bandwidth_rate, 0.1);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(6), bandwidth_rate / 2.0 * (1.0 - 0.3), 0.1);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 class UdpBurstEndToEndNotEnabledTestCase : public UdpBurstEndToEndTestCase
 {
 public:
@@ -493,6 +563,7 @@ public:
         topology_file << "link_channel_delay_ns=200000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
         topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
@@ -558,6 +629,7 @@ public:
         topology_file << "link_channel_delay_ns=200000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
         topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 

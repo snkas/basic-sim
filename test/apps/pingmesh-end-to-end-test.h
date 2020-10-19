@@ -54,6 +54,7 @@ public:
         topology_file << "link_channel_delay_ns=50000000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=10000" << std::endl;
         topology_file << "link_device_queue=drop_tail(10000p)" << std::endl;
+        topology_file << "link_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
     }
@@ -459,6 +460,7 @@ public:
         topology_file << "link_channel_delay_ns=100000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=10" << std::endl;
         topology_file << "link_device_queue=drop_tail(100000B)" << std::endl;
+        topology_file << "link_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
@@ -779,6 +781,7 @@ public:
         topology_file << "link_channel_delay_ns=200000" << std::endl;
         topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
         topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 

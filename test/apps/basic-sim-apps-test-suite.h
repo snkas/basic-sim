@@ -56,6 +56,7 @@ public:
         AddTestCase(new UdpBurstEndToEndSingleOverflowTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndDoubleEnoughTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndDoubleOverflowTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndLossTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndNotEnabledTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndInvalidLoggingIdTestCase, TestCase::QUICK);
 

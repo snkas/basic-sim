@@ -29,6 +29,7 @@ It encompasses the following files:
    link_channel_delay_ns=10000
    link_device_data_rate_megabit_per_s=100.0
    link_device_queue=drop_tail(100p)
+   link_device_receive_error_model=none
    link_interface_traffic_control_qdisc=disabled
    ```
 
@@ -67,12 +68,15 @@ It encompasses the following files:
 
 ## Configuration properties
 
-If one uses the default point-to-point topology, the following properties MUST also be defined in `config_ns3.properties`:
+If one uses the default point-to-point topology, the following properties MUST 
+also be defined in `config_ns3.properties`:
 * `topology_ptop_filename` : Topology filename (relative to run folder)
 
 ## Topology file: topology.properties
 
-Because the topology file can get quite big, and is independent to some extent, it is in a separate configuration file. This configuration file contains both the topological layout, and the link properties (delay, rate, queue size, qdisc).
+Because the topology file can get quite big, and is independent to some extent, 
+it is in a separate configuration file. This configuration file contains both the 
+topological layout, and the link properties (delay, rate, queue size, qdisc).
 
 **Example:**
 
@@ -87,10 +91,22 @@ undirected_edges=set(0-1,0-2,0-3)
 link_channel_delay_ns=map(0-1: 10000, 0-2: 10000, 0-3: 10000)
 link_device_data_rate_megabit_per_s=100.0
 link_device_queue=map(0->1: drop_tail(50p), 1->0: drop_tail(100p), 0->2: drop_tail(100000B), 2->0: drop_tail(50p), 0->3: drop_tail(100p), 3->0: drop_tail(100p))
+link_device_receive_error_model=uniform_random_pkt(0.0)
 link_interface_traffic_control_qdisc=disabled
 ```
 
-**Properties:**
+### Properties
+
+All mandatory properties must be present. Empty sets are permitted. 
+Empty lines and lines starting with a comment sign (#) are permitted. 
+Besides it just defining a graph, the following rules apply:
+
+* If there are servers defined, they can only have edges to a ToR.
+* There is only a semantic difference between switches, switches which 
+  are ToRs and servers. If there are servers, only servers should be 
+  valid endpoints for applications. If there are no servers, ToRs should be valid endpoints instead.
+  
+The properties:
 
 * `num_nodes` (type: positive integer)
 
@@ -128,27 +144,77 @@ link_interface_traffic_control_qdisc=disabled
   code that checks with topology explicitly will adhere to the endpoints the 
   topology claims are permissible for applications.
 
-* `link_channel_delay_ns` (type: undirected edge (two-link) mapping or a global value; a positive integer)
+* `link_channel_delay_ns` 
 
-  Propagation delay set for undirected edges (=two-link) (ns).
+   **Property description:** Propagation delay set for undirected edges (= two links) (ns).
 
-* `link_device_data_rate_megabit_per_s` (type: directed edge (link) mapping or a global value; a positive double)
+   **Value type:** undirected edge (= two links) map or single global value
+   
+   **Possible value:** ns as a positive integer
 
-  Data rate set for links (Mbit/s). 
- 
-* `link_device_queue` (type: directed edge (link) mapping or a global value; `drop_tail(<integer>p)` or `drop_tail(<integer>B)`  for respectively packets or bytes)
-
-  Queue implementation for link devices. Only DropTail is right now implemented.
+   **Examples:**
+   - `link_channel_delay_ns=10000` for 10 microseconds propagation delay
+   - `link_channel_delay_ns=1000000000` for 1 second propagation delay
+   - `link_channel_delay_ns=map(0-1: 10000, 1-2: 30000)`
+   
+* `link_device_data_rate_megabit_per_s` 
   
-* `link_interface_traffic_control_qdisc` (type: directed edge (link) mapping or a global value; string of `default`,  `disabled`, `fq_codel_better_rtt`)
+   **Property description:** Data rate set for the sending network device 
+   of this directed edge (link) (Mbit/s).
+   
+   **Value type:** directed edge (link) map or single global value
+   
+   **Possible value:** Mbit/s as a positive double
+   
+   **Examples:**
+   - `link_device_data_rate_megabit_per_s=0.6` for 0.6 Mbit/s
+   - `link_device_data_rate_megabit_per_s=100.0` for 100 Mbit/s
+   - `link_device_data_rate_megabit_per_s=map(0->1: 0.8, 1->0: 12.0, 1->2: 10, 2->1: 100.8)`
+   
+* `link_device_queue`
 
-   Interface traffic control queueing discipline for links.
+   **Property description:** queue implementation for the sending network device
+   of this directed edge (link).
 
-All mandatory properties must be present. Empty sets are permitted. 
-Empty lines and lines starting with a comment sign (#) are permitted. 
-Besides it just defining a graph, the following rules apply:
+   **Value type:** directed edge (link) map or single global value
+   
+   **Possible values:**
+   - `drop_tail(<integer>p)` for a drop-tail queue with a size in packets
+   - `drop_tail(<integer>B)` for a drop-tail queue with a size in byte
 
-* If there are servers defined, they can only have edges to a ToR.
-* There is only a semantic difference between switches, switches which 
-  are ToRs and servers. If there are servers, only servers should be 
-  valid endpoints for applications. If there are no servers, ToRs should be valid endpoints instead.
+   **Examples:**
+   - `link_device_queue=drop_tail(100p)`
+   - `link_device_queue=drop_tail(100000B)`
+   - `link_device_queue=map(0->1: drop_tail(100p), 1->0: drop_tail(90p), 
+     1->2: drop_tail(100000B), 2->1: drop_tail(100p))`
+  
+* `link_device_receive_error_model` 
+
+   **Property description:** error model of the receiving network device
+    of the directed edge (link).
+
+   **Value type:** directed edge (link) map or single global value
+   
+   **Possible values:**
+   - `none` for no random drops (if it is sent, it will arrive perfectly always)
+   - `iid_uniform_random_pkt(<double in [0.0, 1.0])` for a i.i.d. uniform random 
+     drop probability for each packet traversing the directed edge (link) 
+
+   **Examples:**
+   - `link_device_receive_error_model=none` for no reception errors (perfect)
+   - `link_device_receive_error_model=iid_uniform_random_pkt(0.0001)` for a 0.01% 
+     probability of a packet getting dropped when traversing every link
+   - `link_device_receive_error_model=map(0->1: none, 1->0: iid_uniform_random_pkt(0.0001), 
+     1->2: iid_uniform_random_pkt(1.0), 2->1: iid_uniform_random_pkt(0.3))`
+
+* `link_interface_traffic_control_qdisc` 
+
+   **Property description:** traffic control queueing discipline for the interface
+   in front of the sending network device of the directed edge (link).
+    
+   **Value type:** directed edge (link) map or single global value
+    
+   **Possible values:**
+   - `default` for the ns-3 default (fq_codel with a pretty high RTT estimate)
+   - `disabled` for no queueing discipline
+   - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology

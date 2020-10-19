@@ -33,6 +33,16 @@ TypeId TopologyPtopQueueSelector::GetTypeId (void)
     return tid;
 }
 
+NS_OBJECT_ENSURE_REGISTERED (TopologyPtopReceiveErrorModelSelector);
+TypeId TopologyPtopReceiveErrorModelSelector::GetTypeId (void)
+{
+    static TypeId tid = TypeId ("ns3::TopologyPtopReceiveErrorModelSelector")
+            .SetParent<Object> ()
+            .SetGroupName("BasicSim")
+    ;
+    return tid;
+}
+
 NS_OBJECT_ENSURE_REGISTERED (TopologyPtopTcQdiscSelector);
 TypeId TopologyPtopTcQdiscSelector::GetTypeId (void)
 {
@@ -46,6 +56,7 @@ TypeId TopologyPtopTcQdiscSelector::GetTypeId (void)
 }
 
 #include "topology-ptop-queue-selector-default.h"
+#include "topology-ptop-receive-error-model-selector-default.h"
 #include "topology-ptop-tc-qdisc-selector-default.h"
 
 namespace ns3 {
@@ -64,10 +75,12 @@ TopologyPtop::TopologyPtop(
         Ptr<BasicSimulation> basicSimulation,
         const Ipv4RoutingHelper& ipv4RoutingHelper,
         Ptr<TopologyPtopQueueSelector> queueSelector,
+        Ptr<TopologyPtopReceiveErrorModelSelector> receiveErrorModelSelector,
         Ptr<TopologyPtopTcQdiscSelector> tcQdiscSelector
 ) {
     m_basicSimulation = basicSimulation;
     m_queueSelector = queueSelector;
+    m_receiveErrorModelSelector = receiveErrorModelSelector;
     m_tcQdiscSelector = tcQdiscSelector;
     ReadTopologyConfig();
     ParseTopologyGraph();
@@ -83,6 +96,7 @@ TopologyPtop::TopologyPtop(
         basicSimulation,
         ipv4RoutingHelper,
         CreateObject<TopologyPtopQueueSelectorDefault>(),
+        CreateObject<TopologyPtopReceiveErrorModelSelectorDefault>(),
         CreateObject<TopologyPtopTcQdiscSelectorDefault>()
 ) {
   // Left empty intentionally
@@ -111,6 +125,7 @@ void TopologyPtop::ReadTopologyConfig() {
                 entry.first != "link_channel_delay_ns" &&
                 entry.first != "link_device_data_rate_megabit_per_s" &&
                 entry.first != "link_device_queue" &&
+                entry.first != "link_device_receive_error_model" &&
                 entry.first != "link_interface_traffic_control_qdisc"
         ) {
             throw std::runtime_error("Invalid topology property: " + entry.first);
@@ -407,6 +422,34 @@ void TopologyPtop::ParseLinkDeviceQueueProperty() {
 }
 
 /**
+ * Parse the link_device_receive_error_model from the topology configuration.
+ *
+ * @return Mapping of directed edge (a, b) (i.e., link) to link device receive error model
+ */
+void TopologyPtop::ParseLinkDeviceReceiveErrorModelProperty() {
+    std::string value = get_param_or_fail("link_device_receive_error_model", m_topology_config);
+
+    // Default value
+    if (!starts_with(trim(value), "map")) {
+
+        // Create default mapping
+        std::pair<bool, Ptr<ErrorModel>> link_device_receive_error_model = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, value);
+        for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
+            m_link_device_receive_error_model_mapping[p] = link_device_receive_error_model;
+            m_link_device_receive_error_model_mapping[std::make_pair(p.second, p.first)] = link_device_receive_error_model;
+        }
+        std::cout << "    >> Single global value... " << value << std::endl;
+
+    } else { // Mapping
+        std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
+        for (auto const& entry : directed_edge_mapping) {
+            m_link_device_receive_error_model_mapping[entry.first] = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, entry.second);
+        }
+        std::cout << "    >> Per link device receive error model mapping was read" << std::endl;
+    }
+}
+
+/**
  * Estimation of the worst case RTT based on the topology and the link settings.
  *
  * MTU = 1500 byte, +2 with the p2p header.
@@ -513,6 +556,11 @@ void TopologyPtop::ParseTopologyLinkProperties() {
     std::cout << "  > Link device queues" << std::endl;
     ParseLinkDeviceQueueProperty();
     m_basicSimulation->RegisterTimestamp("Parse link-to-device-queue mapping");
+    
+    // Device queue
+    std::cout << "  > Link device receive error model" << std::endl;
+    ParseLinkDeviceReceiveErrorModelProperty();
+    m_basicSimulation->RegisterTimestamp("Parse link-to-device-receive-error-model mapping");
 
     // Worst-case RTT
     std::cout << "  > Worst-case RTT estimation" << std::endl;
@@ -587,6 +635,14 @@ void TopologyPtop::SetupLinks() {
         // Retrieve the network devices installed on either end of the link
         Ptr<PointToPointNetDevice> netDeviceA = container.Get(0)->GetObject<PointToPointNetDevice>();
         Ptr<PointToPointNetDevice> netDeviceB = container.Get(1)->GetObject<PointToPointNetDevice>();
+
+        // Set receiving error model
+        if (m_link_device_receive_error_model_mapping.at(edge_b_to_a).first) {
+            netDeviceA->SetReceiveErrorModel(m_link_device_receive_error_model_mapping.at(edge_b_to_a).second);
+        }
+        if (m_link_device_receive_error_model_mapping.at(edge_a_to_b).first) {
+            netDeviceB->SetReceiveErrorModel(m_link_device_receive_error_model_mapping.at(edge_a_to_b).second);
+        }
 
         // Traffic control queueing discipline
         std::pair<bool, TrafficControlHelper> a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_a_to_b);
