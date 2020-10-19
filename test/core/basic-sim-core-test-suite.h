@@ -42,6 +42,7 @@ public:
         AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpTooManyNodesTestCase, TestCase::QUICK);
+        AddTestCase(new ArbiterEcmpSeparatedTestCase, TestCase::QUICK);
 
         // Point-to-point link utilization tracking
         AddTestCase(new PtopLinkUtilizationSimpleTestCase, TestCase::QUICK);

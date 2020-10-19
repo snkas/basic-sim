@@ -491,3 +491,76 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
+
+class ArbiterEcmpSeparatedTestCase : public TestCase
+{
+public:
+    ArbiterEcmpSeparatedTestCase () : TestCase ("routing-arbiter-ecmp separated") {};
+    void DoRun () {
+        prepare_arbiter_test_config();
+
+        // Topology file
+        std::ofstream topology_file;
+        topology_file.open (arbiter_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=2" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,1,2,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // Create topology
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(arbiter_test_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        // Create some packet (not relevant what's in it)
+        Ptr<Packet> pkt = Create<Packet>(555);
+        Ipv4Header ipHeader;
+        ipHeader.SetSource(Ipv4Address(1234));
+        ipHeader.SetDestination(Ipv4Address(5678));
+        TcpHeader tcpHeader;
+        tcpHeader.SetSourcePort(435);
+        tcpHeader.SetDestinationPort(777);
+        ipHeader.SetProtocol(6);
+        pkt->AddHeader(tcpHeader);
+        pkt->AddHeader(ipHeader);
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if ((i < 2 && j >= 2) || (j < 2 && i >= 2) || i == j) {
+                    ASSERT_EXCEPTION_MATCH_WHAT(topology->GetNodes().Get(i)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->GetArbiter()->GetObject<ArbiterEcmp>()->TopologyPtopDecide(
+                            i,
+                            j,
+                            std::set<int64_t>(),
+                            pkt,
+                            ipHeader,
+                            false
+                    ), "There are no candidate ECMP next hops available at current node " + std::to_string(i) + " for a packet from source " + std::to_string(i) + " to destination " + std::to_string(j));
+                } else {
+                    ASSERT_EQUAL(topology->GetNodes().Get(i)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->GetArbiter()->GetObject<ArbiterEcmp>()->TopologyPtopDecide(
+                            i,
+                            j,
+                            std::set<int64_t>(),
+                            pkt,
+                            ipHeader,
+                            false
+                    ), j);
+                }
+            }
+        }
+
+        // Clean-up
+        basicSimulation->Finalize();
+        cleanup_arbiter_test();
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////

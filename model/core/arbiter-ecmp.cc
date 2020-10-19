@@ -25,7 +25,12 @@ ArbiterEcmp::ArbiterEcmp(
 int32_t ArbiterEcmp::TopologyPtopDecide(int32_t source_node_id, int32_t target_node_id, const std::set<int64_t>& neighbor_node_ids, Ptr<const Packet> pkt, Ipv4Header const &ipHeader, bool is_request_for_source_ip_so_no_next_header) {
     uint32_t hash = ComputeFiveTupleHash(ipHeader, pkt, m_node_id, is_request_for_source_ip_so_no_next_header);
     int s = m_candidate_list.at(target_node_id).size();
-    NS_ABORT_MSG_IF(s == 0, "There are no candidate ECMP next hops available (likely disconnected source and destination)");
+    if (s == 0) {
+        throw std::invalid_argument(format_string(
+                "There are no candidate ECMP next hops available at current node %d for a packet from source %d to destination %d",
+                m_node_id, source_node_id, target_node_id
+        ));
+    }
     return m_candidate_list.at(target_node_id).at(hash % s);
 }
 
