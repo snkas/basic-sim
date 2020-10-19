@@ -80,10 +80,11 @@ ArbiterResult ArbiterPtop::Decide(
         }
 
         // We succeeded in finding the interface to the next hop
-        return ArbiterResult(false, selected_if_idx, 0); // Gateway is 0.0.0.0
+        return ArbiterResult(false, selected_if_idx, 0); // Gateway is set to 0.0.0.0 as gateway does not matter for a point-to-point link
 
     } else {
-        return ArbiterResult(true, 0, 0); // Failed = no route (means either drop, or socket fails)
+        return ArbiterResult(true, 0, 0); // Failed = no route = selected interface index is 0 (means either drop, or socket fails)
+                                          // The gateway like above is set to 0.0.0.0 as it doesn't matter
     }
 
 }
