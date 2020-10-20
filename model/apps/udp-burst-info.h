@@ -2,14 +2,7 @@
 #define UDP_BURST_INFO_H
 
 #include <string>
-#include <vector>
-#include <map>
-#include <tuple>
-#include <cstring>
-#include <fstream>
 #include <cinttypes>
-#include <algorithm>
-#include <regex>
 
 namespace ns3 {
 

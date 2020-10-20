@@ -26,6 +26,9 @@
 #include "ns3/ipv4-address.h"
 #include "ns3/node-container.h"
 #include "ns3/application-container.h"
+#include "ns3/string.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/names.h"
 
 namespace ns3 {
 

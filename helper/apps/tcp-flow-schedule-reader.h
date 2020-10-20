@@ -1,15 +1,8 @@
 #ifndef TCP_FLOW_SCHEDULE_READER_H
 #define TCP_FLOW_SCHEDULE_READER_H
 
-#include <string>
-#include <vector>
-#include <map>
-#include <tuple>
-#include <cstring>
 #include <fstream>
 #include <cinttypes>
-#include <algorithm>
-#include <regex>
 #include "ns3/exp-util.h"
 #include "ns3/topology.h"
 

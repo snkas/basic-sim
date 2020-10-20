@@ -25,8 +25,6 @@
 #ifndef TCP_FLOW_SEND_HELPER_H
 #define TCP_FLOW_SEND_HELPER_H
 
-#include <stdint.h>
-#include <string>
 #include "ns3/object-factory.h"
 #include "ns3/address.h"
 #include "ns3/attribute.h"
@@ -34,9 +32,13 @@
 #include "ns3/node-container.h"
 #include "ns3/application-container.h"
 #include "ns3/uinteger.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/packet-socket-address.h"
+#include "ns3/string.h"
+#include "ns3/boolean.h"
+#include "ns3/names.h"
 
 namespace ns3 {
-
 
 class TcpFlowSendHelper
 {

@@ -20,10 +20,6 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 #include "udp-rtt-helper.h"
-#include "ns3/udp-rtt-server.h"
-#include "ns3/udp-rtt-client.h"
-#include "ns3/uinteger.h"
-#include "ns3/names.h"
 
 namespace ns3 {
 

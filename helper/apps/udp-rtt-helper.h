@@ -28,6 +28,10 @@
 #include "ns3/object-factory.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
+#include "ns3/udp-rtt-server.h"
+#include "ns3/udp-rtt-client.h"
+#include "ns3/uinteger.h"
+#include "ns3/names.h"
 
 namespace ns3 {
 

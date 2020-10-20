@@ -26,7 +26,6 @@
 #include "ns3/ptr.h"
 #include "ns3/address.h"
 #include "ns3/traced-callback.h"
-#include "ns3/seq-ts-header.h"
 #include "ns3/udp-burst-info.h"
 #include "ns3/id-seq-header.h"
 #include "ns3/string.h"

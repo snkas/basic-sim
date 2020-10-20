@@ -23,12 +23,14 @@
 #ifndef UDP_BURST_HELPER_H
 #define UDP_BURST_HELPER_H
 
-#include <stdint.h>
 #include "ns3/application-container.h"
 #include "ns3/node-container.h"
 #include "ns3/object-factory.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
+#include "ns3/uinteger.h"
+#include "ns3/names.h"
+#include "ns3/string.h"
 #include "ns3/udp-burst-application.h"
 
 namespace ns3 {

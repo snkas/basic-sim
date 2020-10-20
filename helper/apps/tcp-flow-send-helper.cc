@@ -23,11 +23,6 @@
  */
 
 #include "tcp-flow-send-helper.h"
-#include "ns3/inet-socket-address.h"
-#include "ns3/packet-socket-address.h"
-#include "ns3/string.h"
-#include "ns3/boolean.h"
-#include "ns3/names.h"
 
 namespace ns3 {
 
