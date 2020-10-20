@@ -15,7 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Simon <isniska@gmail.com>
+ * Author: Simon
+ * Based on Ipv4StaticRouting
  */
 
 #define NS_LOG_APPEND_CONTEXT                                   \
