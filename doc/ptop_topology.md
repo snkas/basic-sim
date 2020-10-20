@@ -218,3 +218,15 @@ The properties:
    - `default` for the ns-3 default (fq_codel with a pretty high RTT estimate)
    - `disabled` for no queueing discipline
    - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology
+   - `simple_red(ecn/drop; min_th; max_th; max_size)` for a simple RED queueing discipline.
+     It does a simple linear probability between the minimum and maximum threshold.
+     The instantaneous queue size is used as the "average queue size" (which means, no exponential
+     weighted averaging is done). The action taken if a packet is probabilistically
+     determined to be marked by RED can be set to either mark ECN (ecn) or drop the packet (drop).
+     
+     The parameters:
+     - `ecn/drop`: the action; set to `ecn` or to `drop`
+     - `min_th`: RED minimum threshold in packets
+     - `max_th`: RED maximum threshold in packets
+     - `max_size`: Maximum queue size in packets (if the action is `drop`, 
+       `max_th` will effectively be a lower `max_size`)
