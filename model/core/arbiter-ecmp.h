@@ -2,11 +2,7 @@
 #define ARBITER_ECMP_H
 
 #include "ns3/arbiter-ptop.h"
-#include "ns3/topology-ptop.h"
 #include "ns3/hash.h"
-#include "ns3/ipv4-header.h"
-#include "ns3/udp-header.h"
-#include "ns3/tcp-header.h"
 
 namespace ns3 {
 

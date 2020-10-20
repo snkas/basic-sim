@@ -1,24 +1,10 @@
 #ifndef ARBITER_H
 #define ARBITER_H
 
-
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <chrono>
-#include <stdexcept>
+#include "ns3/exp-util.h"
 #include "ns3/topology.h"
-#include "ns3/node-container.h"
 #include "ns3/ipv4.h"
 #include "ns3/ipv4-header.h"
-#include "ns3/exp-util.h"
 
 namespace ns3 {
 

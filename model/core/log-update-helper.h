@@ -21,18 +21,10 @@
 #ifndef LOG_UPDATE_HELPER_H
 #define LOG_UPDATE_HELPER_H
 
-#include <map>
 #include <vector>
-#include <iostream>
+#include <tuple>
 #include <fstream>
 #include <string>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <chrono>
 #include <stdexcept>
 
 class LogUpdateHelper {

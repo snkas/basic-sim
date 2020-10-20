@@ -21,18 +21,12 @@
 #ifndef IPV4_ARBITER_ROUTING_H
 #define IPV4_ARBITER_ROUTING_H
 
-#include <list>
-#include <utility>
-#include <stdint.h>
+#include "ns3/net-device.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv4-header.h"
-#include "ns3/socket.h"
-#include "ns3/ptr.h"
-#include "ns3/ipv4.h"
 #include "ns3/ipv4-routing-protocol.h"
+#include "ns3/socket.h"
 #include "ns3/arbiter.h"
-#include "ns3/point-to-point-net-device.h"
-#include "ns3/point-to-point-channel.h"
 
 namespace ns3 {
 

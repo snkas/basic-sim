@@ -21,23 +21,10 @@
 #ifndef PTOP_LINK_QUEUE_TRACKER_H
 #define PTOP_LINK_QUEUE_TRACKER_H
 
-#include <map>
 #include <vector>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <chrono>
 #include <stdexcept>
 
-#include "ns3/core-module.h"
 #include "ns3/network-module.h"
-#include "ns3/internet-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/log-update-helper.h"
 

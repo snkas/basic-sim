@@ -1,25 +1,15 @@
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <chrono>
-#include <stdexcept>
+#include <ns3/command-line.h>
 #include "ns3/basic-simulation.h"
+#include "ns3/topology-ptop.h"
+#include "ns3/ipv4-arbiter-routing-helper.h"
+#include "ns3/arbiter-ecmp-helper.h"
+#include "ns3/ptop-link-utilization-tracker-helper.h"
+#include "ns3/ptop-link-queue-tracker-helper.h"
+#include "ns3/tcp-optimizer.h"
+
 #include "ns3/tcp-flow-scheduler.h"
 #include "ns3/udp-burst-scheduler.h"
 #include "ns3/pingmesh-scheduler.h"
-#include "ns3/topology-ptop.h"
-#include "ns3/tcp-optimizer.h"
-#include "ns3/arbiter-ecmp-helper.h"
-#include "ns3/ipv4-arbiter-routing-helper.h"
-#include "ns3/ptop-link-utilization-tracker-helper.h"
-#include "ns3/ptop-link-queue-tracker-helper.h"
 
 using namespace ns3;
 

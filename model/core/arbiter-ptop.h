@@ -1,22 +1,7 @@
 #ifndef ARBITER_PTOP_H
 #define ARBITER_PTOP_H
 
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <chrono>
-#include <stdexcept>
 #include "ns3/topology-ptop.h"
-#include "ns3/node-container.h"
-#include "ns3/ipv4.h"
-#include "ns3/ipv4-header.h"
 #include "ns3/arbiter.h"
 
 namespace ns3 {

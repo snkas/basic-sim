@@ -22,30 +22,12 @@
 #ifndef BASIC_SIMULATION_H
 #define BASIC_SIMULATION_H
 
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <ctime>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
 #include <chrono>
-#include <stdexcept>
-
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/internet-module.h"
-#include "ns3/point-to-point-module.h"
-#include "ns3/applications-module.h"
-#include "ns3/random-variable-stream.h"
-#include "ns3/command-line.h"
-#include "ns3/traffic-control-helper.h"
-#include "ns3/mpi-interface.h"
 
 #include "ns3/exp-util.h"
+#include "ns3/core-module.h"
+#include "ns3/mpi-interface.h"
 
 namespace ns3 {
 
