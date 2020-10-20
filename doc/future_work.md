@@ -2,8 +2,7 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Incorporate a parameterized selector for RED as queueing discipline
-  in the topology configuration default (as RED is commonly used)
+* (To be updated)
 
 When upgrading to a new version of ns-3, be sure to check:
 

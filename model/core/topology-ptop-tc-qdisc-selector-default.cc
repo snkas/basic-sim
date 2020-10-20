@@ -60,6 +60,48 @@ namespace ns3 {
             );
             return std::make_pair(true, fqCoDelBetterRttHelper);
 
+        } else if (starts_with(value, "simple_red(") && ends_with(value, ")")) {
+
+            // Get rid of the "simple_red("-prefix and ")"-postfix
+            std::string inner_part = value.substr(11, value.size() - 12);
+            std::vector<std::string> spl = split_string(inner_part, ";", 4);
+
+            // Action
+            std::string str_action = spl.at(0);
+            if (str_action != "ecn" && str_action != "drop") {
+                throw std::invalid_argument("Invalid RED action: " + str_action);
+            }
+            bool action_is_ecn = str_action == "ecn";
+
+            // Thresholds and maximum size
+            int64_t min_th_pkt = parse_positive_int64(spl.at(1));
+            int64_t max_th_pkt = parse_positive_int64(spl.at(2));
+            int64_t max_size_pkt = parse_positive_int64(spl.at(3));
+            if (min_th_pkt > max_th_pkt) {
+                throw std::invalid_argument("RED minimum threshold cannot exceed maximum threshold");
+            }
+            if (max_th_pkt > max_size_pkt) {
+                throw std::invalid_argument("RED maximum threshold cannot exceed maximum queue size");
+            }
+
+            // Create the traffic control helper
+            TrafficControlHelper simpleRedHelper;
+
+            // Set the root queueing discipline to RED with the attributes
+            simpleRedHelper.SetRootQueueDisc(
+                    "ns3::RedQueueDisc",
+                    "QW", DoubleValue (1),                           // Only instantaneous queue size is used to estimate average queue size (thus they are equal)
+                    "UseEcn", BooleanValue (action_is_ecn),          // Either: (a) mark with ECN
+                    "UseHardDrop", BooleanValue (!action_is_ecn),    //         (b) drop
+                    "MeanPktSize", UintegerValue (1500),             // Mean packet size we set to 1500 byte always
+                    "MinTh", DoubleValue (min_th_pkt),               // RED minimum threshold (packets)
+                    "MaxTh", DoubleValue (max_th_pkt),               // RED maximum threshold (packets)
+                    "MaxSize", QueueSizeValue( QueueSize(std::to_string(max_size_pkt) + "p"))  // Maximum queue size (packets)
+            );
+
+            // Return traffic control qdisc is enabled and the helper to create it
+            return std::make_pair(true, simpleRedHelper);
+
         } else {
             throw std::runtime_error("Invalid traffic control qdisc value: " + value);
         }

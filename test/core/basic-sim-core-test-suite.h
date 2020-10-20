@@ -4,6 +4,7 @@
 #include "ns3/test.h"
 #include "exp-util-test.h"
 #include "topology-ptop-test.h"
+#include "ptop-tc-qdisc-red-test.h"
 #include "arbiter-test.h"
 #include "ptop-link-utilization-test.h"
 #include "ptop-link-queue-test.h"
@@ -36,6 +37,10 @@ public:
         AddTestCase(new TopologyPtopLeafSpineTestCase, TestCase::QUICK);
         AddTestCase(new TopologyPtopRingTestCase, TestCase::QUICK);
         AddTestCase(new TopologyPtopInvalidTestCase, TestCase::QUICK);
+
+        // Point-to-point traffic-control queueing discipline RED
+        AddTestCase(new PtopTcQdiscRedValidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscRedInvalidTestCase, TestCase::QUICK);
 
         // Arbiter
         AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
