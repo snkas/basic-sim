@@ -31,6 +31,7 @@
 #include <memory>
 #include <stdexcept>
 #include <cinttypes>
+#include <iostream>
 #include <fstream>
 #include <unistd.h>
 #include <sys/stat.h>
