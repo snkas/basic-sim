@@ -18,7 +18,6 @@
  * Originally based on, but since heavily adapted/extended, the scratch/main authored by Hussain.
  */
 
-
 #include "topology-ptop.h"
 
 namespace ns3 {
