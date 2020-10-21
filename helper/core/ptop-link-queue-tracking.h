@@ -15,38 +15,33 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Simon, Hanjing
+ * Author: Simon
  */
 
-#ifndef PTOP_LINK_UTILIZATION_TRACKER_HELPER_H
-#define PTOP_LINK_UTILIZATION_TRACKER_HELPER_H
-
-#define UTILIZATION_TRACKER_COMPRESSION_APPROXIMATELY_NOT_EQUAL 0.000001
+#ifndef PTOP_LINK_QUEUE_TRACKER_HELPER_H
+#define PTOP_LINK_QUEUE_TRACKER_HELPER_H
 
 #include "ns3/basic-simulation.h"
 #include "ns3/topology-ptop.h"
-#include "ns3/ptop-link-utilization-tracker.h"
+#include "ns3/queue-tracker.h"
 
 namespace ns3 {
 
-    class PtopLinkUtilizationTrackerHelper
+    class PtopLinkQueueTracking
     {
 
     public:
-        PtopLinkUtilizationTrackerHelper(Ptr<BasicSimulation> basicSimulation, Ptr<TopologyPtop> topology);
+        PtopLinkQueueTracking(Ptr<BasicSimulation> basicSimulation, Ptr<TopologyPtop> topology);
         void WriteResults();
 
     private:
-        std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkUtilizationTracker>>> m_utilization_trackers;
+        std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<QueueTracker>>> m_queue_trackers;
         Ptr<BasicSimulation> m_basicSimulation;
         Ptr<TopologyPtop> m_topology;
-        int64_t m_utilization_interval_ns;
         bool m_enabled;
 
-        std::string m_filename_utilization_csv;
-        std::string m_filename_utilization_compressed_csv;
-        std::string m_filename_utilization_compressed_txt;
-        std::string m_filename_utilization_summary_txt;
+        std::string m_filename_link_queue_pkt_csv;
+        std::string m_filename_link_queue_byte_csv;
 
         uint32_t m_system_id;
         bool m_enable_distributed;
@@ -57,4 +52,4 @@ namespace ns3 {
 
 } // namespace ns3
 
-#endif /* PTOP_LINK_UTILIZATION_TRACKER_HELPER_H */
+#endif /* PTOP_LINK_QUEUE_TRACKER_HELPER_H */

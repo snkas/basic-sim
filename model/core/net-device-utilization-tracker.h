@@ -18,40 +18,44 @@
  * Author: Simon, Hanjing
  */
 
-#ifndef PTOP_LINK_QUEUE_TRACKER_H
-#define PTOP_LINK_QUEUE_TRACKER_H
+#ifndef NET_DEVICE_UTILIZATION_TRACKER_H
+#define NET_DEVICE_UTILIZATION_TRACKER_H
 
 #include <vector>
 #include <stdexcept>
 
 #include "ns3/network-module.h"
 #include "ns3/point-to-point-module.h"
-#include "ns3/log-update-helper.h"
 
 
 namespace ns3 {
 
-    class PtopLinkQueueTracker : public Object {
+    class NetDeviceUtilizationTracker : public Object {
 
     public:
         static TypeId GetTypeId (void);
-        PtopLinkQueueTracker(Ptr<PointToPointNetDevice> netDevice);
-        void NetDevicePacketsInQueueCallback(uint32_t, uint32_t num_packets);
-        void NetDeviceBytesInQueueCallback(uint32_t, uint32_t num_bytes);
-        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumPackets();
-        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& GetIntervalsNumBytes();
+        NetDeviceUtilizationTracker(Ptr<PointToPointNetDevice> netDevice, int64_t interval_ns);
+        void NetDevicePhyTxBeginCallback(Ptr<Packet const>);
+        void NetDevicePhyTxEndCallback(Ptr<Packet const>);
+        void TrackUtilization(bool next_state_is_on);
+        const std::vector<std::tuple<int64_t, int64_t, int64_t>>& FinalizeUtilization();
 
     private:
 
         // Parameters
-        Ptr<Queue<Packet>> m_queue;
+        int64_t m_interval_ns;
 
         // State
-        LogUpdateHelper m_log_update_helper_queue_pkt;
-        LogUpdateHelper m_log_update_helper_queue_byte;
+        int64_t m_prev_time_ns;
+        int64_t m_current_interval_start;
+        int64_t m_current_interval_end;
+        int64_t m_idle_time_counter_ns;
+        int64_t m_busy_time_counter_ns;
+        bool m_current_state_is_on;
+        std::vector<std::tuple<int64_t, int64_t, int64_t>> m_intervals;
 
     };
 
 }
 
-#endif // PTOP_LINK_QUEUE_TRACKER_H
+#endif // NET_DEVICE_UTILIZATION_TRACKER_H

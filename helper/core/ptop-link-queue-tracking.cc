@@ -18,11 +18,11 @@
  * Author: Simon
  */
 
-#include "ptop-link-queue-tracker-helper.h"
+#include "ptop-link-queue-tracking.h"
 
 namespace ns3 {
 
-    PtopLinkQueueTrackerHelper::PtopLinkQueueTrackerHelper(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
+    PtopLinkQueueTracking::PtopLinkQueueTracking(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
         std::cout << "POINT-TO-POINT LINK (NET-DEVICE) QUEUE TRACKING" << std::endl;
 
         // Save for writing results later after simulation is done
@@ -55,13 +55,13 @@ namespace ns3 {
 
                     // One tracker a -> b
                     if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.first) == m_system_id) {
-                        Ptr<PtopLinkQueueTracker> tracker_a_b = CreateObject<PtopLinkQueueTracker>(edge_net_devices.first);
+                        Ptr<QueueTracker> tracker_a_b = CreateObject<QueueTracker>(edge_net_devices.first->GetQueue());
                         m_queue_trackers.push_back(std::make_pair(edge, tracker_a_b));
                     }
 
                     // One tracker b -> a
                     if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.second) == m_system_id) {
-                        Ptr<PtopLinkQueueTracker> tracker_b_a = CreateObject<PtopLinkQueueTracker>(edge_net_devices.second);
+                        Ptr<QueueTracker> tracker_b_a = CreateObject<QueueTracker>(edge_net_devices.second->GetQueue());
                         m_queue_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
                     }
 
@@ -73,7 +73,7 @@ namespace ns3 {
                 std::set<std::pair<int64_t, int64_t>> enable_for_links_set = parse_set_directed_pair_positive_int64(enable_for_links_str);
                 for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
                     if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
-                        Ptr<PtopLinkQueueTracker> tracker_a_b = CreateObject<PtopLinkQueueTracker>(m_topology->GetNetDeviceForLink(p));
+                        Ptr<QueueTracker> tracker_a_b = CreateObject<QueueTracker>(m_topology->GetNetDeviceForLink(p)->GetQueue());
                         m_queue_trackers.push_back(std::make_pair(p, tracker_a_b));
                     }
                 }
@@ -103,7 +103,7 @@ namespace ns3 {
         std::cout << std::endl;
     }
 
-    void PtopLinkQueueTrackerHelper::WriteResults() {
+    void PtopLinkQueueTracking::WriteResults() {
         std::cout << "POINT-TO-POINT LINK (NET-DEVICE) QUEUE TRACKING RESULTS" << std::endl;
 
         // Check if it is enabled explicitly
@@ -122,7 +122,7 @@ namespace ns3 {
             // Sort
             struct ascending_by_directed_link
             {
-                inline bool operator() (const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkQueueTracker>>& a, const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkQueueTracker>>& b)
+                inline bool operator() (const std::pair<std::pair<int64_t, int64_t>, Ptr<QueueTracker>>& a, const std::pair<std::pair<int64_t, int64_t>, Ptr<QueueTracker>>& b)
                 {
                     return (a.first.first == b.first.first ? a.first.second < b.first.second : a.first.first < b.first.first);
                 }
@@ -137,7 +137,7 @@ namespace ns3 {
                 std::pair<int64_t, int64_t> directed_edge = m_queue_trackers.at(i).first;
 
                 // Tracker
-                Ptr<PtopLinkQueueTracker> tracker = m_queue_trackers.at(i).second;
+                Ptr<QueueTracker> tracker = m_queue_trackers.at(i).second;
 
                 // Queue size in packets
                 const std::vector<std::tuple<int64_t, int64_t, int64_t>> log_entries_pkt = tracker->GetIntervalsNumPackets();

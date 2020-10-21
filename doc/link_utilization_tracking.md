@@ -4,9 +4,9 @@ This tracks the utilization of point-to-point network devices (part of a 'link')
 
 It encompasses the following files:
 
-* `model/core/ptop-link-utilization-tracker.cc/h` - 
+* `model/core/net-device-utilization-tracker.cc/h` - 
   Link utilization tracker
-* `helper/core/ptop-link-utilization-tracker-helper.cc/h` - 
+* `helper/core/ptop-link-utilization-tracking.cc/h` - 
   Helper to install the utilization trackers on the network devices in a topology.
 
 You can use the application(s) separately, or make use of the helper 
@@ -26,21 +26,21 @@ which requires a topology (which is recommended).
 2. In your code, import the helper:
 
    ```
-   #include "ns3/ptop-link-utilization-tracker-helper.h"
+   #include "ns3/ptop-link-utilization-tracking.h"
    ```
    
 3. Before the start of the simulation run, in your code add:
 
    ```c++
    // Install link utilization trackers
-   PtopLinkUtilizationTrackerHelper linkUtilizationTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology);
+   PtopLinkUtilizationTracking linkUtilizationTracking = PtopLinkUtilizationTracking(basicSimulation, topology);
    ```
 
 4. After the run, in your code add:
 
    ```c++
    // Write link utilization result
-   linkUtilizationTrackerHelper.WriteResults();
+   linkUtilizationTracking.WriteResults();
    ```
    
 5. After the run, you should have the link utilization log files in the `logs_ns3` of your run folder.
@@ -51,7 +51,7 @@ which requires a topology (which is recommended).
 1. In your code, import the tracker:
 
    ```
-   #include "ns3/ptop-link-utilization-tracker.h"
+   #include "ns3/net-device-utilization-tracker.h"
    ```
    
 2. Before the start of the simulation run, in your code add:
@@ -59,7 +59,7 @@ which requires a topology (which is recommended).
    ```c++
    Ptr<PointToPointNetDevice> networkDevice = ... // Get the network device from somewhere
    int64_t utilization_interval_ns = 100000000; // 100ms
-   Ptr<PtopLinkUtilizationTracker> tracker = CreateObject<PtopLinkUtilizationTracker>(networkDevice, utilization_interval_ns);
+   Ptr<NetDeviceUtilizationTracker> tracker = CreateObject<NetDeviceUtilizationTracker>(networkDevice, utilization_interval_ns);
    // ... store the tracker to keep it alive and later retrieve its results
    ```
 

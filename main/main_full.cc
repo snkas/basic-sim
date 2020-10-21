@@ -22,8 +22,8 @@
 #include "ns3/topology-ptop.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/arbiter-ecmp-helper.h"
-#include "ns3/ptop-link-utilization-tracker-helper.h"
-#include "ns3/ptop-link-queue-tracker-helper.h"
+#include "ns3/ptop-link-utilization-tracking.h"
+#include "ns3/ptop-link-queue-tracking.h"
 #include "ns3/tcp-optimizer.h"
 
 #include "ns3/tcp-flow-scheduler.h"
@@ -56,10 +56,10 @@ int main(int argc, char *argv[]) {
     ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
     // Install link utilization trackers
-    PtopLinkUtilizationTrackerHelper linkUtilizationTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
+    PtopLinkUtilizationTracking linkUtilizationTracking = PtopLinkUtilizationTracking(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
 
     // Install link queue trackers
-    PtopLinkQueueTrackerHelper linkQueueTrackerHelper = PtopLinkQueueTrackerHelper(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+    PtopLinkQueueTracking linkQueueTracking = PtopLinkQueueTracking(basicSimulation, topology); // Requires enable_link_queue_tracking=true
 
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
@@ -86,10 +86,10 @@ int main(int argc, char *argv[]) {
     pingmeshScheduler.WriteResults();
 
     // Write link utilization results
-    linkUtilizationTrackerHelper.WriteResults();
+    linkUtilizationTracking.WriteResults();
 
     // Write link queue results
-    linkQueueTrackerHelper.WriteResults();
+    linkQueueTracking.WriteResults();
 
     // Finalize the simulation
     basicSimulation->Finalize();

@@ -6,9 +6,9 @@ also have queues in it: these queue are not tracked by this.
 
 It encompasses the following files:
 
-* `model/core/ptop-link-queue-tracker.cc/h` - 
+* `model/core/queue-tracker.cc/h` - 
   Link queue tracker
-* `helper/core/ptop-link-queue-tracker-helper.cc/h` - 
+* `helper/core/ptop-link-queue-tracking.cc/h` - 
   Helper to install the queue trackers on the network devices in a topology.
 
 You can use the application(s) separately, or make use of the helper 
@@ -27,21 +27,21 @@ which requires a topology (which is recommended).
 2. In your code, import the helper:
 
    ```
-   #include "ns3/ptop-link-queue-tracker-helper.h"
+   #include "ns3/ptop-link-queue-tracking.h"
    ```
    
 3. Before the start of the simulation run, in your code add:
 
    ```c++
    // Install link queue trackers
-   PtopLinkQueueTrackerHelper linkQueueTrackerHelper = PtopLinkQueueTrackerHelper(basicSimulation, topology);
+   PtopLinkQueueTracking linkQueueTracking = PtopLinkQueueTracking(basicSimulation, topology);
    ```
 
 4. After the run, in your code add:
 
    ```c++
    // Write link queue result
-   linkQueueTrackerHelper.WriteResults();
+   linkQueueTracking.WriteResults();
    ```
    
 5. After the run, you should have the link queue log files in the `logs_ns3` of your run folder.
@@ -52,14 +52,14 @@ which requires a topology (which is recommended).
 1. In your code, import the tracker:
 
    ```
-   #include "ns3/ptop-link-queue-tracker.h"
+   #include "ns3/queue-tracker.h"
    ```
    
 2. Before the start of the simulation run, in your code add:
 
    ```c++
    Ptr<PointToPointNetDevice> networkDevice = ... // Get the network device from somewhere
-   Ptr<PtopLinkQueueTracker> tracker = CreateObject<PtopLinkQueueTracker>(networkDevice);
+   Ptr<QueueTracker> tracker = CreateObject<QueueTracker>(networkDevice->GetQueue());
    // ... store the tracker to keep it alive and later retrieve its results
    ```
 

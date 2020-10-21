@@ -7,7 +7,7 @@
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/traffic-control-layer.h"
 #include "ns3/fq-codel-queue-disc.h"
-#include "ns3/ptop-link-utilization-tracker-helper.h"
+#include "ns3/ptop-link-utilization-tracking.h"
 #include "ns3/udp-burst-scheduler.h"
 
 using namespace ns3;
@@ -75,7 +75,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install utilization trackers
-        PtopLinkUtilizationTrackerHelper utilTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology);
+        PtopLinkUtilizationTracking utilTrackerHelper = PtopLinkUtilizationTracking(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
@@ -479,7 +479,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install utilization trackers
-        PtopLinkUtilizationTrackerHelper utilTrackerHelper = PtopLinkUtilizationTrackerHelper(basicSimulation, topology);
+        PtopLinkUtilizationTracking utilTrackerHelper = PtopLinkUtilizationTracking(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();

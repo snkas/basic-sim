@@ -18,11 +18,11 @@
  * Author: Simon, Hanjing
  */
 
-#include "ptop-link-utilization-tracker-helper.h"
+#include "ptop-link-utilization-tracking.h"
 
 namespace ns3 {
 
-    PtopLinkUtilizationTrackerHelper::PtopLinkUtilizationTrackerHelper(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
+    PtopLinkUtilizationTracking::PtopLinkUtilizationTracking(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
         std::cout << "POINT-TO-POINT UTILIZATION TRACKING" << std::endl;
 
         // Save for writing results later after simulation is done
@@ -59,13 +59,13 @@ namespace ns3 {
 
                     // One tracker a -> b
                     if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.first) == m_system_id) {
-                        Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
+                        Ptr<NetDeviceUtilizationTracker> tracker_a_b = CreateObject<NetDeviceUtilizationTracker>(edge_net_devices.first, m_utilization_interval_ns);
                         m_utilization_trackers.push_back(std::make_pair(edge, tracker_a_b));
                     }
 
                     // One tracker b -> a
                     if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(edge.second) == m_system_id) {
-                        Ptr<PtopLinkUtilizationTracker> tracker_b_a = CreateObject<PtopLinkUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
+                        Ptr<NetDeviceUtilizationTracker> tracker_b_a = CreateObject<NetDeviceUtilizationTracker>(edge_net_devices.second, m_utilization_interval_ns);
                         m_utilization_trackers.push_back(std::make_pair(std::make_pair(edge.second, edge.first), tracker_b_a));
                     }
 
@@ -77,7 +77,7 @@ namespace ns3 {
                 std::set<std::pair<int64_t, int64_t>> enable_for_links_set = parse_set_directed_pair_positive_int64(enable_for_links_str);
                 for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
                     if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
-                        Ptr<PtopLinkUtilizationTracker> tracker_a_b = CreateObject<PtopLinkUtilizationTracker>(m_topology->GetNetDeviceForLink(p), m_utilization_interval_ns);
+                        Ptr<NetDeviceUtilizationTracker> tracker_a_b = CreateObject<NetDeviceUtilizationTracker>(m_topology->GetNetDeviceForLink(p), m_utilization_interval_ns);
                         m_utilization_trackers.push_back(std::make_pair(p, tracker_a_b));
                     }
                 }
@@ -113,7 +113,7 @@ namespace ns3 {
         std::cout << std::endl;
     }
 
-    void PtopLinkUtilizationTrackerHelper::WriteResults() {
+    void PtopLinkUtilizationTracking::WriteResults() {
         std::cout << "UTILIZATION TRACKING RESULTS" << std::endl;
 
         // Check if it is enabled explicitly
@@ -142,7 +142,7 @@ namespace ns3 {
             // Sort
             struct ascending_by_directed_link
             {
-                inline bool operator() (const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkUtilizationTracker>>& a, const std::pair<std::pair<int64_t, int64_t>, Ptr<PtopLinkUtilizationTracker>>& b)
+                inline bool operator() (const std::pair<std::pair<int64_t, int64_t>, Ptr<NetDeviceUtilizationTracker>>& a, const std::pair<std::pair<int64_t, int64_t>, Ptr<NetDeviceUtilizationTracker>>& b)
                 {
                     return (a.first.first == b.first.first ? a.first.second < b.first.second : a.first.first < b.first.first);
                 }
@@ -157,7 +157,7 @@ namespace ns3 {
                 std::pair<int64_t, int64_t> directed_edge = m_utilization_trackers.at(i).first;
 
                 // Tracker
-                Ptr<PtopLinkUtilizationTracker> tracker = m_utilization_trackers.at(i).second;
+                Ptr<NetDeviceUtilizationTracker> tracker = m_utilization_trackers.at(i).second;
 
                 // Go over every utilization interval
                 const std::vector<std::tuple<int64_t, int64_t, int64_t>> intervals = tracker->FinalizeUtilization();

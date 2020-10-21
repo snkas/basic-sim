@@ -7,7 +7,7 @@
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/traffic-control-layer.h"
 #include "ns3/fq-codel-queue-disc.h"
-#include "ns3/ptop-link-queue-tracker-helper.h"
+#include "ns3/ptop-link-queue-tracking.h"
 #include "ns3/udp-burst-scheduler.h"
 
 using namespace ns3;
@@ -83,13 +83,13 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install link queue trackers
-        PtopLinkQueueTrackerHelper linkQueueTrackerHelper = PtopLinkQueueTrackerHelper(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+        PtopLinkQueueTracking linkQueueTracking = PtopLinkQueueTracking(basicSimulation, topology); // Requires enable_link_queue_tracking=true
 
         // Run simulation
         basicSimulation->Run();
 
         // Write link queue results
-        linkQueueTrackerHelper.WriteResults();
+        linkQueueTracking.WriteResults();
 
         // Finalize the simulation
         basicSimulation->Finalize();
@@ -296,7 +296,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install queue trackers
-        PtopLinkQueueTrackerHelper linkQueueTracker = PtopLinkQueueTrackerHelper(basicSimulation, topology);
+        PtopLinkQueueTracking linkQueueTracker = PtopLinkQueueTracking(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
