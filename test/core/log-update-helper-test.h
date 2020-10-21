@@ -1,12 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/test.h"
-#include "../test-helpers.h"
-#include "ns3/log-update-helper.h"
-
-using namespace ns3;
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
 class LogUpdateHelperValidTestCase : public TestCase {

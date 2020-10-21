@@ -1,17 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/tcp-flow-scheduler.h"
-#include "ns3/tcp-optimizer.h"
-#include "ns3/arbiter-ecmp-helper.h"
-#include "ns3/test.h"
-#include "../test-helpers.h"
-#include <iostream>
-#include <fstream>
-#include "ns3/pingmesh-scheduler.h"
-
-using namespace ns3;
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
 class PingmeshEndToEndTestCase : public TestCase {

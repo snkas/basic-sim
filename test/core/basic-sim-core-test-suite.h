@@ -1,7 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/test.h"
 #include "exp-util-test.h"
 #include "topology-ptop-test.h"
 #include "ptop-tc-qdisc-red-test.h"
@@ -10,8 +8,6 @@
 #include "ptop-link-queue-test.h"
 #include "tcp-optimizer-test.h"
 #include "log-update-helper-test.h"
-
-using namespace ns3;
 
 class BasicSimTestSuite : public TestSuite {
 public:

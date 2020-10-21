@@ -1,12 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/arbiter-ecmp.h"
-#include "ns3/arbiter-ecmp-helper.h"
-#include "ns3/test.h"
-#include "../test-helpers.h"
-
-using namespace ns3;
+////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string arbiter_test_dir = ".tmp-arbiter-test";
 

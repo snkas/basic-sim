@@ -1,15 +1,11 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/test.h"
 #include "tcp-flow-schedule-reader-test.h"
 #include "udp-burst-schedule-reader-test.h"
 #include "tcp-flow-end-to-end-test.h"
 #include "pingmesh-end-to-end-test.h"
 #include "manual-end-to-end-test.h"
 #include "udp-burst-end-to-end-test.h"
-
-using namespace ns3;
 
 class BasicAppsTestSuite : public TestSuite {
 public:

@@ -1,16 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/test.h"
-#include "ns3/topology-ptop.h"
-#include "../test-helpers.h"
-#include "ns3/ipv4-arbiter-routing-helper.h"
-#include "ns3/traffic-control-layer.h"
-#include "ns3/fq-codel-queue-disc.h"
-#include "ns3/red-queue-disc.h"
-#include "ns3/ptop-link-net-device-queue-tracking.h"
-
-using namespace ns3;
+////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string ptop_tc_qdisc_red_test_dir = ".tmp-ptop-tc-qdisc-red-test";
 

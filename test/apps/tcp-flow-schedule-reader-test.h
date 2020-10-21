@@ -1,14 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/test.h"
-#include "ns3/exp-util.h"
-#include "ns3/tcp-flow-schedule-reader.h"
-#include "ns3/topology-ptop.h"
-#include "ns3/ipv4-arbiter-routing-helper.h"
-#include "../test-helpers.h"
-
-using namespace ns3;
+////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string tcp_flow_schedule_reader_test_dir = ".tmp-flow-scheduler-reader-test";
 

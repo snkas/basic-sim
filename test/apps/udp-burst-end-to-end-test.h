@@ -1,16 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/udp-burst-scheduler.h"
-#include "ns3/tcp-optimizer.h"
-#include "ns3/arbiter-ecmp-helper.h"
-#include "ns3/test.h"
-#include "../test-helpers.h"
-#include <iostream>
-#include <fstream>
-
-using namespace ns3;
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
 class UdpBurstEndToEndTestCase : public TestCase {
