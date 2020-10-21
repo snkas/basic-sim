@@ -2,21 +2,21 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkQueueBaseTestCase : public TestCaseWithLogValidators
+class PtopLinkNetDeviceQueueBaseTestCase : public TestCaseWithLogValidators
 {
 public:
-    PtopLinkQueueBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
-    const std::string ptop_queue_test_dir = ".tmp-ptop-queue-test";
+    PtopLinkNetDeviceQueueBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    const std::string test_run_dir = ".tmp-ptop-link-net-device-queue-test";
 
     void prepare_test_dir() {
-        mkdir_if_not_exists(ptop_queue_test_dir);
-        remove_file_if_exists(ptop_queue_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(ptop_queue_test_dir + "/topology.properties");
-        remove_file_if_exists(ptop_queue_test_dir + "/udp_burst_schedule.csv");
+        mkdir_if_not_exists(test_run_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
     }
 
     void write_basic_config(std::string log_for_links) {
-        std::ofstream config_file(ptop_queue_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
@@ -29,7 +29,7 @@ public:
 
     void write_four_side_topology() {
         std::ofstream topology_file;
-        topology_file.open(ptop_queue_test_dir + "/topology.properties.temp");
+        topology_file.open(test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -46,22 +46,22 @@ public:
     }
 
     void cleanup() {
-        remove_file_if_exists(ptop_queue_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(ptop_queue_test_dir + "/topology.properties.temp");
-        remove_file_if_exists(ptop_queue_test_dir + "/udp_burst_schedule.csv");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/link_net_device_queue_byte.csv");
-        remove_dir_if_exists(ptop_queue_test_dir + "/logs_ns3");
-        remove_dir_if_exists(ptop_queue_test_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
     }
 
     void run_default() {
 
         // Create simulation environment
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_queue_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
 
         // Create topology
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
@@ -88,10 +88,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkQueueSimpleTestCase : public PtopLinkQueueBaseTestCase
+class PtopLinkNetDeviceQueueSimpleTestCase : public PtopLinkNetDeviceQueueBaseTestCase
 {
 public:
-    PtopLinkQueueSimpleTestCase () : PtopLinkQueueBaseTestCase ("ptop-link-queue simple") {};
+    PtopLinkNetDeviceQueueSimpleTestCase () : PtopLinkNetDeviceQueueBaseTestCase ("ptop-link-net-device-queue simple") {};
 
     void DoRun () {
 
@@ -100,7 +100,7 @@ public:
         write_basic_config("all");
         write_four_side_topology();
         std::ofstream udp_burst_schedule_file;
-        udp_burst_schedule_file.open(ptop_queue_test_dir + "/udp_burst_schedule.csv");
+        udp_burst_schedule_file.open(test_run_dir + "/udp_burst_schedule.csv");
         udp_burst_schedule_file << "0,0,1,50,0,500000000,," << std::endl;
         udp_burst_schedule_file << "1,2,3,90,250000000,500000000,," << std::endl;
         udp_burst_schedule_file << "2,3,2,90,250000000,500000000,," << std::endl;
@@ -124,7 +124,7 @@ public:
         // Validate logs
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_pkt;
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_byte;
-        validate_link_net_device_queue_logs(ptop_queue_test_dir, dir_a_b_list, link_net_device_queue_pkt, link_net_device_queue_byte);
+        validate_link_net_device_queue_logs(test_run_dir, dir_a_b_list, link_net_device_queue_pkt, link_net_device_queue_byte);
 
         // Check if it matches with the traffic expectation for each pair
         for (std::pair <int64_t, int64_t> a_b : dir_a_b_list) {
@@ -165,10 +165,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkQueueSpecificLinksTestCase : public PtopLinkQueueBaseTestCase
+class PtopLinkNetDeviceQueueSpecificLinksTestCase : public PtopLinkNetDeviceQueueBaseTestCase
 {
 public:
-    PtopLinkQueueSpecificLinksTestCase () : PtopLinkQueueBaseTestCase ("ptop-link-queue specific-links") {};
+    PtopLinkNetDeviceQueueSpecificLinksTestCase () : PtopLinkNetDeviceQueueBaseTestCase ("ptop-link-net-device-queue specific-links") {};
 
     void DoRun () {
 
@@ -177,7 +177,7 @@ public:
         write_basic_config("set(0->1,2->0,3->2)");
         write_four_side_topology();
         std::ofstream udp_burst_schedule_file;
-        udp_burst_schedule_file.open(ptop_queue_test_dir + "/udp_burst_schedule.csv");
+        udp_burst_schedule_file.open(test_run_dir + "/udp_burst_schedule.csv");
         udp_burst_schedule_file << "0,3,2,120,250000000,5000000000,," << std::endl;
         udp_burst_schedule_file << "1,1,3,120,250000000,5000000000,," << std::endl;
         udp_burst_schedule_file.close();
@@ -194,7 +194,7 @@ public:
         // Validate logs
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_pkt;
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_byte;
-        validate_link_net_device_queue_logs(ptop_queue_test_dir, dir_a_b_list, link_net_device_queue_pkt, link_net_device_queue_byte);
+        validate_link_net_device_queue_logs(test_run_dir, dir_a_b_list, link_net_device_queue_pkt, link_net_device_queue_byte);
 
         // Check if it matches with the traffic expectation for each pair
         for (std::pair<int64_t, int64_t> a_b : dir_a_b_list) {
@@ -234,16 +234,16 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkQueueNotEnabledTestCase : public TestCase
+class PtopLinkNetDeviceQueueNotEnabledTestCase : public TestCase
 {
 public:
-    PtopLinkQueueNotEnabledTestCase () : TestCase ("ptop-link-queue not-enabled") {};
-    const std::string ptop_queue_test_dir = ".tmp-ptop-queue-test";
+    PtopLinkNetDeviceQueueNotEnabledTestCase () : TestCase ("ptop-link-net-device-queue not-enabled") {};
+    const std::string test_run_dir = ".tmp-ptop-queue-test";
 
     void DoRun () {
 
-        mkdir_if_not_exists(ptop_queue_test_dir);
-        std::ofstream config_file(ptop_queue_test_dir + "/config_ns3.properties");
+        mkdir_if_not_exists(test_run_dir);
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
@@ -253,12 +253,12 @@ public:
         config_file.close();
 
         std::ofstream udp_burst_schedule_file;
-        udp_burst_schedule_file.open (ptop_queue_test_dir + "/udp_burst_schedule.csv");
+        udp_burst_schedule_file.open (test_run_dir + "/udp_burst_schedule.csv");
         udp_burst_schedule_file << "0,0,1,50,0,500000000,," << std::endl;
         udp_burst_schedule_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (ptop_queue_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -274,7 +274,7 @@ public:
         topology_file.close();
 
         // Create simulation environment
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_queue_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
 
         // Create topology
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
@@ -284,29 +284,29 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install queue trackers
-        PtopLinkNetDeviceQueueTracking linkQueueTracker = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
+        PtopLinkNetDeviceQueueTracking LinkNetDeviceQueueTracker = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
 
         // Write queue results
-        linkQueueTracker.WriteResults();
+        LinkNetDeviceQueueTracker.WriteResults();
 
         // Finalize the simulation
         basicSimulation->Finalize();
 
         // Nothing should have been logged
-        ASSERT_FALSE(file_exists(ptop_queue_test_dir + "/logs_ns3/link_net_device_queue_pkt.csv"));
-        ASSERT_FALSE(file_exists(ptop_queue_test_dir + "/logs_ns3/link_net_device_queue_byte.csv"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv"));
 
-        remove_file_if_exists(ptop_queue_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(ptop_queue_test_dir + "/topology.properties.temp");
-        remove_file_if_exists(ptop_queue_test_dir + "/udp_burst_schedule.csv");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(ptop_queue_test_dir + "/logs_ns3/timing_results.csv");
-        remove_dir_if_exists(ptop_queue_test_dir + "/logs_ns3");
-        remove_dir_if_exists(ptop_queue_test_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
     }
 };
 

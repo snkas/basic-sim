@@ -2,21 +2,21 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkUtilizationBaseTestCase : public TestCase
+class PtopLinkNetDeviceUtilizationBaseTestCase : public TestCase
 {
 public:
-    PtopLinkUtilizationBaseTestCase (std::string s) : TestCase (s) {};
-    const std::string ptop_utilization_test_dir = ".tmp-ptop-utilization-test";
+    PtopLinkNetDeviceUtilizationBaseTestCase (std::string s) : TestCase (s) {};
+    const std::string test_run_dir = ".tmp-ptop-link-net-device-utilization-test";
 
     void prepare_test_dir() {
-        mkdir_if_not_exists(ptop_utilization_test_dir);
-        remove_file_if_exists(ptop_utilization_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(ptop_utilization_test_dir + "/topology.properties");
-        remove_file_if_exists(ptop_utilization_test_dir + "/udp_burst_schedule.csv");
+        mkdir_if_not_exists(test_run_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
     }
 
     void write_basic_config(std::string log_for_links) {
-        std::ofstream config_file(ptop_utilization_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
@@ -30,7 +30,7 @@ public:
 
     void write_four_side_topology() {
         std::ofstream topology_file;
-        topology_file.open(ptop_utilization_test_dir + "/topology.properties.temp");
+        topology_file.open(test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -49,7 +49,7 @@ public:
     void run_default() {
 
         // Create simulation environment
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_utilization_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
 
         // Create topology
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
@@ -94,7 +94,7 @@ public:
 
         // link_net_device_utilization.csv
         std::vector<int64_t> correct_busy_time_ns;
-        std::vector<std::string> lines_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv");
+        std::vector<std::string> lines_csv = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization.csv");
         ASSERT_EQUAL(lines_csv.size(), expected_num_entries_per_pair * dir_a_b_list.size());
         size_t line_i = 0;
         for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
@@ -132,8 +132,8 @@ public:
         }
 
         // link_net_device_utilization_compressed.csv/txt
-        std::vector<std::string> lines_compressed_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
-        std::vector<std::string> lines_compressed_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
+        std::vector<std::string> lines_compressed_csv = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        std::vector<std::string> lines_compressed_txt = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
 
         // They are the same, except one is human-readable
         ASSERT_EQUAL(lines_compressed_csv.size(), lines_compressed_txt.size() - 1);
@@ -205,7 +205,7 @@ public:
         ASSERT_EQUAL(correct_busy_time_idx, (int64_t) (dir_a_b_list.size() * expected_num_entries_per_pair));
 
         // link_net_device_utilization_summary.txt
-        std::vector<std::string> lines_summary_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
+        std::vector<std::string> lines_summary_txt = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
         ASSERT_EQUAL(lines_summary_txt.size(), dir_a_b_list.size() + 1);
 
         // Correct exact header
@@ -243,35 +243,35 @@ public:
     }
 
     void cleanup() {
-        remove_file_if_exists(ptop_utilization_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(ptop_utilization_test_dir + "/topology.properties.temp");
-        remove_file_if_exists(ptop_utilization_test_dir + "/udp_burst_schedule.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
-        remove_dir_if_exists(ptop_utilization_test_dir + "/logs_ns3");
-        remove_dir_if_exists(ptop_utilization_test_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
     }
 
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkUtilizationSimpleTestCase : public PtopLinkUtilizationBaseTestCase
+class PtopLinkNetDeviceUtilizationSimpleTestCase : public PtopLinkNetDeviceUtilizationBaseTestCase
 {
 public:
-    PtopLinkUtilizationSimpleTestCase () : PtopLinkUtilizationBaseTestCase ("ptop-link-utilization simple") {};
+    PtopLinkNetDeviceUtilizationSimpleTestCase () : PtopLinkNetDeviceUtilizationBaseTestCase ("ptop-link-net-device-utilization simple") {};
     void DoRun () {
 
         prepare_test_dir();
         write_basic_config("all");
         write_four_side_topology();
         std::ofstream udp_burst_schedule_file;
-        udp_burst_schedule_file.open (ptop_utilization_test_dir + "/udp_burst_schedule.csv");
+        udp_burst_schedule_file.open (test_run_dir + "/udp_burst_schedule.csv");
         udp_burst_schedule_file << "0,0,1,50,0,500000000,," << std::endl;
         udp_burst_schedule_file << "1,2,3,90,250000000,500000000,," << std::endl;
         udp_burst_schedule_file << "2,3,2,90,250000000,500000000,," << std::endl;
@@ -351,17 +351,17 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkUtilizationSpecificLinksTestCase : public PtopLinkUtilizationBaseTestCase
+class PtopLinkNetDeviceUtilizationSpecificLinksTestCase : public PtopLinkNetDeviceUtilizationBaseTestCase
 {
 public:
-    PtopLinkUtilizationSpecificLinksTestCase () : PtopLinkUtilizationBaseTestCase ("ptop-link-utilization specific-links") {};
+    PtopLinkNetDeviceUtilizationSpecificLinksTestCase () : PtopLinkNetDeviceUtilizationBaseTestCase ("ptop-link-net-device-utilization specific-links") {};
     void DoRun () {
 
         prepare_test_dir();
         write_basic_config("set(0->1, 3->1, 2->0)");
         write_four_side_topology();
         std::ofstream udp_burst_schedule_file;
-        udp_burst_schedule_file.open (ptop_utilization_test_dir + "/udp_burst_schedule.csv");
+        udp_burst_schedule_file.open (test_run_dir + "/udp_burst_schedule.csv");
         udp_burst_schedule_file << "0,0,1,50,0,500000000,," << std::endl;
         udp_burst_schedule_file << "1,2,3,90,250000000,500000000,," << std::endl;
         udp_burst_schedule_file << "2,3,2,90,250000000,500000000,," << std::endl;
@@ -414,15 +414,15 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkUtilizationNotEnabledTestCase : public TestCase
+class PtopLinkNetDeviceUtilizationNotEnabledTestCase : public TestCase
 {
 public:
-    PtopLinkUtilizationNotEnabledTestCase () : TestCase ("ptop-link-utilization not-enabled") {};
-    const std::string ptop_utilization_test_dir = ".tmp-ptop-utilization-test";
+    PtopLinkNetDeviceUtilizationNotEnabledTestCase () : TestCase ("ptop-link-net-device-utilization not-enabled") {};
+    const std::string test_run_dir = ".tmp-ptop-utilization-test";
     void DoRun () {
 
-        mkdir_if_not_exists(ptop_utilization_test_dir);
-        std::ofstream config_file(ptop_utilization_test_dir + "/config_ns3.properties");
+        mkdir_if_not_exists(test_run_dir);
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
@@ -432,12 +432,12 @@ public:
         config_file.close();
 
         std::ofstream udp_burst_schedule_file;
-        udp_burst_schedule_file.open (ptop_utilization_test_dir + "/udp_burst_schedule.csv");
+        udp_burst_schedule_file.open (test_run_dir + "/udp_burst_schedule.csv");
         udp_burst_schedule_file << "0,0,1,50,0,500000000,," << std::endl;
         udp_burst_schedule_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (ptop_utilization_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -453,7 +453,7 @@ public:
         topology_file.close();
 
         // Create simulation environment
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_utilization_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
 
         // Create topology
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
@@ -475,24 +475,24 @@ public:
         basicSimulation->Finalize();
 
         // Nothing should have been logged
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_utilization.csv"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.csv"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.txt"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_summary.txt"));
 
         // Clean up
-        remove_file_if_exists(ptop_utilization_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(ptop_utilization_test_dir + "/topology.properties.temp");
-        remove_file_if_exists(ptop_utilization_test_dir + "/udp_burst_schedule.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
-        remove_dir_if_exists(ptop_utilization_test_dir + "/logs_ns3");
-        remove_dir_if_exists(ptop_utilization_test_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
