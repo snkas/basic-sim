@@ -8,6 +8,7 @@
 #include "ns3/traffic-control-layer.h"
 #include "ns3/fq-codel-queue-disc.h"
 #include "ns3/red-queue-disc.h"
+#include "ns3/ptop-link-queue-tracker-helper.h"
 
 using namespace ns3;
 
@@ -220,6 +221,103 @@ public:
             basicSimulation->Finalize();
             cleanup_ptop_tc_qdisc_red_test();
         }
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PtopTcQdiscRedEcnAndDropMarkingTestCase : public TestCaseWithLogValidators
+{
+public:
+    PtopTcQdiscRedEcnAndDropMarkingTestCase () : TestCaseWithLogValidators ("ptop-tc-qdisc-red ecn-and-drop-marking") {};
+    void DoRun () {
+        mkdir_if_not_exists(ptop_tc_qdisc_red_test_dir);
+
+        // Write configuration
+        std::ofstream config_file(ptop_tc_qdisc_red_test_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=1950000000" << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file << "enable_link_queue_tracking=true" << std::endl;
+        config_file << "link_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_udp_burst_scheduler=true" << std::endl;
+        config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
+        config_file.close();
+
+        // Write topology
+        std::ofstream topology_file;
+        topology_file.open (ptop_tc_qdisc_red_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=3" << std::endl;
+        topology_file << "num_undirected_edges=2" << std::endl;
+        topology_file << "switches=set(0)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0)" << std::endl;
+        topology_file << "servers=set(1,2)" << std::endl;
+        topology_file << "undirected_edges=set(0-1, 0-2)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_device_data_rate_megabit_per_s=10" << std::endl;
+        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->1: simple_red(drop; 100; 500; 1000), 1->0: simple_red(ecn; 100; 500; 1000), 0->2: simple_red(ecn; 100; 500; 1000), 2->0: simple_red(ecn; 100; 500; 1000))" << std::endl;
+        topology_file.close();
+
+        // Write UDP burst file
+        std::ofstream udp_burst_schedule;
+        topology_file.open (ptop_tc_qdisc_red_test_dir + "/udp_burst_schedule.csv");
+        topology_file << "0,0,1,1000,0,12000000,," << std::endl;
+        topology_file.close();
+
+        // Create simulation environment
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_tc_qdisc_red_test_dir);
+
+        // Create topology
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        // Schedule UDP bursts
+        UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
+
+        // Install link queue trackers
+        PtopLinkQueueTrackerHelper linkQueueTrackerHelper = PtopLinkQueueTrackerHelper(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+
+        // Run simulation
+        basicSimulation->Run();
+
+        // Write UDP bursts results
+        udpBurstScheduler.WriteResults();
+
+        // Write link queue results
+        linkQueueTrackerHelper.WriteResults();
+
+        // Finalize the simulation
+        basicSimulation->Finalize();
+
+        // Get the link queue development
+        std::vector<std::pair<int64_t, int64_t>> links;
+        links.push_back(std::make_pair(0, 1));
+        links.push_back(std::make_pair(1, 0));
+        links.push_back(std::make_pair(0, 2));
+        links.push_back(std::make_pair(2, 0));
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_queue_pkt;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_queue_byte;
+        validate_link_queue_logs(ptop_tc_qdisc_red_test_dir, links, link_queue_pkt, link_queue_byte);
+
+        // Clean up
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/config_ns3.properties");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/topology.properties.temp");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/udp_bursts_incoming.csv");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/udp_bursts_incoming.txt");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/udp_bursts_outgoing.csv");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/udp_bursts_outgoing.txt");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/link_queue_byte.csv");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/link_queue_pkt.csv");
+        remove_dir_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3");
+        remove_dir_if_exists(ptop_tc_qdisc_red_test_dir);
 
     }
 };

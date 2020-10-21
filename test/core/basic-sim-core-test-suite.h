@@ -41,6 +41,7 @@ public:
         // Point-to-point traffic-control queueing discipline RED
         AddTestCase(new PtopTcQdiscRedValidTestCase, TestCase::QUICK);
         AddTestCase(new PtopTcQdiscRedInvalidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscRedEcnAndDropMarkingTestCase, TestCase::QUICK);
 
         // Arbiter
         AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
