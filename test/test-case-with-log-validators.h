@@ -7,7 +7,7 @@
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/traffic-control-layer.h"
 #include "ns3/fq-codel-queue-disc.h"
-#include "ns3/ptop-link-queue-tracking.h"
+#include "ns3/ptop-link-net-device-queue-tracking.h"
 #include "ns3/udp-burst-scheduler.h"
 
 using namespace ns3;
@@ -18,18 +18,18 @@ public:
     TestCaseWithLogValidators (std::string s) : TestCase (s) {};
 
     /**
-     * Validation of link queue logs.
+     * Validation of link net-device queue logs.
      * 
      * @param run_dir           In:  run directory
      * @param dir_a_b_list      In:  list of edges for which logging was done
-     * @param link_queue_pkt    Out: mapping of pair to a vector of intervals <from, to, queue size in byte>
-     * @param link_queue_byte   Out: mapping of pair to a vector of intervals <from, to, queue size in byte>
+     * @param link_net_device_queue_pkt    Out: mapping of pair to a vector of intervals <from, to, queue size in byte>
+     * @param link_net_device_queue_byte   Out: mapping of pair to a vector of intervals <from, to, queue size in byte>
      */
-    void validate_link_queue_logs(
+    void validate_link_net_device_queue_logs(
             std::string run_dir,
             std::vector<std::pair<int64_t, int64_t>> dir_a_b_list,
-            std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_queue_pkt,
-            std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_queue_byte
+            std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_net_device_queue_pkt,
+            std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_net_device_queue_byte
     ) {
 
         // Sort it
@@ -37,19 +37,19 @@ public:
 
         // Initialize result
         for (std::pair<int64_t, int64_t> a_b : dir_a_b_list) {
-            link_queue_pkt[a_b] = std::vector<std::tuple<int64_t, int64_t, int64_t>>();
-            link_queue_byte[a_b] = std::vector<std::tuple<int64_t, int64_t, int64_t>>();
+            link_net_device_queue_pkt[a_b] = std::vector<std::tuple<int64_t, int64_t, int64_t>>();
+            link_net_device_queue_byte[a_b] = std::vector<std::tuple<int64_t, int64_t, int64_t>>();
         }
 
-        // Both link queue files need to be checked, and their checking is nearly identical
+        // Both link net-device queue files need to be checked, and their checking is nearly identical
         for (size_t file_choice = 0;  file_choice < 2; file_choice++) {
 
             // Packets or bytes, all the checks are the same basically
             std::vector<std::string> lines_csv;
             if (file_choice == 0) {
-                lines_csv = read_file_direct(run_dir + "/logs_ns3/link_queue_pkt.csv");
+                lines_csv = read_file_direct(run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
             } else {
-                lines_csv = read_file_direct(run_dir + "/logs_ns3/link_queue_byte.csv");
+                lines_csv = read_file_direct(run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
             }
 
             // State variables when checking
@@ -70,9 +70,9 @@ public:
 
                 // Put into result
                 if (file_choice == 0) {
-                    link_queue_pkt[std::make_pair(from_node_id, to_node_id)].push_back(std::make_tuple(interval_start_ns, interval_end_ns, num_packets_or_bytes));
+                    link_net_device_queue_pkt[std::make_pair(from_node_id, to_node_id)].push_back(std::make_tuple(interval_start_ns, interval_end_ns, num_packets_or_bytes));
                 } else {
-                    link_queue_byte[std::make_pair(from_node_id, to_node_id)].push_back(std::make_tuple(interval_start_ns, interval_end_ns, num_packets_or_bytes));
+                    link_net_device_queue_byte[std::make_pair(from_node_id, to_node_id)].push_back(std::make_tuple(interval_start_ns, interval_end_ns, num_packets_or_bytes));
                 }
 
                 // From-to has to be ordered and matching
@@ -99,30 +99,30 @@ public:
         }
 
         // Only the pairs must be in there
-        ASSERT_EQUAL(link_queue_byte.size(), dir_a_b_list.size());
-        ASSERT_EQUAL(link_queue_byte.size(), link_queue_pkt.size());
+        ASSERT_EQUAL(link_net_device_queue_byte.size(), dir_a_b_list.size());
+        ASSERT_EQUAL(link_net_device_queue_byte.size(), link_net_device_queue_pkt.size());
 
         // Their size and intervals must be equal of the two files
         for (std::pair <int64_t, int64_t> a_b : dir_a_b_list) {
-            ASSERT_EQUAL(link_queue_byte.at(a_b).size(), link_queue_pkt.at(a_b).size());
-            for (uint32_t i = 0; i < link_queue_byte.at(a_b).size(); i++) {
+            ASSERT_EQUAL(link_net_device_queue_byte.at(a_b).size(), link_net_device_queue_pkt.at(a_b).size());
+            for (uint32_t i = 0; i < link_net_device_queue_byte.at(a_b).size(); i++) {
 
                 // Interval start
                 ASSERT_EQUAL(
-                        std::get<0>(link_queue_byte.at(a_b)[i]),
-                        std::get<0>(link_queue_pkt.at(a_b)[i])
+                        std::get<0>(link_net_device_queue_byte.at(a_b)[i]),
+                        std::get<0>(link_net_device_queue_pkt.at(a_b)[i])
                 );
 
                 // Interval end
                 ASSERT_EQUAL(
-                        std::get<1>(link_queue_byte.at(a_b)[i]),
-                        std::get<1>(link_queue_pkt.at(a_b)[i])
+                        std::get<1>(link_net_device_queue_byte.at(a_b)[i]),
+                        std::get<1>(link_net_device_queue_pkt.at(a_b)[i])
                 );
 
                 // Packets vs. bytes
                 ASSERT_EQUAL(
-                        std::get<2>(link_queue_byte.at(a_b)[i]),
-                        std::get<2>(link_queue_pkt.at(a_b)[i]) * 1502
+                        std::get<2>(link_net_device_queue_byte.at(a_b)[i]),
+                        std::get<2>(link_net_device_queue_pkt.at(a_b)[i]) * 1502
                 );
 
             }

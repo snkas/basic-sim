@@ -2,13 +2,13 @@ import sys
 from exputil import *
 
 
-def plot_link_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_node_id):
+def plot_link_net_device_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_node_id):
     local_shell = LocalShell()
 
     # Check that the plotting file is available
-    if not local_shell.file_exists("plot_time_vs_link_utilization.plt"):
+    if not local_shell.file_exists("plot_time_vs_link_net_device_utilization.plt"):
         print("The gnuplot file is not present.")
-        print("Are you executing this python file inside the plot_link_utilization directory?")
+        print("Are you executing this python file inside the plot_link_net_device_utilization directory?")
         exit(1)
 
     # Create the output directories if they don't exist yet
@@ -17,7 +17,7 @@ def plot_link_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id,
 
     # Read in CSV
     utilization_compressed_csv_columns = read_csv_direct_in_columns(
-        logs_ns3_dir + "/link_utilization.csv",
+        logs_ns3_dir + "/link_net_device_utilization.csv",
         "pos_int,pos_int,pos_int,pos_int,pos_int"
     )
     num_entries = len(utilization_compressed_csv_columns[0])
@@ -35,7 +35,7 @@ def plot_link_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id,
     #
     # This effectively creates a step function as a continuous line, which can then be plotted by gnuplot.
     #
-    data_filename = "%s/link_utilization_%d_to_%d_fraction_in_intervals.csv" % (data_out_dir, from_node_id, to_node_id)
+    data_filename = "%s/link_net_device_utilization_%d_to_%d_fraction_in_intervals.csv" % (data_out_dir, from_node_id, to_node_id)
     with open(data_filename, "w+") as f_out:
         for i in range(num_entries):
             if from_list[i] == from_node_id and to_list[i] == to_node_id:
@@ -44,8 +44,8 @@ def plot_link_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id,
                 f_out.write("%.10f,%.10f\n" % (range_end_ns_list[i] - 0.000001, utilization_fraction))
 
     # Plot time vs. utilization
-    pdf_filename = pdf_out_dir + "/plot_link_utilization_" + str(from_node_id) + "_to_" + str(to_node_id) + ".pdf"
-    plt_filename = "plot_time_vs_link_utilization.plt"
+    pdf_filename = pdf_out_dir + "/plot_link_net_device_utilization_" + str(from_node_id) + "_to_" + str(to_node_id) + ".pdf"
+    plt_filename = "plot_time_vs_link_net_device_utilization.plt"
     local_shell.copy_file(plt_filename, "temp.plt")
     local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
     local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
@@ -58,11 +58,11 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python plot_link_utilization.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
+        print("Usage: python plot_link_net_device_utilization.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
               " [from_node_id] [to_node_id]")
         exit(1)
     else:
-        plot_link_utilization(
+        plot_link_net_device_utilization(
             args[0],
             args[1],
             args[2],

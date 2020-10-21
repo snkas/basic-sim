@@ -113,9 +113,9 @@ private:
     void ReadTopologyConfig();
     void ParseTopologyGraph();
     void ParseLinkChannelDelayNsProperty();
-    void ParseLinkDeviceDataRateMegabitPerSecProperty();
-    void ParseLinkDeviceQueueProperty();
-    void ParseLinkDeviceReceiveErrorModelProperty();
+    void ParseLinkNetDeviceDataRateMegabitPerSecProperty();
+    void ParseLinkNetDeviceQueueProperty();
+    void ParseLinkNetDeviceReceiveErrorModelProperty();
     void ParseLinkInterfaceTrafficControlQdiscProperty();
     void ParseTopologyLinkProperties();
     Ptr<TopologyPtopQueueSelector> m_queueSelector;
@@ -143,9 +143,9 @@ private:
 
     // Topology link properties
     std::map<std::pair<int64_t, int64_t>, int64_t> m_link_channel_delay_ns_mapping;
-    std::map<std::pair<int64_t, int64_t>, double> m_link_device_data_rate_megabit_per_s_mapping;
-    std::map<std::pair<int64_t, int64_t>, std::pair<ObjectFactory, QueueSize>> m_link_device_queue_mapping;
-    std::map<std::pair<int64_t, int64_t>, std::pair<bool, Ptr<ErrorModel>>> m_link_device_receive_error_model_mapping;
+    std::map<std::pair<int64_t, int64_t>, double> m_link_net_device_data_rate_megabit_per_s_mapping;
+    std::map<std::pair<int64_t, int64_t>, std::pair<ObjectFactory, QueueSize>> m_link_net_device_queue_mapping;
+    std::map<std::pair<int64_t, int64_t>, std::pair<bool, Ptr<ErrorModel>>> m_link_net_device_receive_error_model_mapping;
     std::map<std::pair<int64_t, int64_t>, std::pair<bool, TrafficControlHelper>> m_link_interface_traffic_control_qdisc_mapping;
 
     // Estimations

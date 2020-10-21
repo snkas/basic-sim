@@ -52,9 +52,9 @@ public:
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1,1-2,3-4,4-5,0-3,1-4,2-5)" << std::endl;
         topology_file << "link_channel_delay_ns=50000000" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=10000" << std::endl;
-        topology_file << "link_device_queue=drop_tail(10000p)" << std::endl;
-        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10000" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(10000p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
     }
@@ -458,9 +458,9 @@ public:
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1)" << std::endl;
         topology_file << "link_channel_delay_ns=100000" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=10" << std::endl;
-        topology_file << "link_device_queue=drop_tail(100000B)" << std::endl;
-        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100000B)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
@@ -779,9 +779,9 @@ public:
         topology_file << "servers=set(0, 1, 3)" << std::endl;
         topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=200000" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=30" << std::endl;
-        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-        topology_file << "link_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=30" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 

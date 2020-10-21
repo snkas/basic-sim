@@ -8,7 +8,7 @@
 #include "ns3/traffic-control-layer.h"
 #include "ns3/fq-codel-queue-disc.h"
 #include "ns3/red-queue-disc.h"
-#include "ns3/ptop-link-queue-tracking.h"
+#include "ns3/ptop-link-net-device-queue-tracking.h"
 
 using namespace ns3;
 
@@ -79,9 +79,9 @@ public:
         topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
         topology_file << "all_nodes_are_endpoints=true" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=10" << std::endl;
-        topology_file << "link_device_queue=drop_tail(60p)" << std::endl;
-        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(60p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=" << link_interface_traffic_control_qdisc_str << std::endl;
         topology_file.close();
 
@@ -209,9 +209,9 @@ public:
             topology_file << "servers=set()" << std::endl;
             topology_file << "undirected_edges=set(0-1,1-2,2-3)" << std::endl;
             topology_file << "link_channel_delay_ns=10000" << std::endl;
-            topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-            topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-            topology_file << "link_device_receive_error_model=none" << std::endl;
+            topology_file << "link_net_device_data_rate_megabit_per_s=100" << std::endl;
+            topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+            topology_file << "link_net_device_receive_error_model=none" << std::endl;
             topology_file << "link_interface_traffic_control_qdisc=" << scenario.first << std::endl;
             topology_file.close();
             ASSERT_EXCEPTION_MATCH_WHAT(
@@ -239,8 +239,8 @@ public:
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-        config_file << "enable_link_queue_tracking=true" << std::endl;
-        config_file << "link_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
+        config_file << "link_net_device_queue_tracking_enable_for_links=all" << std::endl;
         config_file << "enable_udp_burst_scheduler=true" << std::endl;
         config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
         config_file.close();
@@ -256,9 +256,9 @@ public:
         topology_file << "undirected_edges=set(0-1, 0-2)" << std::endl;
         topology_file << "all_nodes_are_endpoints=true" << std::endl;
         topology_file << "link_channel_delay_ns=10000" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=10" << std::endl;
-        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=map(0->1: simple_red(drop; 100; 500; 1000), 1->0: simple_red(ecn; 100; 500; 1000), 0->2: simple_red(ecn; 100; 500; 1000), 2->0: simple_red(ecn; 100; 500; 1000))" << std::endl;
         topology_file.close();
 
@@ -278,8 +278,8 @@ public:
         // Schedule UDP bursts
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
-        // Install link queue trackers
-        PtopLinkQueueTracking linkQueueTracking = PtopLinkQueueTracking(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+        // Install link net-device queue trackers
+        PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology); // Requires enable_link_net_device_queue_tracking=true
 
         // Run simulation
         basicSimulation->Run();
@@ -287,21 +287,21 @@ public:
         // Write UDP bursts results
         udpBurstScheduler.WriteResults();
 
-        // Write link queue results
-        linkQueueTracking.WriteResults();
+        // Write link net-device queue results
+        netDeviceQueueTracking.WriteResults();
 
         // Finalize the simulation
         basicSimulation->Finalize();
 
-        // Get the link queue development
+        // Get the link net-device queue development
         std::vector<std::pair<int64_t, int64_t>> links;
         links.push_back(std::make_pair(0, 1));
         links.push_back(std::make_pair(1, 0));
         links.push_back(std::make_pair(0, 2));
         links.push_back(std::make_pair(2, 0));
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_queue_pkt;
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_queue_byte;
-        validate_link_queue_logs(ptop_tc_qdisc_red_test_dir, links, link_queue_pkt, link_queue_byte);
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_pkt;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_byte;
+        validate_link_net_device_queue_logs(ptop_tc_qdisc_red_test_dir, links, link_net_device_queue_pkt, link_net_device_queue_byte);
 
         // Clean up
         remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/config_ns3.properties");
@@ -314,8 +314,8 @@ public:
         remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/udp_bursts_incoming.txt");
         remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/udp_bursts_outgoing.csv");
         remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/udp_bursts_outgoing.txt");
-        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/link_queue_byte.csv");
-        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/link_queue_pkt.csv");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+        remove_file_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
         remove_dir_if_exists(ptop_tc_qdisc_red_test_dir + "/logs_ns3");
         remove_dir_if_exists(ptop_tc_qdisc_red_test_dir);
 

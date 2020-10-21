@@ -9,8 +9,8 @@
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
-#include "ns3/ptop-link-utilization-tracking.h"
-#include "ns3/ptop-link-queue-tracking.h"
+#include "ns3/ptop-link-net-device-utilization-tracking.h"
+#include "ns3/ptop-link-net-device-queue-tracking.h"
 
 using namespace ns3;
 
@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
     config_file << "simulation_end_time_ns=1000000000" << std::endl;
     config_file << "simulation_seed=123456789" << std::endl;
     config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
-    config_file << "enable_link_utilization_tracking=true" << std::endl;
-    config_file << "link_utilization_tracking_interval_ns=100000000" << std::endl;
+    config_file << "enable_link_net_device_utilization_tracking=true" << std::endl;
+    config_file << "link_net_device_utilization_tracking_interval_ns=100000000" << std::endl;
     config_file << "enable_tcp_flow_scheduler=true" << std::endl;
     config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
     config_file.close();
@@ -45,9 +45,9 @@ int main(int argc, char *argv[]) {
     topology_file << "servers=set()" << std::endl;
     topology_file << "undirected_edges=set(0-1)" << std::endl;
     topology_file << "link_channel_delay_ns=10000" << std::endl;
-    topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-    topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-    topology_file << "link_device_receive_error_model=none" << std::endl;
+    topology_file << "link_net_device_data_rate_megabit_per_s=100" << std::endl;
+    topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+    topology_file << "link_net_device_receive_error_model=none" << std::endl;
     topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
     topology_file.close();
 
@@ -64,11 +64,11 @@ int main(int argc, char *argv[]) {
     Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
     ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
-    // Install link utilization trackers
-    PtopLinkUtilizationTracking linkUtilizationTracking = PtopLinkUtilizationTracking(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
+    // Install link net-device utilization trackers
+    PtopLinkNetDeviceUtilizationTracking netDeviceUtilizationTracking = PtopLinkNetDeviceUtilizationTracking(basicSimulation, topology); // Requires enable_link_net_device_utilization_tracking=true
 
-    // Install link queue trackers
-    PtopLinkQueueTracking linkQueueTracking = PtopLinkQueueTracking(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+    // Install link net-device queue trackers
+    PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology); // Requires enable_link_net_device_queue_tracking=true
 
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
@@ -82,11 +82,11 @@ int main(int argc, char *argv[]) {
     // Write result
     tcpFlowScheduler.WriteResults();
 
-    // Write link utilization results
-    linkUtilizationTracking.WriteResults();
+    // Write link net-device utilization results
+    netDeviceUtilizationTracking.WriteResults();
 
-    // Write link queue results
-    linkQueueTracking.WriteResults();
+    // Write link net-device queue results
+    netDeviceQueueTracking.WriteResults();
 
     // Finalize the simulation
     basicSimulation->Finalize();

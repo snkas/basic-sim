@@ -18,19 +18,19 @@
  * Author: Simon, Hanjing
  */
 
-#include "ptop-link-utilization-tracking.h"
+#include "ptop-link-net-device-utilization-tracking.h"
 
 namespace ns3 {
 
-    PtopLinkUtilizationTracking::PtopLinkUtilizationTracking(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
-        std::cout << "POINT-TO-POINT UTILIZATION TRACKING" << std::endl;
+    PtopLinkNetDeviceUtilizationTracking::PtopLinkNetDeviceUtilizationTracking(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
+        std::cout << "POINT-TO-POINT LINK NET-DEVICE UTILIZATION TRACKING" << std::endl;
 
         // Save for writing results later after simulation is done
         m_basicSimulation = basicSimulation;
         m_topology = topology;
 
         // Check if it is enabled explicitly
-        m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_link_utilization_tracking", "false"));
+        m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_link_net_device_utilization_tracking", "false"));
         if (!m_enabled) {
             std::cout << "  > Not enabled explicitly, so disabled" << std::endl;
 
@@ -41,10 +41,10 @@ namespace ns3 {
             m_system_id = m_basicSimulation->GetSystemId();
             m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
             m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
-            std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_utilization_tracking_enable_for_links", "all");
+            std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_net_device_utilization_tracking_enable_for_links", "all");
 
             // Read in parameters
-            m_utilization_interval_ns = parse_geq_one_int64(m_basicSimulation->GetConfigParamOrFail("link_utilization_tracking_interval_ns"));
+            m_utilization_interval_ns = parse_geq_one_int64(m_basicSimulation->GetConfigParamOrFail("link_net_device_utilization_tracking_interval_ns"));
             std::cout << "  > Utilization aggregation interval... " << m_utilization_interval_ns << " ns" << std::endl;
 
             // Pairs
@@ -88,22 +88,22 @@ namespace ns3 {
 
             // Determine filenames
             if (m_enable_distributed) {
-                m_filename_utilization_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization.csv";
-                m_filename_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization_compressed.csv";
-                m_filename_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization_compressed.txt";
-                m_filename_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_utilization_summary.txt";
+                m_filename_net_device_utilization_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization.csv";
+                m_filename_net_device_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization_compressed.csv";
+                m_filename_net_device_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization_compressed.txt";
+                m_filename_net_device_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization_summary.txt";
             } else {
-                m_filename_utilization_csv = m_basicSimulation->GetLogsDir() + "/link_utilization.csv";
-                m_filename_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/link_utilization_compressed.csv";
-                m_filename_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/link_utilization_compressed.txt";
-                m_filename_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/link_utilization_summary.txt";
+                m_filename_net_device_utilization_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_utilization.csv";
+                m_filename_net_device_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_utilization_compressed.csv";
+                m_filename_net_device_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/link_net_device_utilization_compressed.txt";
+                m_filename_net_device_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/link_net_device_utilization_summary.txt";
             }
 
             // Remove files if they are there
-            remove_file_if_exists(m_filename_utilization_csv);
-            remove_file_if_exists(m_filename_utilization_compressed_csv);
-            remove_file_if_exists(m_filename_utilization_compressed_txt);
-            remove_file_if_exists(m_filename_utilization_summary_txt);
+            remove_file_if_exists(m_filename_net_device_utilization_csv);
+            remove_file_if_exists(m_filename_net_device_utilization_compressed_csv);
+            remove_file_if_exists(m_filename_net_device_utilization_compressed_txt);
+            remove_file_if_exists(m_filename_net_device_utilization_summary_txt);
 
             printf("  > Removed previous utilization tracking files if present\n");
             m_basicSimulation->RegisterTimestamp("Remove previous utilization tracking log files");
@@ -113,8 +113,8 @@ namespace ns3 {
         std::cout << std::endl;
     }
 
-    void PtopLinkUtilizationTracking::WriteResults() {
-        std::cout << "UTILIZATION TRACKING RESULTS" << std::endl;
+    void PtopLinkNetDeviceUtilizationTracking::WriteResults() {
+        std::cout << "POINT-TO-POINT LINK NET-DEVICE UTILIZATION TRACKING RESULTS" << std::endl;
 
         // Check if it is enabled explicitly
         if (!m_enabled) {
@@ -124,20 +124,20 @@ namespace ns3 {
 
             // Open CSV file
             std::cout << "  > Opening utilization log files:" << std::endl;
-            FILE* file_utilization_csv = fopen(m_filename_utilization_csv.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_filename_utilization_csv << std::endl;
-            FILE* file_utilization_compressed_csv = fopen(m_filename_utilization_compressed_csv.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_filename_utilization_compressed_csv << std::endl;
-            FILE* file_utilization_compressed_txt = fopen(m_filename_utilization_compressed_txt.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_filename_utilization_compressed_txt << std::endl;
-            FILE* file_utilization_summary_txt = fopen(m_filename_utilization_summary_txt.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_filename_utilization_summary_txt << std::endl;
+            FILE* file_net_device_utilization_csv = fopen(m_filename_net_device_utilization_csv.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_filename_net_device_utilization_csv << std::endl;
+            FILE* file_net_device_utilization_compressed_csv = fopen(m_filename_net_device_utilization_compressed_csv.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_filename_net_device_utilization_compressed_csv << std::endl;
+            FILE* file_net_device_utilization_compressed_txt = fopen(m_filename_net_device_utilization_compressed_txt.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_filename_net_device_utilization_compressed_txt << std::endl;
+            FILE* file_net_device_utilization_summary_txt = fopen(m_filename_net_device_utilization_summary_txt.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_filename_net_device_utilization_summary_txt << std::endl;
 
             // Print headers
             std::cout << "  > Writing utilization compressed TXT header" << std::endl;
-            fprintf(file_utilization_compressed_txt, "From     To       Interval start (ms)   Interval end (ms)     Utilization\n");
+            fprintf(file_net_device_utilization_compressed_txt, "From     To       Interval start (ms)   Interval end (ms)     Utilization\n");
             std::cout << "  > Writing utilization summary TXT header" << std::endl;
-            fprintf(file_utilization_summary_txt, "From     To       Utilization\n");
+            fprintf(file_net_device_utilization_summary_txt, "From     To       Utilization\n");
 
             // Sort
             struct ascending_by_directed_link
@@ -170,7 +170,7 @@ namespace ns3 {
 
                     // Write plain to the uncompressed CSV file:
                     // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<amount of busy in this interval (ns)>
-                    fprintf(file_utilization_csv,
+                    fprintf(file_net_device_utilization_csv,
                             "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
@@ -193,7 +193,7 @@ namespace ns3 {
 
                         // Write plain to the compressed CSV file:
                         // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<amount of busy in this interval (ns)>
-                        fprintf(file_utilization_compressed_csv,
+                        fprintf(file_net_device_utilization_compressed_csv,
                                 "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                                 (int) directed_edge.first,
                                 (int) directed_edge.second,
@@ -203,7 +203,7 @@ namespace ns3 {
                         );
 
                         // Write nicely formatted to the TXT file
-                        fprintf(file_utilization_compressed_txt,
+                        fprintf(file_net_device_utilization_compressed_txt,
                                 "%-8d %-8d %-21.2f %-21.2f %.2f%%\n",
                                 (int) directed_edge.first,
                                 (int) directed_edge.second,
@@ -219,7 +219,7 @@ namespace ns3 {
                 }
 
                 // Write nicely formatted to the summary TXT file
-                fprintf(file_utilization_summary_txt,
+                fprintf(file_net_device_utilization_summary_txt,
                         "%-8d %-8d %.2f%%\n",
                         (int) directed_edge.first,
                         (int) directed_edge.second,
@@ -230,14 +230,14 @@ namespace ns3 {
 
             // Close log files
             std::cout << "  > Closing utilization log files:" << std::endl;
-            fclose(file_utilization_csv);
-            std::cout << "    >> Closed: " << m_filename_utilization_csv << std::endl;
-            fclose(file_utilization_compressed_csv);
-            std::cout << "    >> Closed: " << m_filename_utilization_compressed_csv << std::endl;
-            fclose(file_utilization_compressed_txt);
-            std::cout << "    >> Closed: " << m_filename_utilization_compressed_txt << std::endl;
-            fclose(file_utilization_summary_txt);
-            std::cout << "    >> Closed: " << m_filename_utilization_summary_txt << std::endl;
+            fclose(file_net_device_utilization_csv);
+            std::cout << "    >> Closed: " << m_filename_net_device_utilization_csv << std::endl;
+            fclose(file_net_device_utilization_compressed_csv);
+            std::cout << "    >> Closed: " << m_filename_net_device_utilization_compressed_csv << std::endl;
+            fclose(file_net_device_utilization_compressed_txt);
+            std::cout << "    >> Closed: " << m_filename_net_device_utilization_compressed_txt << std::endl;
+            fclose(file_net_device_utilization_summary_txt);
+            std::cout << "    >> Closed: " << m_filename_net_device_utilization_summary_txt << std::endl;
 
             // Register completion
             std::cout << "  > Utilization log files have been written" << std::endl;

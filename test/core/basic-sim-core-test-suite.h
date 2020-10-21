@@ -51,12 +51,12 @@ public:
         AddTestCase(new ArbiterEcmpTooManyNodesTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpSeparatedTestCase, TestCase::QUICK);
 
-        // Point-to-point link utilization tracking
+        // Point-to-point link net-device utilization tracking
         AddTestCase(new PtopLinkUtilizationSimpleTestCase, TestCase::QUICK);
         AddTestCase(new PtopLinkUtilizationSpecificLinksTestCase, TestCase::QUICK);
         AddTestCase(new PtopLinkUtilizationNotEnabledTestCase, TestCase::QUICK);
 
-        // Point-to-point link queue tracking
+        // Point-to-point link net-device queue tracking
         AddTestCase(new PtopLinkQueueSimpleTestCase, TestCase::QUICK);
         AddTestCase(new PtopLinkQueueSpecificLinksTestCase, TestCase::QUICK);
         AddTestCase(new PtopLinkQueueNotEnabledTestCase, TestCase::QUICK);

@@ -22,8 +22,8 @@
 #include "ns3/topology-ptop.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/arbiter-ecmp-helper.h"
-#include "ns3/ptop-link-utilization-tracking.h"
-#include "ns3/ptop-link-queue-tracking.h"
+#include "ns3/ptop-link-net-device-utilization-tracking.h"
+#include "ns3/ptop-link-net-device-queue-tracking.h"
 #include "ns3/tcp-optimizer.h"
 
 #include "ns3/tcp-flow-scheduler.h"
@@ -55,11 +55,11 @@ int main(int argc, char *argv[]) {
     Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
     ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
-    // Install link utilization trackers
-    PtopLinkUtilizationTracking linkUtilizationTracking = PtopLinkUtilizationTracking(basicSimulation, topology); // Requires enable_link_utilization_tracking=true
+    // Install link net-device utilization trackers
+    PtopLinkNetDeviceUtilizationTracking netDeviceUtilizationTracking = PtopLinkNetDeviceUtilizationTracking(basicSimulation, topology); // Requires enable_link_net_device_utilization_tracking=true
 
-    // Install link queue trackers
-    PtopLinkQueueTracking linkQueueTracking = PtopLinkQueueTracking(basicSimulation, topology); // Requires enable_link_queue_tracking=true
+    // Install link net-device queue trackers
+    PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology); // Requires enable_link_net_device_queue_tracking=true
 
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
@@ -85,11 +85,11 @@ int main(int argc, char *argv[]) {
     // Write pingmesh results
     pingmeshScheduler.WriteResults();
 
-    // Write link utilization results
-    linkUtilizationTracking.WriteResults();
+    // Write link net-device utilization results
+    netDeviceUtilizationTracking.WriteResults();
 
-    // Write link queue results
-    linkQueueTracking.WriteResults();
+    // Write link net-device queue results
+    netDeviceQueueTracking.WriteResults();
 
     // Finalize the simulation
     basicSimulation->Finalize();

@@ -27,9 +27,9 @@ It encompasses the following files:
    undirected_edges=set(0-1,0-2,0-3)
    
    link_channel_delay_ns=10000
-   link_device_data_rate_megabit_per_s=100.0
-   link_device_queue=drop_tail(100p)
-   link_device_receive_error_model=none
+   link_net_device_data_rate_megabit_per_s=100.0
+   link_net_device_queue=drop_tail(100p)
+   link_net_device_receive_error_model=none
    link_interface_traffic_control_qdisc=disabled
    ```
 
@@ -89,9 +89,9 @@ servers=set(1,2,3)
 undirected_edges=set(0-1,0-2,0-3)
 
 link_channel_delay_ns=map(0-1: 10000, 0-2: 10000, 0-3: 10000)
-link_device_data_rate_megabit_per_s=100.0
-link_device_queue=map(0->1: drop_tail(50p), 1->0: drop_tail(100p), 0->2: drop_tail(100000B), 2->0: drop_tail(50p), 0->3: drop_tail(100p), 3->0: drop_tail(100p))
-link_device_receive_error_model=uniform_random_pkt(0.0)
+link_net_device_data_rate_megabit_per_s=100.0
+link_net_device_queue=map(0->1: drop_tail(50p), 1->0: drop_tail(100p), 0->2: drop_tail(100000B), 2->0: drop_tail(50p), 0->3: drop_tail(100p), 3->0: drop_tail(100p))
+link_net_device_receive_error_model=uniform_random_pkt(0.0)
 link_interface_traffic_control_qdisc=disabled
 ```
 
@@ -110,39 +110,69 @@ The properties:
 
 * `num_nodes` (type: positive integer)
 
-  Number of nodes.
+  **Property description:** Number of nodes
+  
+  **Value type:** Positive integer
   
 * `num_undirected_edges` (type: positive integer)
 
-  Number of undirected edges (each undirected edge will be expressed into two links).
+  **Property description:** number of undirected edges (each undirected 
+  edge will be expressed into two links). This must be equal to the 
+  amount of entries in the `undirected_edges` property.
+
+  **Value type:** Positive integer
 
 * `switches` (type: set of node identifiers)
 
-  All node identifiers which are switches expressed as `set(a, b, c)`, 
-  e.g.: `set(5, 6)` means node 5 and 7 are switches.
+  **Property description:** All node identifiers of switches
   
-* `switches_which_are_tors` (type: set of node identifiers)
-
-  All node identifiers which are also ToRs expressed as `set(a, b, c)` 
-  (type: set of node identifiers).
+  **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
   
-* `servers` (type: set of node identifiers)
-
-  All node identifiers which are servers expressed as `set(a, b, c)`.
+  **Examples:**
+  - `set(1, 2, 5)` means node 1, 2 and 5 are switches
+  - `set(2)` means only node 2 is a switch
   
-* `undirected_edges` (type: set of undirected edges)
+* `switches_which_are_tors`
 
-  All undirected edges, expressed as `set(a-b, b-c)`, e.g.: `set(0-2, 2-3)` 
-  means two undirected edges, between 0 and 2, and between 2 and 3.
+  **Property description:** All node identifiers of switches which are also ToRs
+
+  **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
   
-* `all_nodes_are_endpoints` (optional) (type: boolean)
+  **Examples:**
+  - `set(1, 2)` means node 1 and2 are switches which are also ToRs
+  - `set(2)` means only node 2 is a switch which is also a ToR
+  
+* `servers`
 
+  **Property description:** All node identifiers which are servers
+
+  **Value type:** Set of node identifiers, expressed as `set(a, b, ...)`
+  
+  **Examples:**
+  - `set(0, 3, 4)` means node 0, 3, and 4 are servers
+  
+* `undirected_edges`
+
+  **Property description:** All undirected edges
+
+  **Value type:** Set of undirected edges, expressed as `set(a-b, b-c, ...)` 
+    
+  **Examples:**
+  - `set(0-2, 2-3)` means two undirected edges, between 0 and 2, and between 2 and 3.
+
+* `all_nodes_are_endpoints`
+
+  **Property description:**  
   Whether to allow all nodes to be endpoints for applications or not. 
   Normally, the topology only considers servers (or in absence thereof: ToRs) 
   as valid endpoints. Setting this to `true` will have the topology return 
   all nodes as valid endpoints. This is a soft enforce, meaning that only 
   code that checks with topology explicitly will adhere to the endpoints the 
   topology claims are permissible for applications.
+  
+  **Value type:** boolean
+  
+  **Possible values:** `true` or `false`
 
 * `link_channel_delay_ns` 
 
@@ -157,7 +187,7 @@ The properties:
    - `link_channel_delay_ns=1000000000` for 1 second propagation delay
    - `link_channel_delay_ns=map(0-1: 10000, 1-2: 30000)`
    
-* `link_device_data_rate_megabit_per_s` 
+* `link_net_device_data_rate_megabit_per_s` 
   
    **Property description:** Data rate set for the sending network device 
    of this directed edge (link) (Mbit/s).
@@ -167,11 +197,11 @@ The properties:
    **Possible value:** Mbit/s as a positive double
    
    **Examples:**
-   - `link_device_data_rate_megabit_per_s=0.6` for 0.6 Mbit/s
-   - `link_device_data_rate_megabit_per_s=100.0` for 100 Mbit/s
-   - `link_device_data_rate_megabit_per_s=map(0->1: 0.8, 1->0: 12.0, 1->2: 10, 2->1: 100.8)`
+   - `link_net_device_data_rate_megabit_per_s=0.6` for 0.6 Mbit/s
+   - `link_net_device_data_rate_megabit_per_s=100.0` for 100 Mbit/s
+   - `link_net_device_data_rate_megabit_per_s=map(0->1: 0.8, 1->0: 12.0, 1->2: 10, 2->1: 100.8)`
    
-* `link_device_queue`
+* `link_net_device_queue`
 
    **Property description:** queue implementation for the sending network device
    of this directed edge (link).
@@ -183,12 +213,12 @@ The properties:
    - `drop_tail(<integer>B)` for a drop-tail queue with a size in byte
 
    **Examples:**
-   - `link_device_queue=drop_tail(100p)`
-   - `link_device_queue=drop_tail(100000B)`
-   - `link_device_queue=map(0->1: drop_tail(100p), 1->0: drop_tail(90p), 
+   - `link_net_device_queue=drop_tail(100p)`
+   - `link_net_device_queue=drop_tail(100000B)`
+   - `link_net_device_queue=map(0->1: drop_tail(100p), 1->0: drop_tail(90p), 
      1->2: drop_tail(100000B), 2->1: drop_tail(100p))`
   
-* `link_device_receive_error_model` 
+* `link_net_device_receive_error_model` 
 
    **Property description:** error model of the receiving network device
     of the directed edge (link).
@@ -201,10 +231,10 @@ The properties:
      drop probability for each packet traversing the directed edge (link) 
 
    **Examples:**
-   - `link_device_receive_error_model=none` for no reception errors (perfect)
-   - `link_device_receive_error_model=iid_uniform_random_pkt(0.0001)` for a 0.01% 
+   - `link_net_device_receive_error_model=none` for no reception errors (perfect)
+   - `link_net_device_receive_error_model=iid_uniform_random_pkt(0.0001)` for a 0.01% 
      probability of a packet getting dropped when traversing every link
-   - `link_device_receive_error_model=map(0->1: none, 1->0: iid_uniform_random_pkt(0.0001), 
+   - `link_net_device_receive_error_model=map(0->1: none, 1->0: iid_uniform_random_pkt(0.0001), 
      1->2: iid_uniform_random_pkt(1.0), 2->1: iid_uniform_random_pkt(0.3))`
 
 * `link_interface_traffic_control_qdisc` 

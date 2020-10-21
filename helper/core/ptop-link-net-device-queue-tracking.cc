@@ -18,19 +18,19 @@
  * Author: Simon
  */
 
-#include "ptop-link-queue-tracking.h"
+#include "ptop-link-net-device-queue-tracking.h"
 
 namespace ns3 {
 
-    PtopLinkQueueTracking::PtopLinkQueueTracking(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
-        std::cout << "POINT-TO-POINT LINK (NET-DEVICE) QUEUE TRACKING" << std::endl;
+    PtopLinkNetDeviceQueueTracking::PtopLinkNetDeviceQueueTracking(Ptr <BasicSimulation> basicSimulation, Ptr <TopologyPtop> topology) {
+        std::cout << "POINT-TO-POINT LINK NET-DEVICE QUEUE TRACKING" << std::endl;
 
         // Save for writing results later after simulation is done
         m_basicSimulation = basicSimulation;
         m_topology = topology;
 
         // Check if it is enabled explicitly
-        m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_link_queue_tracking", "false"));
+        m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_link_net_device_queue_tracking", "false"));
         if (!m_enabled) {
             std::cout << "  > Not enabled explicitly, so disabled" << std::endl;
 
@@ -41,7 +41,7 @@ namespace ns3 {
             m_system_id = m_basicSimulation->GetSystemId();
             m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
             m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
-            std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_queue_tracking_enable_for_links", "all");
+            std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_net_device_queue_tracking_enable_for_links", "all");
 
             // Pairs
             if (enable_for_links_str == "all") {
@@ -85,15 +85,15 @@ namespace ns3 {
 
             // Determine filenames
             if (m_enable_distributed) {
-                m_filename_link_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_queue_pkt.csv";
-                m_filename_link_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_queue_byte.csv";
+                m_filename_link_net_device_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_queue_pkt.csv";
+                m_filename_link_net_device_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_queue_byte.csv";
             } else {
-                m_filename_link_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/link_queue_pkt.csv";
-                m_filename_link_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/link_queue_byte.csv";
+                m_filename_link_net_device_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_queue_pkt.csv";
+                m_filename_link_net_device_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_queue_byte.csv";
             }
 
             // Remove files if they are there
-            remove_file_if_exists(m_filename_link_queue_pkt_csv);
+            remove_file_if_exists(m_filename_link_net_device_queue_pkt_csv);
 
             printf("  > Removed previous link (net-device) queue tracking files if present\n");
             m_basicSimulation->RegisterTimestamp("Remove previous link (net-device) queue tracking log files");
@@ -103,8 +103,8 @@ namespace ns3 {
         std::cout << std::endl;
     }
 
-    void PtopLinkQueueTracking::WriteResults() {
-        std::cout << "POINT-TO-POINT LINK (NET-DEVICE) QUEUE TRACKING RESULTS" << std::endl;
+    void PtopLinkNetDeviceQueueTracking::WriteResults() {
+        std::cout << "POINT-TO-POINT LINK NET-DEVICE QUEUE TRACKING RESULTS" << std::endl;
 
         // Check if it is enabled explicitly
         if (!m_enabled) {
@@ -114,10 +114,10 @@ namespace ns3 {
 
             // Open CSV files
             std::cout << "  > Opening link (net-device) queue log files:" << std::endl;
-            FILE* file_link_queue_pkt_csv = fopen(m_filename_link_queue_pkt_csv.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_filename_link_queue_pkt_csv << std::endl;
-            FILE* file_link_queue_byte_csv = fopen(m_filename_link_queue_byte_csv.c_str(), "w+");
-            std::cout << "    >> Opened: " << m_filename_link_queue_byte_csv << std::endl;
+            FILE* file_link_net_device_queue_pkt_csv = fopen(m_filename_link_net_device_queue_pkt_csv.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_filename_link_net_device_queue_pkt_csv << std::endl;
+            FILE* file_link_net_device_queue_byte_csv = fopen(m_filename_link_net_device_queue_byte_csv.c_str(), "w+");
+            std::cout << "    >> Opened: " << m_filename_link_net_device_queue_byte_csv << std::endl;
 
             // Sort
             struct ascending_by_directed_link
@@ -145,7 +145,7 @@ namespace ns3 {
 
                     // Write plain to the CSV file:
                     // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<number of packets>
-                    fprintf(file_link_queue_pkt_csv,
+                    fprintf(file_link_net_device_queue_pkt_csv,
                             "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
@@ -161,7 +161,7 @@ namespace ns3 {
 
                     // Write plain to the CSV file:
                     // <from>,<to>,<interval start (ns)>,<interval end (ns)>,<number of bytes>
-                    fprintf(file_link_queue_byte_csv,
+                    fprintf(file_link_net_device_queue_byte_csv,
                             "%d,%d,%" PRId64 ",%" PRId64 ",%" PRId64 "\n",
                             (int) directed_edge.first,
                             (int) directed_edge.second,
@@ -176,10 +176,10 @@ namespace ns3 {
 
             // Close log files
             std::cout << "  > Closing link (net-device) queue log files:" << std::endl;
-            fclose(file_link_queue_pkt_csv);
-            std::cout << "    >> Closed: " << m_filename_link_queue_pkt_csv << std::endl;
-            fclose(file_link_queue_byte_csv);
-            std::cout << "    >> Closed: " << m_filename_link_queue_byte_csv << std::endl;
+            fclose(file_link_net_device_queue_pkt_csv);
+            std::cout << "    >> Closed: " << m_filename_link_net_device_queue_pkt_csv << std::endl;
+            fclose(file_link_net_device_queue_byte_csv);
+            std::cout << "    >> Closed: " << m_filename_link_net_device_queue_byte_csv << std::endl;
 
             // Register completion
             std::cout << "  > Link (net-device) queue log files have been written" << std::endl;

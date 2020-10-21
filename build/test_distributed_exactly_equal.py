@@ -10,9 +10,9 @@ def test_distributed_exactly_equal(base_run_folder, multi_core_run_folder, num_c
         "tcp_flows.csv",
         "udp_bursts_incoming.csv",
         "udp_bursts_outgoing.csv",
-        "link_utilization.csv",
-        "link_queue_pkt.csv",
-        "link_queue_byte.csv",
+        "link_net_device_utilization.csv",
+        "link_net_device_queue_pkt.csv",
+        "link_net_device_queue_byte.csv",
     ]:
 
         # Exit with error if the file does not exist

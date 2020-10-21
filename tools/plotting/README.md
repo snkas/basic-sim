@@ -50,12 +50,12 @@ python plot_ping.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data
 ```
 
 
-### Link utilization plotting
+### Link net-device utilization plotting
 
 Plotting utilization of link 5 -> 9:
 ```
-cd /path/to/tools/plotting/plot_link_utilization
-python plot_link_utilization.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
+cd /path/to/tools/plotting/plot_link_net_device_utilization
+python plot_link_net_device_utilization.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
 ```
 
 

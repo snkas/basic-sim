@@ -122,9 +122,9 @@ void TopologyPtop::ReadTopologyConfig() {
                 entry.first != "undirected_edges" &&
                 entry.first != "all_nodes_are_endpoints" &&
                 entry.first != "link_channel_delay_ns" &&
-                entry.first != "link_device_data_rate_megabit_per_s" &&
-                entry.first != "link_device_queue" &&
-                entry.first != "link_device_receive_error_model" &&
+                entry.first != "link_net_device_data_rate_megabit_per_s" &&
+                entry.first != "link_net_device_queue" &&
+                entry.first != "link_net_device_receive_error_model" &&
                 entry.first != "link_interface_traffic_control_qdisc"
         ) {
             throw std::runtime_error("Invalid topology property: " + entry.first);
@@ -365,84 +365,84 @@ void TopologyPtop::ParseLinkChannelDelayNsProperty() {
 }
 
 /**
- * Parse the link_device_data_rate_megabit_per_s from the topology configuration.
+ * Parse the link_net_device_data_rate_megabit_per_s from the topology configuration.
  *
  * @return Mapping of directed edge (a, b) (i.e., link) to its device's data rate in Mbit/s
  */
-void TopologyPtop::ParseLinkDeviceDataRateMegabitPerSecProperty() {
-    std::string value = get_param_or_fail("link_device_data_rate_megabit_per_s", m_topology_config);
+void TopologyPtop::ParseLinkNetDeviceDataRateMegabitPerSecProperty() {
+    std::string value = get_param_or_fail("link_net_device_data_rate_megabit_per_s", m_topology_config);
 
     // Default value
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
-        double link_device_data_rate_megabit_per_s = parse_positive_double(value);
+        double link_net_device_data_rate_megabit_per_s = parse_positive_double(value);
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            m_link_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(p, link_device_data_rate_megabit_per_s));
-            m_link_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_data_rate_megabit_per_s));
+            m_link_net_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(p, link_net_device_data_rate_megabit_per_s));
+            m_link_net_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_net_device_data_rate_megabit_per_s));
         }
-        std::cout << "    >> Single global value... " << link_device_data_rate_megabit_per_s << " Mbit/s" << std::endl;
+        std::cout << "    >> Single global value... " << link_net_device_data_rate_megabit_per_s << " Mbit/s" << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(entry.first, parse_positive_double(entry.second)));
+            m_link_net_device_data_rate_megabit_per_s_mapping.insert(std::make_pair(entry.first, parse_positive_double(entry.second)));
         }
         std::cout << "    >> Per link device mapping was read" << std::endl;
     }
 }
 
 /**
- * Parse the link_device_queue from the topology configuration.
+ * Parse the link_net_device_queue from the topology configuration.
  *
  * @return Mapping of directed edge (a, b) (i.e., link) to its device's queue
  */
-void TopologyPtop::ParseLinkDeviceQueueProperty() {
-    std::string value = get_param_or_fail("link_device_queue", m_topology_config);
+void TopologyPtop::ParseLinkNetDeviceQueueProperty() {
+    std::string value = get_param_or_fail("link_net_device_queue", m_topology_config);
 
     // Default value
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            std::pair<ObjectFactory, QueueSize> link_device_queue = m_queueSelector->ParseQueueValue(this, value);
-            m_link_device_queue_mapping.insert(std::make_pair(p, link_device_queue));
-            m_link_device_queue_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_queue));
+            std::pair<ObjectFactory, QueueSize> link_net_device_queue = m_queueSelector->ParseQueueValue(this, value);
+            m_link_net_device_queue_mapping.insert(std::make_pair(p, link_net_device_queue));
+            m_link_net_device_queue_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_net_device_queue));
         }
         std::cout << "    >> Single global value... " << m_queueSelector->ParseQueueValue(this, value).first << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_queue_mapping.insert(std::make_pair(entry.first, m_queueSelector->ParseQueueValue(this, entry.second)));
+            m_link_net_device_queue_mapping.insert(std::make_pair(entry.first, m_queueSelector->ParseQueueValue(this, entry.second)));
         }
         std::cout << "    >> Per link device mapping was read" << std::endl;
     }
 }
 
 /**
- * Parse the link_device_receive_error_model from the topology configuration.
+ * Parse the link_net_device_receive_error_model from the topology configuration.
  *
  * @return Mapping of directed edge (a, b) (i.e., link) to link device receive error model
  */
-void TopologyPtop::ParseLinkDeviceReceiveErrorModelProperty() {
-    std::string value = get_param_or_fail("link_device_receive_error_model", m_topology_config);
+void TopologyPtop::ParseLinkNetDeviceReceiveErrorModelProperty() {
+    std::string value = get_param_or_fail("link_net_device_receive_error_model", m_topology_config);
 
     // Default value
     if (!starts_with(trim(value), "map")) {
 
         // Create default mapping
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            std::pair<bool, Ptr<ErrorModel>> link_device_receive_error_model = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, value);
-            m_link_device_receive_error_model_mapping.insert(std::make_pair(p, link_device_receive_error_model));
-            m_link_device_receive_error_model_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_device_receive_error_model));
+            std::pair<bool, Ptr<ErrorModel>> link_net_device_receive_error_model = m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, value);
+            m_link_net_device_receive_error_model_mapping.insert(std::make_pair(p, link_net_device_receive_error_model));
+            m_link_net_device_receive_error_model_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_net_device_receive_error_model));
         }
         std::cout << "    >> Single global value... " << value << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
         for (auto const& entry : directed_edge_mapping) {
-            m_link_device_receive_error_model_mapping.insert(std::make_pair(entry.first, m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, entry.second)));
+            m_link_net_device_receive_error_model_mapping.insert(std::make_pair(entry.first, m_receiveErrorModelSelector->ParseReceiveErrorModelValue(this, entry.second)));
         }
         std::cout << "    >> Per link device receive error model mapping was read" << std::endl;
     }
@@ -473,14 +473,14 @@ void TopologyPtop::EstimateWorstCaseRtt() {
 
     // Lowest link data rate
     double lowest_data_rate_megabit_per_s = 1000000;
-    for (auto const& entry : m_link_device_data_rate_megabit_per_s_mapping) {
+    for (auto const& entry : m_link_net_device_data_rate_megabit_per_s_mapping) {
         lowest_data_rate_megabit_per_s = std::min(lowest_data_rate_megabit_per_s, entry.second);
     }
     std::cout << "    >> Lowest link data rate...... " << lowest_data_rate_megabit_per_s << " Mbit/s" << std::endl;
 
     // Highest maximum queue size
     int64_t highest_max_queue_size_byte = 0;
-    for (auto const& entry : m_link_device_queue_mapping) {
+    for (auto const& entry : m_link_net_device_queue_mapping) {
         QueueSize a = entry.second.second;
         int64_t queue_size_byte;
         if (a.GetUnit() == PACKETS) {
@@ -548,17 +548,17 @@ void TopologyPtop::ParseTopologyLinkProperties() {
 
     // Device data rate
     std::cout << "  > Link device data rates" << std::endl;
-    ParseLinkDeviceDataRateMegabitPerSecProperty();
+    ParseLinkNetDeviceDataRateMegabitPerSecProperty();
     m_basicSimulation->RegisterTimestamp("Parse link-to-device-data-rate mapping");
 
     // Device queue
     std::cout << "  > Link device queues" << std::endl;
-    ParseLinkDeviceQueueProperty();
+    ParseLinkNetDeviceQueueProperty();
     m_basicSimulation->RegisterTimestamp("Parse link-to-device-queue mapping");
     
     // Device queue
     std::cout << "  > Link device receive error model" << std::endl;
-    ParseLinkDeviceReceiveErrorModelProperty();
+    ParseLinkNetDeviceReceiveErrorModelProperty();
     m_basicSimulation->RegisterTimestamp("Parse link-to-device-receive-error-model mapping");
 
     // Worst-case RTT
@@ -624,10 +624,10 @@ void TopologyPtop::SetupLinks() {
 
         // Point-to-point helper
         PointToPointAbHelper p2p;
-        p2p.SetDeviceAttributeA("DataRate", DataRateValue(DataRate(std::to_string(m_link_device_data_rate_megabit_per_s_mapping.at(edge_a_to_b)) + "Mbps")));
-        p2p.SetDeviceAttributeB("DataRate", DataRateValue(DataRate(std::to_string(m_link_device_data_rate_megabit_per_s_mapping.at(edge_b_to_a)) + "Mbps")));
-        p2p.SetQueueFactoryA(m_link_device_queue_mapping.at(edge_a_to_b).first);
-        p2p.SetQueueFactoryB(m_link_device_queue_mapping.at(edge_b_to_a).first);
+        p2p.SetDeviceAttributeA("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(edge_a_to_b)) + "Mbps")));
+        p2p.SetDeviceAttributeB("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(edge_b_to_a)) + "Mbps")));
+        p2p.SetQueueFactoryA(m_link_net_device_queue_mapping.at(edge_a_to_b).first);
+        p2p.SetQueueFactoryB(m_link_net_device_queue_mapping.at(edge_b_to_a).first);
         p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(m_link_channel_delay_ns_mapping.at(undirected_edge))));
         NetDeviceContainer container = p2p.Install(m_nodes.Get(undirected_edge.first), m_nodes.Get(undirected_edge.second));
 
@@ -636,11 +636,11 @@ void TopologyPtop::SetupLinks() {
         Ptr<PointToPointNetDevice> netDeviceB = container.Get(1)->GetObject<PointToPointNetDevice>();
 
         // Set receiving error model
-        if (m_link_device_receive_error_model_mapping.at(edge_b_to_a).first) {
-            netDeviceA->SetReceiveErrorModel(m_link_device_receive_error_model_mapping.at(edge_b_to_a).second);
+        if (m_link_net_device_receive_error_model_mapping.at(edge_b_to_a).first) {
+            netDeviceA->SetReceiveErrorModel(m_link_net_device_receive_error_model_mapping.at(edge_b_to_a).second);
         }
-        if (m_link_device_receive_error_model_mapping.at(edge_a_to_b).first) {
-            netDeviceB->SetReceiveErrorModel(m_link_device_receive_error_model_mapping.at(edge_a_to_b).second);
+        if (m_link_net_device_receive_error_model_mapping.at(edge_a_to_b).first) {
+            netDeviceB->SetReceiveErrorModel(m_link_net_device_receive_error_model_mapping.at(edge_a_to_b).second);
         }
 
         // Traffic control queueing discipline

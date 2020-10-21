@@ -7,7 +7,7 @@
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/traffic-control-layer.h"
 #include "ns3/fq-codel-queue-disc.h"
-#include "ns3/ptop-link-utilization-tracking.h"
+#include "ns3/ptop-link-net-device-utilization-tracking.h"
 #include "ns3/udp-burst-scheduler.h"
 
 using namespace ns3;
@@ -36,9 +36,9 @@ public:
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-        config_file << "enable_link_utilization_tracking=true" << std::endl;
-        config_file << "link_utilization_tracking_interval_ns=100000000" << std::endl;
-        config_file << "link_utilization_tracking_enable_for_links=" << log_for_links << std::endl;
+        config_file << "enable_link_net_device_utilization_tracking=true" << std::endl;
+        config_file << "link_net_device_utilization_tracking_interval_ns=100000000" << std::endl;
+        config_file << "link_net_device_utilization_tracking_enable_for_links=" << log_for_links << std::endl;
         config_file << "enable_udp_burst_scheduler=true" << std::endl;
         config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
         config_file.close();
@@ -54,9 +54,9 @@ public:
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1,1-3,0-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=10" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file << "all_nodes_are_endpoints=true" << std::endl;
         topology_file.close();
@@ -75,7 +75,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install utilization trackers
-        PtopLinkUtilizationTracking utilTrackerHelper = PtopLinkUtilizationTracking(basicSimulation, topology);
+        PtopLinkNetDeviceUtilizationTracking utilTrackerHelper = PtopLinkNetDeviceUtilizationTracking(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
@@ -88,29 +88,29 @@ public:
 
     }
 
-    void validate_link_utilization_logs(
+    void validate_link_net_device_utilization_logs(
             std::vector<std::pair<int64_t, int64_t>> dir_a_b_list,
             int64_t duration_ns,
-            int64_t link_utilization_tracking_interval_ns,
-            std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_utilization,
+            int64_t link_net_device_utilization_tracking_interval_ns,
+            std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_net_device_utilization,
             std::map<std::pair<int64_t, int64_t>, double>& link_overall_utilization_as_fraction
     ) {
 
         // Expected number of entries per pair
-        size_t expected_num_entries_per_pair = (size_t) std::ceil((double) duration_ns / (double) link_utilization_tracking_interval_ns);
+        size_t expected_num_entries_per_pair = (size_t) std::ceil((double) duration_ns / (double) link_net_device_utilization_tracking_interval_ns);
 
         // Sort it
         std::sort(dir_a_b_list.begin(), dir_a_b_list.end());
 
         // Initialize result
         for (std::pair<int64_t, int64_t> a_b : dir_a_b_list) {
-            link_utilization[a_b] = std::vector<std::tuple<int64_t, int64_t, int64_t>>();
+            link_net_device_utilization[a_b] = std::vector<std::tuple<int64_t, int64_t, int64_t>>();
             link_overall_utilization_as_fraction[a_b] = 0.0;
         }
 
-        // link_utilization.csv
+        // link_net_device_utilization.csv
         std::vector<int64_t> correct_busy_time_ns;
-        std::vector<std::string> lines_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization.csv");
+        std::vector<std::string> lines_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv");
         ASSERT_EQUAL(lines_csv.size(), expected_num_entries_per_pair * dir_a_b_list.size());
         size_t line_i = 0;
         for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
@@ -128,14 +128,14 @@ public:
                 // Validate values
                 ASSERT_EQUAL(dir_a_b.first, from_node_id);
                 ASSERT_EQUAL(dir_a_b.second, to_node_id);
-                ASSERT_EQUAL(interval_start_ns, (int64_t) (j * link_utilization_tracking_interval_ns));
-                ASSERT_EQUAL(interval_end_ns, (int64_t) std::min((int64_t) (j + 1) * link_utilization_tracking_interval_ns, duration_ns));
+                ASSERT_EQUAL(interval_start_ns, (int64_t) (j * link_net_device_utilization_tracking_interval_ns));
+                ASSERT_EQUAL(interval_end_ns, (int64_t) std::min((int64_t) (j + 1) * link_net_device_utilization_tracking_interval_ns, duration_ns));
 
                 // For keeping track later
                 correct_busy_time_ns.push_back(interval_busy_time_ns);
 
                 // Result
-                link_utilization[std::make_pair(dir_a_b.first, dir_a_b.second)].push_back(std::make_tuple(interval_start_ns, interval_end_ns, interval_busy_time_ns));
+                link_net_device_utilization[std::make_pair(dir_a_b.first, dir_a_b.second)].push_back(std::make_tuple(interval_start_ns, interval_end_ns, interval_busy_time_ns));
 
                 line_i++;
             }
@@ -144,12 +144,12 @@ public:
         // Correct amount of lines present
         ASSERT_EQUAL(line_i, expected_num_entries_per_pair * dir_a_b_list.size());
         for (std::pair<int64_t, int64_t> a_b : dir_a_b_list) {
-            ASSERT_EQUAL(expected_num_entries_per_pair, link_utilization.at(a_b).size());
+            ASSERT_EQUAL(expected_num_entries_per_pair, link_net_device_utilization.at(a_b).size());
         }
 
-        // link_utilization_compressed.csv/txt
-        std::vector<std::string> lines_compressed_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.csv");
-        std::vector<std::string> lines_compressed_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.txt");
+        // link_net_device_utilization_compressed.csv/txt
+        std::vector<std::string> lines_compressed_csv = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        std::vector<std::string> lines_compressed_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
 
         // They are the same, except one is human-readable
         ASSERT_EQUAL(lines_compressed_csv.size(), lines_compressed_txt.size() - 1);
@@ -220,8 +220,8 @@ public:
         ASSERT_EQUAL(counter_ns, 0);
         ASSERT_EQUAL(correct_busy_time_idx, (int64_t) (dir_a_b_list.size() * expected_num_entries_per_pair));
 
-        // link_utilization_summary.txt
-        std::vector<std::string> lines_summary_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_utilization_summary.txt");
+        // link_net_device_utilization_summary.txt
+        std::vector<std::string> lines_summary_txt = read_file_direct(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
         ASSERT_EQUAL(lines_summary_txt.size(), dir_a_b_list.size() + 1);
 
         // Correct exact header
@@ -244,8 +244,8 @@ public:
 
             // Expected busy fraction = utilization
             int64_t total_busy_time_ns = 0;
-            for (size_t j = 0; j < link_utilization.at(dir_a_b_list.at(i)).size(); j++) {
-                total_busy_time_ns += std::get<2>(link_utilization.at(dir_a_b_list.at(i)).at(j));
+            for (size_t j = 0; j < link_net_device_utilization.at(dir_a_b_list.at(i)).size(); j++) {
+                total_busy_time_ns += std::get<2>(link_net_device_utilization.at(dir_a_b_list.at(i)).at(j));
             }
             link_overall_utilization_as_fraction[dir_a_b_list.at(i)] = (double) total_busy_time_ns / (double) duration_ns;
 
@@ -265,10 +265,10 @@ public:
         remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_summary.txt");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
         remove_dir_if_exists(ptop_utilization_test_dir + "/logs_ns3");
         remove_dir_if_exists(ptop_utilization_test_dir);
     }
@@ -309,15 +309,15 @@ public:
         dir_a_b_list.push_back(std::make_pair(2, 3));
 
         // Check results
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_utilization;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_utilization;
         std::map<std::pair<int64_t, int64_t>, double> link_overall_utilization_as_fraction;
-        validate_link_utilization_logs(dir_a_b_list, 1950000000, 100000000, link_utilization, link_overall_utilization_as_fraction);
+        validate_link_net_device_utilization_logs(dir_a_b_list, 1950000000, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
 
-        // Specific interval's link utilization
+        // Specific interval's link net-device utilization
         for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
-            ASSERT_EQUAL(link_utilization.at(dir_a_b).size(), 20);
+            ASSERT_EQUAL(link_net_device_utilization.at(dir_a_b).size(), 20);
             for (int j = 0; j < 20; j++) {
-                int64_t busy_time_ns = std::get<2>(link_utilization.at(dir_a_b).at(j));
+                int64_t busy_time_ns = std::get<2>(link_net_device_utilization.at(dir_a_b).at(j));
                 if (dir_a_b.first == 0 and dir_a_b.second == 1) {
                     if (j < 5) {
                         ASSERT_TRUE(busy_time_ns >= 50000000);
@@ -394,15 +394,15 @@ public:
         dir_a_b_list.push_back(std::make_pair(3, 1));
 
         // Check results
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_utilization;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_utilization;
         std::map<std::pair<int64_t, int64_t>, double> link_overall_utilization_as_fraction;
-        validate_link_utilization_logs(dir_a_b_list, 1950000000, 100000000, link_utilization, link_overall_utilization_as_fraction);
+        validate_link_net_device_utilization_logs(dir_a_b_list, 1950000000, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
 
-        // Specific interval's link utilization
+        // Specific interval's link net-device utilization
         for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
-            ASSERT_EQUAL(link_utilization.at(dir_a_b).size(), 20);
+            ASSERT_EQUAL(link_net_device_utilization.at(dir_a_b).size(), 20);
             for (int j = 0; j < 20; j++) {
-                int64_t busy_time_ns = std::get<2>(link_utilization.at(dir_a_b).at(j));
+                int64_t busy_time_ns = std::get<2>(link_net_device_utilization.at(dir_a_b).at(j));
                 if (dir_a_b.first == 0 and dir_a_b.second == 1) {
                     if (j < 5) {
                         ASSERT_TRUE(busy_time_ns >= 50000000);
@@ -442,7 +442,7 @@ public:
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-        config_file << "enable_link_utilization_tracking=false" << std::endl;
+        config_file << "enable_link_net_device_utilization_tracking=false" << std::endl;
         config_file << "enable_udp_burst_scheduler=true" << std::endl;
         config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
         config_file.close();
@@ -461,9 +461,9 @@ public:
         topology_file << "servers=set()" << std::endl;
         topology_file << "undirected_edges=set(0-1,1-3,0-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=10" << std::endl;
-        topology_file << "link_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_device_queue=drop_tail(100p)" << std::endl;
-        topology_file << "link_device_receive_error_model=none" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file << "all_nodes_are_endpoints=true" << std::endl;
         topology_file.close();
@@ -479,7 +479,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install utilization trackers
-        PtopLinkUtilizationTracking utilTrackerHelper = PtopLinkUtilizationTracking(basicSimulation, topology);
+        PtopLinkNetDeviceUtilizationTracking utilTrackerHelper = PtopLinkNetDeviceUtilizationTracking(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
@@ -491,10 +491,10 @@ public:
         basicSimulation->Finalize();
 
         // Nothing should have been logged
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization.csv"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.csv"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.txt"));
-        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_summary.txt"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt"));
+        ASSERT_FALSE(file_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt"));
 
         // Clean up
         remove_file_if_exists(ptop_utilization_test_dir + "/config_ns3.properties");
@@ -503,10 +503,10 @@ public:
         remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.csv");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_compressed.txt");
-        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_utilization_summary.txt");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization.csv");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
+        remove_file_if_exists(ptop_utilization_test_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
         remove_dir_if_exists(ptop_utilization_test_dir + "/logs_ns3");
         remove_dir_if_exists(ptop_utilization_test_dir);
 
