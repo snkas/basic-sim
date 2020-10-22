@@ -165,6 +165,8 @@ public:
         ASSERT_EQUAL(topology->GetSwitches().size(), 1);
         ASSERT_EQUAL(topology->GetSwitchesWhichAreTors().size(), 1);
         ASSERT_EQUAL(topology->GetServers().size(), 7);
+        ASSERT_EQUAL(topology->GetLinks().size(), 14);
+        ASSERT_EQUAL(topology->GetLinksSet().size(), 14);
         ASSERT_EQUAL(topology->GetUndirectedEdges().size(), 7);
         ASSERT_EQUAL(topology->GetUndirectedEdgesSet().size(), 7);
         ASSERT_EQUAL(topology->GetAllAdjacencyLists().size(), 8);

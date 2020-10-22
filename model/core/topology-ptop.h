@@ -93,6 +93,8 @@ public:
     const std::set<int64_t>& GetServers();
     bool IsValidEndpoint(int64_t node_id);
     const std::set<int64_t>& GetEndpoints();
+    std::vector<std::pair<int64_t, int64_t>> GetLinks();
+    std::set<std::pair<int64_t, int64_t>> GetLinksSet();
     const std::vector<std::pair<int64_t, int64_t>>& GetUndirectedEdges();
     const std::set<std::pair<int64_t, int64_t>>& GetUndirectedEdgesSet();
     const std::vector<std::set<int64_t>>& GetAllAdjacencyLists();

@@ -728,6 +728,33 @@ const std::set<int64_t>& TopologyPtop::GetEndpoints() {
     }
 }
 
+/**
+ * Retrieve all the links (= "directed edges").
+ *
+ * @return Vector of links
+ */
+std::vector<std::pair<int64_t, int64_t>> TopologyPtop::GetLinks() {
+    std::vector<std::pair<int64_t, int64_t>> links;
+    for (std::pair<int64_t, int64_t> undirected_edge : m_undirected_edges) {
+        links.push_back(undirected_edge);
+        links.push_back(std::make_pair(undirected_edge.second, undirected_edge.first));
+    }
+    return links;
+}
+
+/**
+ * Retrieve all the links (= "directed edges") as a set.
+ *
+ * @return Set of links
+ */
+std::set<std::pair<int64_t, int64_t>> TopologyPtop::GetLinksSet() {
+    std::set<std::pair<int64_t, int64_t>> links_set;
+    for (std::pair<int64_t, int64_t> link : GetLinks()) {
+        links_set.insert(link);
+    }
+    return links_set;
+}
+
 const std::vector<std::pair<int64_t, int64_t>>& TopologyPtop::GetUndirectedEdges() {
     return m_undirected_edges;
 }
