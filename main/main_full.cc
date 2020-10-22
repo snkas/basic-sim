@@ -24,6 +24,7 @@
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/ptop-link-net-device-utilization-tracking.h"
 #include "ns3/ptop-link-net-device-queue-tracking.h"
+#include "ns3/ptop-link-interface-tc-qdisc-queue-tracking.h"
 #include "ns3/tcp-optimizer.h"
 
 #include "ns3/tcp-flow-scheduler.h"
@@ -61,6 +62,9 @@ int main(int argc, char *argv[]) {
     // Install link net-device queue trackers
     PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology); // Requires enable_link_net_device_queue_tracking=true
 
+    // Install link interface traffic-control qdisc queue trackers
+    PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology); // Requires enable_link_interface_tc_qdisc_queue_tracking=true
+
     // Optimize TCP
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
@@ -90,6 +94,9 @@ int main(int argc, char *argv[]) {
 
     // Write link net-device queue results
     netDeviceQueueTracking.WriteResults();
+
+    // Write link interface traffic-control qdisc queue results
+    tcQdiscQueueTracking.WriteResults();
 
     // Finalize the simulation
     basicSimulation->Finalize();
