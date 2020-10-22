@@ -56,9 +56,14 @@ namespace ns3 {
         // Enable it for links in the set
         for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
             if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
-                Ptr<QdiscQueueTracker> tracker_a_b = CreateObject<QdiscQueueTracker>(
-                        m_topology->GetNodes().Get(p.first)->GetObject<TrafficControlLayer>()->GetRootQueueDiscOnDevice(m_topology->GetNetDeviceForLink(p))
-                );
+                Ptr<QueueDisc> queueDisc = m_topology->GetNodes().Get(p.first)->GetObject<TrafficControlLayer>()->GetRootQueueDiscOnDevice(m_topology->GetNetDeviceForLink(p));
+                if (queueDisc == 0) {
+                    throw std::invalid_argument(format_string(
+                            "Cannot enable traffic-control qdisc queue tracking on an interface which does not have a qdisc (%d -> %d).",
+                            p.first, p.second
+                    ));
+                }
+                Ptr<QdiscQueueTracker> tracker_a_b = CreateObject<QdiscQueueTracker>(queueDisc);
                 m_qdisc_queue_trackers.push_back(std::make_pair(p, tracker_a_b));
             }
         }

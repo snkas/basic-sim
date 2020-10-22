@@ -80,6 +80,7 @@ public:
         AddTestCase(new PtopTrackingLinkInterfaceTcQdiscQueueSimpleTestCase, TestCase::QUICK);
         AddTestCase(new PtopTrackingLinkInterfaceTcQdiscQueueSpecificLinksTestCase, TestCase::QUICK);
         AddTestCase(new PtopTrackingLinkInterfaceTcQdiscQueueNotEnabledTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkInterfaceTcQdiscQueueNoQdiscTestCase, TestCase::QUICK);
 
     }
 };

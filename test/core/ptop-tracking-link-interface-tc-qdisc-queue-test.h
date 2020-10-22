@@ -237,7 +237,7 @@ class PtopTrackingLinkInterfaceTcQdiscQueueNotEnabledTestCase : public TestCase
 {
 public:
     PtopTrackingLinkInterfaceTcQdiscQueueNotEnabledTestCase () : TestCase ("ptop-tracking-link-interface-qdisc-queue not-enabled") {};
-    const std::string test_run_dir = ".tmp-ptop-queue-test";
+    const std::string test_run_dir = ".tmp-ptop-tracking-link-interface-tc-qdisc-queue-test";
 
     void DoRun () {
 
@@ -298,6 +298,7 @@ public:
         ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv"));
         ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv"));
 
+        // Clean-up
         remove_file_if_exists(test_run_dir + "/config_ns3.properties");
         remove_file_if_exists(test_run_dir + "/topology.properties.temp");
         remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
@@ -306,6 +307,76 @@ public:
         remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
         remove_dir_if_exists(test_run_dir + "/logs_ns3");
         remove_dir_if_exists(test_run_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PtopTrackingLinkInterfaceTcQdiscQueueNoQdiscTestCase : public TestCase
+{
+public:
+    PtopTrackingLinkInterfaceTcQdiscQueueNoQdiscTestCase () : TestCase ("ptop-tracking-link-interface-qdisc-queue no-qdisc") {};
+    const std::string test_run_dir = ".tmp-ptop-tracking-link-interface-tc-qdisc-queue-test";
+
+    void DoRun () {
+
+        mkdir_if_not_exists(test_run_dir);
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=1950000000" << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
+        config_file.close();
+
+        std::ofstream topology_file;
+        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=3" << std::endl;
+        topology_file << "num_undirected_edges=2" << std::endl;
+        topology_file << "switches=set(0,1)" << std::endl;
+        topology_file << "switches_which_are_tors=set(1)" << std::endl;
+        topology_file << "servers=set(2)" << std::endl;
+        topology_file << "undirected_edges=set(0-1,1-2)" << std::endl;
+        topology_file << "link_channel_delay_ns=10" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=100" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->1: fifo(50p), 1->0: fifo(88p), 1->2: disabled, 2->1: fifo(44p))" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file.close();
+
+        // Create simulation environment
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+
+        // Create topology
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        // Schedule UDP bursts
+        UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
+
+        // Install TC qdisc queue trackers
+        ASSERT_EXCEPTION_MATCH_WHAT(
+            PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology),
+            "Cannot enable traffic-control qdisc queue tracking on an interface which does not have a qdisc (1 -> 2)."
+        );
+
+        // Finalize the simulation
+        basicSimulation->Finalize();
+
+        // Nothing should have been logged
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv"));
+
+        // Clean-up
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+
     }
 };
 
