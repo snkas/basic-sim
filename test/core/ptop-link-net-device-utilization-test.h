@@ -2,10 +2,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceUtilizationBaseTestCase : public TestCase
+class PtopLinkNetDeviceUtilizationBaseTestCase : public TestCaseWithLogValidators
 {
 public:
-    PtopLinkNetDeviceUtilizationBaseTestCase (std::string s) : TestCase (s) {};
+    PtopLinkNetDeviceUtilizationBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
     const std::string test_run_dir = ".tmp-ptop-link-net-device-utilization-test";
 
     void prepare_test_dir() {
@@ -72,176 +72,6 @@ public:
 
     }
 
-    void validate_link_net_device_utilization_logs(
-            std::vector<std::pair<int64_t, int64_t>> dir_a_b_list,
-            int64_t duration_ns,
-            int64_t link_net_device_utilization_tracking_interval_ns,
-            std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_net_device_utilization,
-            std::map<std::pair<int64_t, int64_t>, double>& link_overall_utilization_as_fraction
-    ) {
-
-        // Expected number of entries per pair
-        size_t expected_num_entries_per_pair = (size_t) std::ceil((double) duration_ns / (double) link_net_device_utilization_tracking_interval_ns);
-
-        // Sort it
-        std::sort(dir_a_b_list.begin(), dir_a_b_list.end());
-
-        // Initialize result
-        for (std::pair<int64_t, int64_t> a_b : dir_a_b_list) {
-            link_net_device_utilization[a_b] = std::vector<std::tuple<int64_t, int64_t, int64_t>>();
-            link_overall_utilization_as_fraction[a_b] = 0.0;
-        }
-
-        // link_net_device_utilization.csv
-        std::vector<int64_t> correct_busy_time_ns;
-        std::vector<std::string> lines_csv = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization.csv");
-        ASSERT_EQUAL(lines_csv.size(), expected_num_entries_per_pair * dir_a_b_list.size());
-        size_t line_i = 0;
-        for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
-            for (size_t j = 0; j < expected_num_entries_per_pair; j++) {
-                std::string line = lines_csv[line_i];
-
-                // Extract values
-                std::vector<std::string> comma_split = split_string(line, ",", 5);
-                int64_t from_node_id = parse_positive_int64(comma_split[0]);
-                int64_t to_node_id = parse_positive_int64(comma_split[1]);
-                int64_t interval_start_ns = parse_positive_int64(comma_split[2]);
-                int64_t interval_end_ns = parse_positive_int64(comma_split[3]);
-                int64_t interval_busy_time_ns = parse_positive_int64(comma_split[4]);
-
-                // Validate values
-                ASSERT_EQUAL(dir_a_b.first, from_node_id);
-                ASSERT_EQUAL(dir_a_b.second, to_node_id);
-                ASSERT_EQUAL(interval_start_ns, (int64_t) (j * link_net_device_utilization_tracking_interval_ns));
-                ASSERT_EQUAL(interval_end_ns, (int64_t) std::min((int64_t) (j + 1) * link_net_device_utilization_tracking_interval_ns, duration_ns));
-
-                // For keeping track later
-                correct_busy_time_ns.push_back(interval_busy_time_ns);
-
-                // Result
-                link_net_device_utilization[std::make_pair(dir_a_b.first, dir_a_b.second)].push_back(std::make_tuple(interval_start_ns, interval_end_ns, interval_busy_time_ns));
-
-                line_i++;
-            }
-        }
-
-        // Correct amount of lines present
-        ASSERT_EQUAL(line_i, expected_num_entries_per_pair * dir_a_b_list.size());
-        for (std::pair<int64_t, int64_t> a_b : dir_a_b_list) {
-            ASSERT_EQUAL(expected_num_entries_per_pair, link_net_device_utilization.at(a_b).size());
-        }
-
-        // link_net_device_utilization_compressed.csv/txt
-        std::vector<std::string> lines_compressed_csv = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
-        std::vector<std::string> lines_compressed_txt = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
-
-        // They are the same, except one is human-readable
-        ASSERT_EQUAL(lines_compressed_csv.size(), lines_compressed_txt.size() - 1);
-
-        // Correct exact header
-        ASSERT_EQUAL(lines_compressed_txt[0], "From     To       Interval start (ms)   Interval end (ms)     Utilization");
-
-        // Go over all the lines
-        int64_t correct_busy_time_idx = 0;
-        int64_t counter_ns = 0;
-        int64_t prev_interval_end_ns = 0;
-        size_t current_edge_idx = 0;
-        for (size_t i = 0; i < lines_compressed_csv.size(); i++) {
-            std::string line_csv = lines_compressed_csv[i];
-            std::string line_txt = lines_compressed_txt[i + 1];
-
-            // Split the CSV line
-            std::vector<std::string> line_csv_spl = split_string(line_csv, ",", 5);
-
-            // Split the text line
-            std::vector<std::string> line_txt_spl;
-            std::istringstream iss(line_txt);
-            for (std::string s; iss >> s;) {
-                line_txt_spl.push_back(s);
-            }
-
-            // Check from-to
-            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[0]), dir_a_b_list.at(current_edge_idx).first);
-            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[1]), dir_a_b_list.at(current_edge_idx).second);
-            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[0]), parse_positive_int64(line_txt_spl[0]));
-            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[1]), parse_positive_int64(line_txt_spl[1]));
-
-            // Check interval
-            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[2]), prev_interval_end_ns);
-            ASSERT_EQUAL_APPROX(parse_positive_int64(line_csv_spl[2]) / 1000000.0, parse_positive_double(line_txt_spl[2]), 0.01);
-            ASSERT_EQUAL_APPROX(parse_positive_int64(line_csv_spl[3]) / 1000000.0, parse_positive_double(line_txt_spl[3]), 0.01);
-
-            // Check that utilization matches up
-            double util_100_csv = (double) parse_positive_int64(line_csv_spl[4]) / (double) (parse_positive_int64(line_csv_spl[3]) - parse_positive_int64(line_csv_spl[2])) * 100.0;
-            double util_100_txt = parse_positive_double(line_txt_spl[4].substr(0, line_txt_spl[4].size() - 1));
-            ASSERT_EQUAL_APPROX(
-                    util_100_csv,
-                    util_100_txt,
-                    0.01
-            );
-            ASSERT_EQUAL(line_txt_spl[4].substr(line_txt_spl[4].size() - 1, line_txt_spl[4].size()), "%");
-            prev_interval_end_ns = parse_positive_int64(line_csv_spl[3]);
-
-            // Now finally check that the utilization values are correct
-            int64_t expected_sum_busy_time_ns = 0;
-            while (counter_ns < parse_positive_int64(line_csv_spl[3])) {
-                counter_ns += 100000000;
-                expected_sum_busy_time_ns += correct_busy_time_ns.at(correct_busy_time_idx);
-                correct_busy_time_idx += 1;
-            }
-            ASSERT_EQUAL(parse_positive_int64(line_csv_spl[4]), expected_sum_busy_time_ns);
-
-            // If last interval, move onto the next edge
-            if (parse_positive_int64(line_csv_spl[3]) == duration_ns) {
-                current_edge_idx += 1;
-                prev_interval_end_ns = 0;
-                counter_ns = 0;
-            }
-
-        }
-        ASSERT_EQUAL(current_edge_idx, dir_a_b_list.size());
-        ASSERT_EQUAL(prev_interval_end_ns, 0);
-        ASSERT_EQUAL(counter_ns, 0);
-        ASSERT_EQUAL(correct_busy_time_idx, (int64_t) (dir_a_b_list.size() * expected_num_entries_per_pair));
-
-        // link_net_device_utilization_summary.txt
-        std::vector<std::string> lines_summary_txt = read_file_direct(test_run_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
-        ASSERT_EQUAL(lines_summary_txt.size(), dir_a_b_list.size() + 1);
-
-        // Correct exact header
-        ASSERT_EQUAL(lines_summary_txt[0], "From     To       Utilization");
-
-        // Go over all the lines
-        for (size_t i = 0; i < lines_summary_txt.size() - 1; i++) {
-            std::string line_txt = lines_summary_txt[i + 1];
-
-            // Split the text line
-            std::vector<std::string> line_txt_spl;
-            std::istringstream iss(line_txt);
-            for (std::string s; iss >> s;) {
-                line_txt_spl.push_back(s);
-            }
-
-            // Check from-to
-            ASSERT_EQUAL(parse_positive_int64(line_txt_spl[0]), dir_a_b_list.at(i).first);
-            ASSERT_EQUAL(parse_positive_int64(line_txt_spl[1]), dir_a_b_list.at(i).second);
-
-            // Expected busy fraction = utilization
-            int64_t total_busy_time_ns = 0;
-            for (size_t j = 0; j < link_net_device_utilization.at(dir_a_b_list.at(i)).size(); j++) {
-                total_busy_time_ns += std::get<2>(link_net_device_utilization.at(dir_a_b_list.at(i)).at(j));
-            }
-            link_overall_utilization_as_fraction[dir_a_b_list.at(i)] = (double) total_busy_time_ns / (double) duration_ns;
-
-            // Check that utilization matches up
-            double util_100_txt = parse_positive_double(line_txt_spl[2].substr(0, line_txt_spl[2].size() - 1));
-            ASSERT_EQUAL_APPROX(util_100_txt, link_overall_utilization_as_fraction.at(dir_a_b_list.at(i)) * 100.0, 0.01);
-            ASSERT_EQUAL(line_txt_spl[2].substr(line_txt_spl[2].size() - 1, line_txt_spl[2].size()), "%");
-
-        }
-
-    }
-
     void cleanup() {
         remove_file_if_exists(test_run_dir + "/config_ns3.properties");
         remove_file_if_exists(test_run_dir + "/topology.properties.temp");
@@ -295,7 +125,7 @@ public:
         // Check results
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_utilization;
         std::map<std::pair<int64_t, int64_t>, double> link_overall_utilization_as_fraction;
-        validate_link_net_device_utilization_logs(dir_a_b_list, 1950000000, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
+        validate_link_net_device_utilization_logs(test_run_dir, dir_a_b_list, 1950000000, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
 
         // Specific interval's link net-device utilization
         for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
@@ -380,7 +210,7 @@ public:
         // Check results
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_utilization;
         std::map<std::pair<int64_t, int64_t>, double> link_overall_utilization_as_fraction;
-        validate_link_net_device_utilization_logs(dir_a_b_list, 1950000000, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
+        validate_link_net_device_utilization_logs(test_run_dir, dir_a_b_list, 1950000000, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
 
         // Specific interval's link net-device utilization
         for (std::pair<int64_t, int64_t> dir_a_b : dir_a_b_list) {
