@@ -2,11 +2,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceQueueBaseTestCase : public TestCaseWithLogValidators
+class PtopTrackingLinkNetDeviceQueueBaseTestCase : public TestCaseWithLogValidators
 {
 public:
-    PtopLinkNetDeviceQueueBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
-    const std::string test_run_dir = ".tmp-ptop-link-net-device-queue-test";
+    PtopTrackingLinkNetDeviceQueueBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    const std::string test_run_dir = ".tmp-ptop-tracking-link-net-device-queue-test";
 
     void prepare_test_dir() {
         mkdir_if_not_exists(test_run_dir);
@@ -88,10 +88,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceQueueSimpleTestCase : public PtopLinkNetDeviceQueueBaseTestCase
+class PtopTrackingLinkNetDeviceQueueSimpleTestCase : public PtopTrackingLinkNetDeviceQueueBaseTestCase
 {
 public:
-    PtopLinkNetDeviceQueueSimpleTestCase () : PtopLinkNetDeviceQueueBaseTestCase ("ptop-link-net-device-queue simple") {};
+    PtopTrackingLinkNetDeviceQueueSimpleTestCase () : PtopTrackingLinkNetDeviceQueueBaseTestCase ("ptop-tracking-link-net-device-queue simple") {};
 
     void DoRun () {
 
@@ -165,10 +165,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceQueueSpecificLinksTestCase : public PtopLinkNetDeviceQueueBaseTestCase
+class PtopTrackingLinkNetDeviceQueueSpecificLinksTestCase : public PtopTrackingLinkNetDeviceQueueBaseTestCase
 {
 public:
-    PtopLinkNetDeviceQueueSpecificLinksTestCase () : PtopLinkNetDeviceQueueBaseTestCase ("ptop-link-net-device-queue specific-links") {};
+    PtopTrackingLinkNetDeviceQueueSpecificLinksTestCase () : PtopTrackingLinkNetDeviceQueueBaseTestCase ("ptop-tracking-link-net-device-queue specific-links") {};
 
     void DoRun () {
 
@@ -234,10 +234,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceQueueNotEnabledTestCase : public TestCase
+class PtopTrackingLinkNetDeviceQueueNotEnabledTestCase : public TestCase
 {
 public:
-    PtopLinkNetDeviceQueueNotEnabledTestCase () : TestCase ("ptop-link-net-device-queue not-enabled") {};
+    PtopTrackingLinkNetDeviceQueueNotEnabledTestCase () : TestCase ("ptop-tracking-link-net-device-queue not-enabled") {};
     const std::string test_run_dir = ".tmp-ptop-queue-test";
 
     void DoRun () {

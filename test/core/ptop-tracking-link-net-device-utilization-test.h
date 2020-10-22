@@ -2,11 +2,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceUtilizationBaseTestCase : public TestCaseWithLogValidators
+class PtopTrackingLinkNetDeviceUtilizationBaseTestCase : public TestCaseWithLogValidators
 {
 public:
-    PtopLinkNetDeviceUtilizationBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
-    const std::string test_run_dir = ".tmp-ptop-link-net-device-utilization-test";
+    PtopTrackingLinkNetDeviceUtilizationBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    const std::string test_run_dir = ".tmp-ptop-tracking-link-net-device-utilization-test";
 
     void prepare_test_dir() {
         mkdir_if_not_exists(test_run_dir);
@@ -91,10 +91,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceUtilizationSimpleTestCase : public PtopLinkNetDeviceUtilizationBaseTestCase
+class PtopTrackingLinkNetDeviceUtilizationSimpleTestCase : public PtopTrackingLinkNetDeviceUtilizationBaseTestCase
 {
 public:
-    PtopLinkNetDeviceUtilizationSimpleTestCase () : PtopLinkNetDeviceUtilizationBaseTestCase ("ptop-link-net-device-utilization simple") {};
+    PtopTrackingLinkNetDeviceUtilizationSimpleTestCase () : PtopTrackingLinkNetDeviceUtilizationBaseTestCase ("ptop-tracking-link-net-device-utilization simple") {};
     void DoRun () {
 
         prepare_test_dir();
@@ -181,10 +181,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceUtilizationSpecificLinksTestCase : public PtopLinkNetDeviceUtilizationBaseTestCase
+class PtopTrackingLinkNetDeviceUtilizationSpecificLinksTestCase : public PtopTrackingLinkNetDeviceUtilizationBaseTestCase
 {
 public:
-    PtopLinkNetDeviceUtilizationSpecificLinksTestCase () : PtopLinkNetDeviceUtilizationBaseTestCase ("ptop-link-net-device-utilization specific-links") {};
+    PtopTrackingLinkNetDeviceUtilizationSpecificLinksTestCase () : PtopTrackingLinkNetDeviceUtilizationBaseTestCase ("ptop-tracking-link-net-device-utilization specific-links") {};
     void DoRun () {
 
         prepare_test_dir();
@@ -244,10 +244,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkNetDeviceUtilizationNotEnabledTestCase : public TestCase
+class PtopTrackingLinkNetDeviceUtilizationNotEnabledTestCase : public TestCase
 {
 public:
-    PtopLinkNetDeviceUtilizationNotEnabledTestCase () : TestCase ("ptop-link-net-device-utilization not-enabled") {};
+    PtopTrackingLinkNetDeviceUtilizationNotEnabledTestCase () : TestCase ("ptop-tracking-link-net-device-utilization not-enabled") {};
     const std::string test_run_dir = ".tmp-ptop-utilization-test";
     void DoRun () {
 

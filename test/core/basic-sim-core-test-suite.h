@@ -2,12 +2,18 @@
 
 #include "exp-util-test.h"
 #include "log-update-helper-test.h"
-#include "topology-ptop-test.h"
-#include "ptop-link-interface-tc-qdisc-red-test.h"
-#include "arbiter-test.h"
-#include "ptop-link-net-device-utilization-test.h"
-#include "ptop-link-net-device-queue-test.h"
 #include "tcp-optimizer-test.h"
+#include "topology-ptop-test.h"
+#include "arbiter-test.h"
+
+#include "ptop-queue-test.h"
+#include "ptop-receive-error-model-test.h"
+#include "ptop-tc-qdisc-test.h"
+#include "ptop-tc-qdisc-red-test.h"
+
+#include "ptop-tracking-link-net-device-utilization-test.h"
+#include "ptop-tracking-link-net-device-queue-test.h"
+
 
 class BasicSimTestSuite : public TestSuite {
 public:
@@ -26,6 +32,10 @@ public:
         AddTestCase(new LogUpdateHelperValidWithFileTestCase, TestCase::QUICK);
         AddTestCase(new LogUpdateHelperInvalidTestCase, TestCase::QUICK);
 
+        // TCP optimizer
+        AddTestCase(new TcpOptimizerBasicTestCase, TestCase::QUICK);
+        AddTestCase(new TcpOptimizerWorstCaseRttTestCase, TestCase::QUICK);
+
         // Point-to-point topology
         AddTestCase(new TopologyPtopEmptyTestCase, TestCase::QUICK);
         AddTestCase(new TopologyPtopSingleTestCase, TestCase::QUICK);
@@ -33,11 +43,6 @@ public:
         AddTestCase(new TopologyPtopLeafSpineTestCase, TestCase::QUICK);
         AddTestCase(new TopologyPtopRingTestCase, TestCase::QUICK);
         AddTestCase(new TopologyPtopInvalidTestCase, TestCase::QUICK);
-
-        // Point-to-point traffic-control queueing discipline RED
-        AddTestCase(new PtopLinkInterfaceTcQdiscRedValidTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkInterfaceTcQdiscRedInvalidTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkInterfaceTcQdiscRedEcnAndDropMarkingTestCase, TestCase::QUICK);
 
         // Arbiter
         AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
@@ -47,19 +52,32 @@ public:
         AddTestCase(new ArbiterEcmpTooManyNodesTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpSeparatedTestCase, TestCase::QUICK);
 
+        // Point-to-point queue
+        AddTestCase(new PtopQueueValidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopQueueInvalidTestCase, TestCase::QUICK);
+
+        // Point-to-point receive error model
+        AddTestCase(new PtopReceiveErrorModelValidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopReceiveErrorModelInvalidTestCase, TestCase::QUICK);
+
+        // Point-to-point traffic-control qdisc
+        AddTestCase(new PtopTcQdiscValidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscInvalidTestCase, TestCase::QUICK);
+
+        // Point-to-point traffic-control RED qdisc
+        AddTestCase(new PtopTcQdiscRedValidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscRedInvalidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscRedEcnAndDropMarkingTestCase, TestCase::QUICK);
+
         // Point-to-point link net-device utilization tracking
-        AddTestCase(new PtopLinkNetDeviceUtilizationSimpleTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkNetDeviceUtilizationSpecificLinksTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkNetDeviceUtilizationNotEnabledTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkNetDeviceUtilizationSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkNetDeviceUtilizationSpecificLinksTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkNetDeviceUtilizationNotEnabledTestCase, TestCase::QUICK);
 
         // Point-to-point link net-device queue tracking
-        AddTestCase(new PtopLinkNetDeviceQueueSimpleTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkNetDeviceQueueSpecificLinksTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkNetDeviceQueueNotEnabledTestCase, TestCase::QUICK);
-
-        // TCP optimizer
-        AddTestCase(new TcpOptimizerBasicTestCase, TestCase::QUICK);
-        AddTestCase(new TcpOptimizerWorstCaseRttTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkNetDeviceQueueSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkNetDeviceQueueSpecificLinksTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkNetDeviceQueueNotEnabledTestCase, TestCase::QUICK);
 
     }
 };

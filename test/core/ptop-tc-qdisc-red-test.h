@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string ptop_tc_qdisc_red_test_dir = ".tmp-ptop-link-interface-tc-qdisc-red-test";
+const std::string ptop_tc_qdisc_red_test_dir = ".tmp-ptop-tc-qdisc-red-test";
 
 void prepare_ptop_tc_qdisc_red_test_config() {
     mkdir_if_not_exists(ptop_tc_qdisc_red_test_dir);
@@ -25,10 +25,10 @@ void cleanup_ptop_tc_qdisc_red_test() {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkInterfaceTcQdiscRedValidTestCase : public TestCase
+class PtopTcQdiscRedValidTestCase : public TestCase
 {
 public:
-    PtopLinkInterfaceTcQdiscRedValidTestCase () : TestCase ("ptop-link-interface-tc-qdisc-red valid") {};
+    PtopTcQdiscRedValidTestCase () : TestCase ("ptop-tc-qdisc-red valid") {};
     void DoRun () {
         prepare_ptop_tc_qdisc_red_test_config();
 
@@ -172,10 +172,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkInterfaceTcQdiscRedInvalidTestCase : public TestCase
+class PtopTcQdiscRedInvalidTestCase : public TestCase
 {
 public:
-    PtopLinkInterfaceTcQdiscRedInvalidTestCase () : TestCase ("ptop-link-interface-tc-qdisc-red invalid") {};
+    PtopTcQdiscRedInvalidTestCase () : TestCase ("ptop-tc-qdisc-red invalid") {};
     void DoRun () {
 
         std::ofstream topology_file;
@@ -217,10 +217,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopLinkInterfaceTcQdiscRedEcnAndDropMarkingTestCase : public TestCaseWithLogValidators
+class PtopTcQdiscRedEcnAndDropMarkingTestCase : public TestCaseWithLogValidators
 {
 public:
-    PtopLinkInterfaceTcQdiscRedEcnAndDropMarkingTestCase () : TestCaseWithLogValidators ("ptop-link-interface-tc-qdisc-red ecn-and-drop-marking") {};
+    PtopTcQdiscRedEcnAndDropMarkingTestCase () : TestCaseWithLogValidators ("ptop-tc-qdisc-red ecn-and-drop-marking") {};
     void DoRun () {
         mkdir_if_not_exists(ptop_tc_qdisc_red_test_dir);
 
