@@ -16,9 +16,9 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TcpFlowEndToEndTestCase : public TestCase {
+class TcpFlowEndToEndTestCase : public TestCaseWithLogValidators {
 public:
-    TcpFlowEndToEndTestCase(std::string s) : TestCase(s) {};
+    TcpFlowEndToEndTestCase(std::string s) : TestCaseWithLogValidators(s) {};
     const std::string temp_dir = ".tmp-tcp-flow-end-to-end-test";
 
     void prepare_test_dir() {
@@ -98,153 +98,15 @@ public:
         tcpFlowScheduler.WriteResults();
         basicSimulation->Finalize();
 
-        // Check finished.txt
-        std::vector<std::string> finished_lines = read_file_direct(temp_dir + "/logs_ns3/finished.txt");
-        ASSERT_EQUAL(finished_lines.size(), 1);
-        ASSERT_EQUAL(finished_lines[0], "Yes");
-
-        // Check tcp_flows.csv
-        std::vector<std::string> lines_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flows.csv");
-        ASSERT_EQUAL(lines_csv.size(), write_schedule.size());
-        int i = 0;
-        for (std::string line : lines_csv) {
-            std::vector<std::string> line_spl = split_string(line, ",");
-            ASSERT_EQUAL(line_spl.size(), 10);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[0]), i);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), write_schedule[i].GetFromNodeId());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), write_schedule[i].GetToNodeId());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[3]), write_schedule[i].GetSizeByte());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), write_schedule[i].GetStartTimeNs());
-            int64_t end_time_ns = parse_positive_int64(line_spl[5]);
-            ASSERT_TRUE(end_time_ns >= 0 && end_time_ns <= simulation_end_time_ns);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns - write_schedule[i].GetStartTimeNs());
-            int64_t sent_byte = parse_positive_int64(line_spl[7]);
-            ASSERT_TRUE(sent_byte >= 0 && sent_byte <= simulation_end_time_ns);
-            ASSERT_TRUE(line_spl[8] == "YES" || line_spl[8] == "NO_ONGOING" || line_spl[8] == "NO_CONN_FAIL" || line_spl[8] == "NO_ERR_CLOSE" || line_spl[8] == "NO_BAD_CLOSE");
-            ASSERT_EQUAL(line_spl[9], write_schedule[i].GetMetadata());
-            end_time_ns_list.push_back(end_time_ns);
-            sent_byte_list.push_back(sent_byte);
-            finished_list.push_back(line_spl[8]);
-            i++;
-        }
-
-        // Check tcp_flows.txt
-        std::vector<std::string> lines_txt = read_file_direct(temp_dir + "/logs_ns3/tcp_flows.txt");
-        ASSERT_EQUAL(lines_txt.size(), write_schedule.size() + 1);
-        i = 0;
-        for (std::string line : lines_txt) {
-            if (i == 0) {
-                ASSERT_EQUAL(
-                        line,
-                        "TCP Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata"
-                        );
-            } else {
-                int j = i - 1;
-                std::vector<std::string> line_spl;
-                std::istringstream iss(line);
-                for (std::string s; iss >> s;) {
-                    line_spl.push_back(s);
-                }
-                ASSERT_TRUE(line_spl.size() == 15 || line_spl.size() == 16);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), j);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), write_schedule[j].GetFromNodeId());
-                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), write_schedule[j].GetToNodeId());
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), byte_to_megabit(write_schedule[j].GetSizeByte()), 0.01);
-                ASSERT_EQUAL(line_spl[4], "Mbit");
-                ASSERT_EQUAL(parse_positive_int64(line_spl[5]), write_schedule[j].GetStartTimeNs());
-                ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns_list[j]);
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(end_time_ns_list[j] - write_schedule[j].GetStartTimeNs()), 0.01);
-                ASSERT_EQUAL(line_spl[8], "ms");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[9]), byte_to_megabit(sent_byte_list[j]), 0.01);
-                ASSERT_EQUAL(line_spl[10], "Mbit");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[11].substr(0, line_spl[11].size() - 1)), sent_byte_list[j] * 100.0 / write_schedule[j].GetSizeByte(), 0.1);
-                ASSERT_EQUAL(line_spl[11].substr(line_spl[11].size() - 1, line_spl[11].size()), "%");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), byte_to_megabit(sent_byte_list[j]) / nanosec_to_sec(end_time_ns_list[j] - write_schedule[j].GetStartTimeNs()), 0.1);
-                ASSERT_EQUAL(line_spl[13], "Mbit/s");
-                ASSERT_TRUE(line_spl[14] == "YES" || line_spl[14] == "NO_ONGOING" || line_spl[14] == "NO_CONN_FAIL" || line_spl[14] == "NO_ERR_CLOSE" || line_spl[14] == "NO_BAD_CLOSE");
-                ASSERT_EQUAL(line_spl[14], finished_list[j]);
-                if (line_spl.size() == 16) {
-                    ASSERT_EQUAL(line_spl[15], write_schedule[j].GetMetadata());
-                }
-            }
-            i++;
-        }
-
-        // Now go over all the detailed logs
-        for (TcpFlowScheduleEntry& entry : write_schedule) {
-
-            // TCP congestion window
-            // tcp_flow_[id]_cwnd.csv
-            std::vector<std::string> lines_cwnd_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd.csv");
-            int64_t prev_timestamp_ns = 0;
-            int64_t prev_cwnd_byte = -1;
-            for (size_t i = 0; i < lines_cwnd_csv.size(); i++) {
-                std::vector<std::string> line_spl = split_string(lines_cwnd_csv.at(i), ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
-
-                // Correct TCP flow ID
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
-
-                // Weakly ascending timestamp
-                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
-                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
-                prev_timestamp_ns = timestamp_ns;
-
-                // Congestion window has to be positive and different
-                int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(cwnd_byte != prev_cwnd_byte || (i == lines_cwnd_csv.size() - 1 && cwnd_byte == prev_cwnd_byte));
-                prev_cwnd_byte = cwnd_byte;
-            }
-
-            // TCP connection progress
-            // tcp_flow_[id]_progress.csv
-            std::vector<std::string> lines_progress_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_progress.csv");
-            prev_timestamp_ns = 0;
-            int64_t prev_progress_byte = 0;
-            for (size_t i = 0; i < lines_progress_csv.size(); i++) {
-                std::vector<std::string> line_spl = split_string(lines_progress_csv.at(i), ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
-
-                // Correct TCP flow ID
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
-
-                // Weakly ascending timestamp
-                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
-                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
-                prev_timestamp_ns = timestamp_ns;
-
-                // Progress has to be positive and ascending
-                int64_t progress_byte = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(progress_byte >= prev_progress_byte);
-                prev_progress_byte = progress_byte;
-            }
-            ASSERT_EQUAL(prev_progress_byte, sent_byte_list.at(entry.GetTcpFlowId())); // Progress must be equal to the sent amount reported in the end
-
-            // TCP RTT
-            // tcp_flow_[id]_rtt.csv
-            std::vector<std::string> lines_rtt_csv = read_file_direct(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_rtt.csv");
-            prev_timestamp_ns = 0;
-            int64_t prev_rtt_ns = -1;
-            for (size_t i = 0; i < lines_rtt_csv.size(); i++) {
-                std::vector<std::string> line_spl = split_string(lines_rtt_csv.at(i), ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
-
-                // Correct TCP flow ID
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
-
-                // Weakly ascending timestamp
-                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
-                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
-                prev_timestamp_ns = timestamp_ns;
-
-                // RTT has to be positive and different
-                int64_t rtt_ns = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(rtt_ns >= 0);
-                ASSERT_TRUE(rtt_ns != prev_rtt_ns || (i == lines_rtt_csv.size() - 1 && rtt_ns == prev_rtt_ns));
-                prev_rtt_ns = rtt_ns;
-            }
-
-        }
+        // Validate TCP flow logs
+        validate_tcp_flow_logs(
+                simulation_end_time_ns,
+                temp_dir,
+                write_schedule,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");

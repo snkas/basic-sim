@@ -1,14 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/basic-simulation.h"
-#include "ns3/test.h"
-#include "ns3/topology-ptop.h"
+#include "ns3/basic-sim-module.h"
 #include "test-helpers.h"
-#include "ns3/ipv4-arbiter-routing-helper.h"
-#include "ns3/traffic-control-layer.h"
-#include "ns3/fq-codel-queue-disc.h"
-#include "ns3/ptop-link-net-device-queue-tracking.h"
-#include "ns3/udp-burst-scheduler.h"
 
 using namespace ns3;
 
@@ -16,6 +9,20 @@ class TestCaseWithLogValidators : public TestCase
 {
 public:
     TestCaseWithLogValidators (std::string s) : TestCase (s) {};
+
+    /**
+     * Validation of finished.txt
+     *
+     * @param run_dir           In:  run directory
+     */
+    void validate_finished(std::string run_dir) {
+
+        // Check finished.txt
+        std::vector<std::string> finished_lines = read_file_direct(run_dir + "/logs_ns3/finished.txt");
+        ASSERT_EQUAL(finished_lines.size(), 1);
+        ASSERT_EQUAL(finished_lines[0], "Yes");
+
+    }
 
     /**
      * Validation of link net-device queue logs.
@@ -31,6 +38,9 @@ public:
             std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_net_device_queue_pkt,
             std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_net_device_queue_byte
     ) {
+
+        // Logs are only valid if the run is finished
+        validate_finished(run_dir);
 
         // Sort it
         std::sort(dir_a_b_list.begin(), dir_a_b_list.end());
@@ -148,6 +158,9 @@ public:
             std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>>& link_net_device_utilization,
             std::map<std::pair<int64_t, int64_t>, double>& link_overall_utilization_as_fraction
     ) {
+
+        // Logs are only valid if the run is finished
+        validate_finished(run_dir);
 
         // Expected number of entries per pair
         size_t expected_num_entries_per_pair = (size_t) std::ceil((double) duration_ns / (double) link_net_device_utilization_tracking_interval_ns);
@@ -312,21 +325,196 @@ public:
     }
 
     /**
-     * Validation of UDP burst logs.
+     * Validation of TCP flow logs.
      *
      * @param simulation_end_time_ns           In:  duration of simulation
      * @param run_dir                          In:  run directory
-     * @param udp_schedule                     In:  UDP schedule
+     * @param tcp_flow_schedule                In:  TCP flow schedule
+     * @param end_time_ns_list                 Out: vector of TCP flows' ending time in ns
+     * @param sent_byte_list                   Out: vector of TCP flows' amount of acknowledged sent data amount in byte
+     * @param finished_list                    Out: vector of TCP flows' finished status
+     */
+    void validate_tcp_flow_logs(
+            int64_t simulation_end_time_ns, 
+            std::string run_dir, 
+            std::vector<TcpFlowScheduleEntry> tcp_flow_schedule, 
+            std::vector<int64_t>& end_time_ns_list, 
+            std::vector<int64_t>& sent_byte_list, 
+            std::vector<std::string>& finished_list
+    ) {
+
+        // Logs are only valid if the run is finished
+        validate_finished(run_dir);
+
+        // Check finished.txt
+        std::vector<std::string> finished_lines = read_file_direct(run_dir + "/logs_ns3/finished.txt");
+        ASSERT_EQUAL(finished_lines.size(), 1);
+        ASSERT_EQUAL(finished_lines[0], "Yes");
+
+        // Check tcp_flows.csv
+        std::vector<std::string> lines_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flows.csv");
+        ASSERT_EQUAL(lines_csv.size(), tcp_flow_schedule.size());
+        int i = 0;
+        for (std::string line : lines_csv) {
+            std::vector<std::string> line_spl = split_string(line, ",");
+            ASSERT_EQUAL(line_spl.size(), 10);
+            ASSERT_EQUAL(parse_positive_int64(line_spl[0]), i);
+            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), tcp_flow_schedule[i].GetFromNodeId());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), tcp_flow_schedule[i].GetToNodeId());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[3]), tcp_flow_schedule[i].GetSizeByte());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), tcp_flow_schedule[i].GetStartTimeNs());
+            int64_t end_time_ns = parse_positive_int64(line_spl[5]);
+            ASSERT_TRUE(end_time_ns >= 0 && end_time_ns <= simulation_end_time_ns);
+            ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns - tcp_flow_schedule[i].GetStartTimeNs());
+            int64_t sent_byte = parse_positive_int64(line_spl[7]);
+            ASSERT_TRUE(sent_byte >= 0 && sent_byte <= simulation_end_time_ns);
+            ASSERT_TRUE(line_spl[8] == "YES" || line_spl[8] == "NO_ONGOING" || line_spl[8] == "NO_CONN_FAIL" || line_spl[8] == "NO_ERR_CLOSE" || line_spl[8] == "NO_BAD_CLOSE");
+            ASSERT_EQUAL(line_spl[9], tcp_flow_schedule[i].GetMetadata());
+            end_time_ns_list.push_back(end_time_ns);
+            sent_byte_list.push_back(sent_byte);
+            finished_list.push_back(line_spl[8]);
+            i++;
+        }
+
+        // Check tcp_flows.txt
+        std::vector<std::string> lines_txt = read_file_direct(run_dir + "/logs_ns3/tcp_flows.txt");
+        ASSERT_EQUAL(lines_txt.size(), tcp_flow_schedule.size() + 1);
+        i = 0;
+        for (std::string line : lines_txt) {
+            if (i == 0) {
+                ASSERT_EQUAL(
+                        line,
+                        "TCP Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata"
+                );
+            } else {
+                int j = i - 1;
+                std::vector<std::string> line_spl;
+                std::istringstream iss(line);
+                for (std::string s; iss >> s;) {
+                    line_spl.push_back(s);
+                }
+                ASSERT_TRUE(line_spl.size() == 15 || line_spl.size() == 16);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), j);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), tcp_flow_schedule[j].GetFromNodeId());
+                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), tcp_flow_schedule[j].GetToNodeId());
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), byte_to_megabit(tcp_flow_schedule[j].GetSizeByte()), 0.01);
+                ASSERT_EQUAL(line_spl[4], "Mbit");
+                ASSERT_EQUAL(parse_positive_int64(line_spl[5]), tcp_flow_schedule[j].GetStartTimeNs());
+                ASSERT_EQUAL(parse_positive_int64(line_spl[6]), end_time_ns_list[j]);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(end_time_ns_list[j] - tcp_flow_schedule[j].GetStartTimeNs()), 0.01);
+                ASSERT_EQUAL(line_spl[8], "ms");
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[9]), byte_to_megabit(sent_byte_list[j]), 0.01);
+                ASSERT_EQUAL(line_spl[10], "Mbit");
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[11].substr(0, line_spl[11].size() - 1)), sent_byte_list[j] * 100.0 / tcp_flow_schedule[j].GetSizeByte(), 0.1);
+                ASSERT_EQUAL(line_spl[11].substr(line_spl[11].size() - 1, line_spl[11].size()), "%");
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[12]), byte_to_megabit(sent_byte_list[j]) / nanosec_to_sec(end_time_ns_list[j] - tcp_flow_schedule[j].GetStartTimeNs()), 0.1);
+                ASSERT_EQUAL(line_spl[13], "Mbit/s");
+                ASSERT_TRUE(line_spl[14] == "YES" || line_spl[14] == "NO_ONGOING" || line_spl[14] == "NO_CONN_FAIL" || line_spl[14] == "NO_ERR_CLOSE" || line_spl[14] == "NO_BAD_CLOSE");
+                ASSERT_EQUAL(line_spl[14], finished_list[j]);
+                if (line_spl.size() == 16) {
+                    ASSERT_EQUAL(line_spl[15], tcp_flow_schedule[j].GetMetadata());
+                }
+            }
+            i++;
+        }
+
+        // Now go over all the detailed logs
+        for (TcpFlowScheduleEntry& entry : tcp_flow_schedule) {
+
+            // TCP congestion window
+            // tcp_flow_[id]_cwnd.csv
+            std::vector<std::string> lines_cwnd_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd.csv");
+            int64_t prev_timestamp_ns = 0;
+            int64_t prev_cwnd_byte = -1;
+            for (size_t i = 0; i < lines_cwnd_csv.size(); i++) {
+                std::vector<std::string> line_spl = split_string(lines_cwnd_csv.at(i), ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+
+                // Correct TCP flow ID
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                // Weakly ascending timestamp
+                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                prev_timestamp_ns = timestamp_ns;
+
+                // Congestion window has to be positive and different
+                int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
+                ASSERT_TRUE(cwnd_byte != prev_cwnd_byte || (i == lines_cwnd_csv.size() - 1 && cwnd_byte == prev_cwnd_byte));
+                prev_cwnd_byte = cwnd_byte;
+            }
+
+            // TCP connection progress
+            // tcp_flow_[id]_progress.csv
+            std::vector<std::string> lines_progress_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_progress.csv");
+            prev_timestamp_ns = 0;
+            int64_t prev_progress_byte = 0;
+            for (size_t i = 0; i < lines_progress_csv.size(); i++) {
+                std::vector<std::string> line_spl = split_string(lines_progress_csv.at(i), ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+
+                // Correct TCP flow ID
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                // Weakly ascending timestamp
+                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                prev_timestamp_ns = timestamp_ns;
+
+                // Progress has to be positive and ascending
+                int64_t progress_byte = parse_positive_int64(line_spl[2]);
+                ASSERT_TRUE(progress_byte >= prev_progress_byte);
+                prev_progress_byte = progress_byte;
+            }
+            ASSERT_EQUAL(prev_progress_byte, sent_byte_list.at(entry.GetTcpFlowId())); // Progress must be equal to the sent amount reported in the end
+
+            // TCP RTT
+            // tcp_flow_[id]_rtt.csv
+            std::vector<std::string> lines_rtt_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_rtt.csv");
+            prev_timestamp_ns = 0;
+            int64_t prev_rtt_ns = -1;
+            for (size_t i = 0; i < lines_rtt_csv.size(); i++) {
+                std::vector<std::string> line_spl = split_string(lines_rtt_csv.at(i), ",");
+                ASSERT_EQUAL(line_spl.size(), 3);
+
+                // Correct TCP flow ID
+                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                // Weakly ascending timestamp
+                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                prev_timestamp_ns = timestamp_ns;
+
+                // RTT has to be positive and different
+                int64_t rtt_ns = parse_positive_int64(line_spl[2]);
+                ASSERT_TRUE(rtt_ns >= 0);
+                ASSERT_TRUE(rtt_ns != prev_rtt_ns || (i == lines_rtt_csv.size() - 1 && rtt_ns == prev_rtt_ns));
+                prev_rtt_ns = rtt_ns;
+            }
+
+        }
+
+    }
+
+    /**
+     * Validation of UDP burst logs.
+     *
+     * @param simulation_end_time_ns             In:  duration of simulation
+     * @param run_dir                            In:  run directory
+     * @param udp_burst_schedule                 In:  UDP burst schedule
      * @param list_outgoing_rate_megabit_per_s   Out: vector of UDP bursts' outgoing rates in megabit/s
      * @param list_incoming_rate_megabit_per_s   Out: vector of UDP bursts' incoming rates in megabit/s
      */
     void validate_udp_burst_logs(
             int64_t simulation_end_time_ns,
             std::string run_dir,
-            std::vector<UdpBurstInfo> udp_schedule,
+            std::vector<UdpBurstInfo> udp_burst_schedule,
             std::vector<double>& list_outgoing_rate_megabit_per_s,
             std::vector<double>& list_incoming_rate_megabit_per_s
     ) {
+
+        // Logs are only valid if the run is finished
+        validate_finished(run_dir);
 
         // For checking the sent / received amount
         std::vector<int64_t> udp_burst_sent_amount;
@@ -334,17 +522,17 @@ public:
 
         // Check udp_bursts_outgoing.csv
         std::vector<std::string> lines_outgoing_csv = read_file_direct(run_dir + "/logs_ns3/udp_bursts_outgoing.csv");
-        ASSERT_EQUAL(lines_outgoing_csv.size(), udp_schedule.size());
+        ASSERT_EQUAL(lines_outgoing_csv.size(), udp_burst_schedule.size());
         int i = 0;
         for (std::string line : lines_outgoing_csv) {
             std::vector<std::string> line_spl = split_string(line, ",");
             ASSERT_EQUAL(line_spl.size(), 12);
             ASSERT_EQUAL(parse_positive_int64(line_spl[0]), i);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_schedule[i].GetFromNodeId());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_schedule[i].GetToNodeId());
-            ASSERT_EQUAL(parse_positive_double(line_spl[3]), udp_schedule[i].GetTargetRateMegabitPerSec());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), udp_schedule[i].GetStartTimeNs());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[5]), udp_schedule[i].GetDurationNs());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_burst_schedule[i].GetFromNodeId());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_burst_schedule[i].GetToNodeId());
+            ASSERT_EQUAL(parse_positive_double(line_spl[3]), udp_burst_schedule[i].GetTargetRateMegabitPerSec());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), udp_burst_schedule[i].GetStartTimeNs());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[5]), udp_burst_schedule[i].GetDurationNs());
             double outgoing_rate_incl_headers_megabit_per_s = parse_positive_double(line_spl[6]);
             double outgoing_rate_payload_megabit_per_s = parse_positive_double(line_spl[7]);
             int64_t sent_packets = parse_positive_int64(line_spl[8]);
@@ -355,24 +543,24 @@ public:
             ASSERT_EQUAL(outgoing_sent_incl_headers_byte, sent_packets * 1500);
             ASSERT_TRUE(outgoing_rate_payload_megabit_per_s >= outgoing_rate_incl_headers_megabit_per_s * 0.9);
             ASSERT_TRUE(outgoing_rate_incl_headers_megabit_per_s >= outgoing_rate_payload_megabit_per_s);
-            ASSERT_EQUAL(line_spl[11], udp_schedule[i].GetMetadata());
+            ASSERT_EQUAL(line_spl[11], udp_burst_schedule[i].GetMetadata());
             list_outgoing_rate_megabit_per_s.push_back(outgoing_rate_incl_headers_megabit_per_s);
             i++;
         }
 
         // Check udp_bursts_incoming.csv
         std::vector<std::string> lines_incoming_csv = read_file_direct(run_dir + "/logs_ns3/udp_bursts_incoming.csv");
-        ASSERT_EQUAL(lines_incoming_csv.size(), udp_schedule.size());
+        ASSERT_EQUAL(lines_incoming_csv.size(), udp_burst_schedule.size());
         i = 0;
         for (std::string line : lines_incoming_csv) {
             std::vector<std::string> line_spl = split_string(line, ",");
             ASSERT_EQUAL(line_spl.size(), 12);
             ASSERT_EQUAL(parse_positive_int64(line_spl[0]), i);
-            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_schedule[i].GetFromNodeId());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_schedule[i].GetToNodeId());
-            ASSERT_EQUAL(parse_positive_double(line_spl[3]), udp_schedule[i].GetTargetRateMegabitPerSec());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), udp_schedule[i].GetStartTimeNs());
-            ASSERT_EQUAL(parse_positive_int64(line_spl[5]), udp_schedule[i].GetDurationNs());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_burst_schedule[i].GetFromNodeId());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_burst_schedule[i].GetToNodeId());
+            ASSERT_EQUAL(parse_positive_double(line_spl[3]), udp_burst_schedule[i].GetTargetRateMegabitPerSec());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[4]), udp_burst_schedule[i].GetStartTimeNs());
+            ASSERT_EQUAL(parse_positive_int64(line_spl[5]), udp_burst_schedule[i].GetDurationNs());
             double incoming_rate_incl_headers_megabit_per_s = parse_positive_double(line_spl[6]);
             double incoming_rate_payload_megabit_per_s = parse_positive_double(line_spl[7]);
             int64_t received_packets = parse_positive_int64(line_spl[8]);
@@ -383,14 +571,14 @@ public:
             ASSERT_EQUAL(incoming_received_incl_headers_byte, received_packets * 1500);
             ASSERT_TRUE(incoming_rate_payload_megabit_per_s >= incoming_rate_incl_headers_megabit_per_s * 0.9);
             ASSERT_TRUE(incoming_rate_incl_headers_megabit_per_s >= incoming_rate_payload_megabit_per_s);
-            ASSERT_EQUAL(line_spl[11], udp_schedule[i].GetMetadata());
+            ASSERT_EQUAL(line_spl[11], udp_burst_schedule[i].GetMetadata());
             list_incoming_rate_megabit_per_s.push_back(incoming_rate_incl_headers_megabit_per_s);
             i++;
         }
 
         // Check udp_bursts_outgoing.txt
         std::vector<std::string> lines_outgoing_txt = read_file_direct(run_dir + "/logs_ns3/udp_bursts_outgoing.txt");
-        ASSERT_EQUAL(lines_outgoing_txt.size(), udp_schedule.size() + 1);
+        ASSERT_EQUAL(lines_outgoing_txt.size(), udp_burst_schedule.size() + 1);
         i = 0;
         for (std::string line : lines_outgoing_txt) {
             if (i == 0) {
@@ -407,13 +595,13 @@ public:
                 }
                 ASSERT_TRUE(line_spl.size() == 18 || line_spl.size() == 19);
                 ASSERT_EQUAL(parse_positive_int64(line_spl[0]), j);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_schedule[j].GetFromNodeId());
-                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_schedule[j].GetToNodeId());
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), udp_schedule[j].GetTargetRateMegabitPerSec(), 0.01);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_burst_schedule[j].GetFromNodeId());
+                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_burst_schedule[j].GetToNodeId());
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), udp_burst_schedule[j].GetTargetRateMegabitPerSec(), 0.01);
                 ASSERT_EQUAL(line_spl[4], "Mbit/s");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[5]), nanosec_to_millisec(udp_schedule[j].GetStartTimeNs()), 0.01);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[5]), nanosec_to_millisec(udp_burst_schedule[j].GetStartTimeNs()), 0.01);
                 ASSERT_EQUAL(line_spl[6], "ms");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(udp_schedule[j].GetDurationNs()), 0.01);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(udp_burst_schedule[j].GetDurationNs()), 0.01);
                 ASSERT_EQUAL(line_spl[8], "ms");
                 double outgoing_rate_incl_headers_megabit_per_s = parse_positive_double(line_spl[9]);
                 ASSERT_EQUAL(line_spl[10], "Mbit/s");
@@ -428,7 +616,7 @@ public:
                 ASSERT_TRUE(outgoing_rate_payload_megabit_per_s >= outgoing_rate_incl_headers_megabit_per_s * 0.9);
                 ASSERT_TRUE(outgoing_rate_incl_headers_megabit_per_s >= outgoing_rate_payload_megabit_per_s);
                 if (line_spl.size() == 19) {
-                    ASSERT_EQUAL(line_spl[18], udp_schedule[j].GetMetadata());
+                    ASSERT_EQUAL(line_spl[18], udp_burst_schedule[j].GetMetadata());
                 }
             }
             i++;
@@ -436,7 +624,7 @@ public:
 
         // Check udp_bursts_incoming.txt
         std::vector<std::string> lines_incoming_txt = read_file_direct(run_dir + "/logs_ns3/udp_bursts_incoming.txt");
-        ASSERT_EQUAL(lines_incoming_txt.size(), udp_schedule.size() + 1);
+        ASSERT_EQUAL(lines_incoming_txt.size(), udp_burst_schedule.size() + 1);
         i = 0;
         for (std::string line : lines_incoming_txt) {
             if (i == 0) {
@@ -453,13 +641,13 @@ public:
                 }
                 ASSERT_TRUE(line_spl.size() == 18 || line_spl.size() == 19);
                 ASSERT_EQUAL(parse_positive_int64(line_spl[0]), j);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_schedule[j].GetFromNodeId());
-                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_schedule[j].GetToNodeId());
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), udp_schedule[j].GetTargetRateMegabitPerSec(), 0.01);
+                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), udp_burst_schedule[j].GetFromNodeId());
+                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), udp_burst_schedule[j].GetToNodeId());
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[3]), udp_burst_schedule[j].GetTargetRateMegabitPerSec(), 0.01);
                 ASSERT_EQUAL(line_spl[4], "Mbit/s");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[5]), nanosec_to_millisec(udp_schedule[j].GetStartTimeNs()), 0.01);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[5]), nanosec_to_millisec(udp_burst_schedule[j].GetStartTimeNs()), 0.01);
                 ASSERT_EQUAL(line_spl[6], "ms");
-                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(udp_schedule[j].GetDurationNs()), 0.01);
+                ASSERT_EQUAL_APPROX(parse_positive_double(line_spl[7]), nanosec_to_millisec(udp_burst_schedule[j].GetDurationNs()), 0.01);
                 ASSERT_EQUAL(line_spl[8], "ms");
                 double incoming_rate_incl_headers_megabit_per_s = parse_positive_double(line_spl[9]);
                 ASSERT_EQUAL(line_spl[10], "Mbit/s");
@@ -474,14 +662,14 @@ public:
                 ASSERT_TRUE(incoming_rate_payload_megabit_per_s >= incoming_rate_incl_headers_megabit_per_s * 0.9);
                 ASSERT_TRUE(incoming_rate_incl_headers_megabit_per_s >= incoming_rate_payload_megabit_per_s);
                 if (line_spl.size() == 19) {
-                    ASSERT_EQUAL(line_spl[18], udp_schedule[j].GetMetadata());
+                    ASSERT_EQUAL(line_spl[18], udp_burst_schedule[j].GetMetadata());
                 }
             }
             i++;
         }
 
         // Check the precise outgoing / incoming logs for each burst
-        for (UdpBurstInfo entry : udp_schedule) {
+        for (UdpBurstInfo entry : udp_burst_schedule) {
 
             // Outgoing
             std::vector<std::string> lines_precise_outgoing_csv = read_file_direct(run_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_outgoing.csv");
@@ -520,6 +708,174 @@ public:
             }
 
         }
+
+    }
+
+    /**
+     * Validation of pingmesh logs.
+     *
+     * @param simulation_end_time_ns    In:  duration of simulation
+     * @param run_dir                   In:  run directory
+     * @param ping_pairs                In:  vector of ping pairs
+     * @param list_latency_there_ns     Out: vector of pings' latency there (ns)
+     * @param list_latency_back_ns      Out: vector of pings' latency back (ns)
+     * @param list_rtt_ns               Out: vector of pings' RTT (ns)
+     */
+    void validate_pingmesh_logs(
+            int64_t simulation_end_time_ns,
+            std::string run_dir,
+            std::vector<std::pair<int64_t, int64_t>> ping_pairs,
+            std::vector<std::vector<int64_t>>& list_latency_there_ns,
+            std::vector<std::vector<int64_t>>& list_latency_back_ns,
+            std::vector<std::vector<int64_t>>& list_rtt_ns
+    ) {
+
+        // Logs are only valid if the run is finished
+        validate_finished(run_dir);
+
+        // Check pingmesh.csv
+        std::vector<std::string> lines_csv = read_file_direct(run_dir + "/logs_ns3/pingmesh.csv");
+        size_t i = 0;
+        int64_t counter = 0;
+        std::pair<int64_t, int64_t> current = std::make_pair(-1, -1);
+        std::vector<std::vector<int64_t>> list_latency_there_ns_valid;
+        std::vector<std::vector<int64_t>> list_latency_back_ns_valid;
+        std::vector<std::vector<int64_t>> list_rtt_ns_valid;
+        for (std::string line : lines_csv) {
+            std::vector<std::string> spl = split_string(line, ",", 10);
+
+            // From-to and sequence number must match
+            int64_t from = parse_positive_int64(spl[0]);
+            int64_t to = parse_positive_int64(spl[1]);
+            int64_t seq_no = parse_positive_int64(spl[2]);
+            if (std::make_pair(from, to) != current) {
+                counter = 0;
+                current = std::make_pair(from, to);
+                ASSERT_PAIR_EQUAL(current, ping_pairs[i]);
+                list_latency_there_ns.push_back(std::vector<int64_t>());
+                list_latency_back_ns.push_back(std::vector<int64_t>());
+                list_rtt_ns.push_back(std::vector<int64_t>());
+                list_latency_there_ns_valid.push_back(std::vector<int64_t>());
+                list_latency_back_ns_valid.push_back(std::vector<int64_t>());
+                list_rtt_ns_valid.push_back(std::vector<int64_t>());
+                i += 1;
+            }
+            ASSERT_EQUAL(seq_no, counter);
+            counter++;
+
+            // Timestamps
+            int64_t sent_ns = parse_positive_int64(spl[3]);
+            int64_t reply_ns = parse_int64(spl[4]);
+            int64_t got_reply_ns = parse_int64(spl[5]);
+            int64_t way_there_ns = parse_int64(spl[6]);
+            int64_t way_back_ns = parse_int64(spl[7]);
+            int64_t rtt_ns = parse_int64(spl[8]);
+            bool arrived = true;
+            if (trim(spl[9]) == "YES") {
+                arrived = true;
+            } else if (trim(spl[9]) == "LOST") {
+                arrived = false;
+            } else {
+                ASSERT_TRUE(false);
+            }
+            if (arrived) {
+                ASSERT_TRUE(reply_ns >= sent_ns);
+                ASSERT_TRUE(got_reply_ns >= reply_ns);
+                ASSERT_EQUAL(way_there_ns, reply_ns - sent_ns);
+                ASSERT_EQUAL(way_back_ns, got_reply_ns - reply_ns);
+                ASSERT_EQUAL(rtt_ns, got_reply_ns - sent_ns);
+                list_latency_there_ns_valid.at(i - 1).push_back(way_there_ns);
+                list_latency_back_ns_valid.at(i - 1).push_back(way_back_ns);
+                list_rtt_ns_valid.at(i - 1).push_back(rtt_ns);
+            } else {
+                ASSERT_EQUAL(reply_ns, -1);
+                ASSERT_EQUAL(got_reply_ns, -1);
+                ASSERT_EQUAL(way_there_ns, -1);
+                ASSERT_EQUAL(way_back_ns, -1);
+                ASSERT_EQUAL(rtt_ns, -1);
+            }
+            list_latency_there_ns.at(i - 1).push_back(way_there_ns);
+            list_latency_back_ns.at(i - 1).push_back(way_back_ns);
+            list_rtt_ns.at(i - 1).push_back(rtt_ns);
+        }
+        ASSERT_EQUAL(i, ping_pairs.size());
+
+        // Check pingmesh.txt
+        std::vector<std::string> lines_txt = read_file_direct(run_dir + "/logs_ns3/pingmesh.txt");
+        ASSERT_EQUAL(
+                lines_txt[0],
+                "Source    Target    Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival"
+        );
+        i = 0;
+        for (i = 1; i < lines_txt.size(); i++) {
+            int j = i - 1;
+            std::vector<std::string> line_spl;
+            std::istringstream iss(lines_txt[i]);
+            for (std::string s; iss >> s;) {
+                line_spl.push_back(s);
+            }
+            ASSERT_EQUAL(line_spl.size(), 16);
+
+            // From-to
+            ASSERT_PAIR_EQUAL(
+                    std::make_pair(parse_positive_int64(line_spl[0]), parse_positive_int64(line_spl[1])),
+                    ping_pairs.at(j)
+            );
+
+            // Check
+            bool any_valid = list_rtt_ns_valid.at(j).size() > 0;
+
+            // Latency there statistics
+            double sum_latency_there = 0.0;
+            for (int64_t valid_latency : list_latency_there_ns_valid.at(j)) {
+                sum_latency_there += valid_latency;
+            }
+            double expected_mean_latency_there = any_valid ? sum_latency_there / list_latency_there_ns_valid.at(j).size() : -1;
+
+            // Latency back statistics
+            double sum_latency_back = 0.0;
+            for (int64_t valid_latency : list_latency_back_ns_valid.at(j)) {
+                sum_latency_back += valid_latency;
+            }
+            double expected_mean_latency_back = any_valid ? sum_latency_back / list_latency_back_ns_valid.at(j).size() : -1;
+
+            // RTTs
+            int64_t min_rtt_ns = 100000000000000;
+            double sum_rtt_ns = -1;
+            int64_t max_rtt_ns = -1;
+            for (int64_t valid_rtt : list_rtt_ns_valid.at(j)) {
+                sum_rtt_ns += valid_rtt;
+                min_rtt_ns = std::min(min_rtt_ns, valid_rtt);
+                max_rtt_ns = std::max(max_rtt_ns, valid_rtt);
+            }
+            if (!any_valid) {
+                min_rtt_ns = -1;
+            }
+            double mean_rtt_ns = any_valid ? sum_rtt_ns / list_rtt_ns_valid.at(j).size() : -1;
+            double sum_rtt_min_mean_sq_ns = 0.0;
+            for (int64_t valid_rtt : list_rtt_ns_valid.at(j)) {
+                sum_rtt_min_mean_sq_ns += std::pow(valid_rtt - mean_rtt_ns, 2);
+            }
+            double sample_std_rtt_ns = any_valid ? (list_rtt_ns_valid.at(j).size() > 1 ? std::sqrt(sum_rtt_min_mean_sq_ns / (list_rtt_ns_valid.at(j).size() - 1)) : 0) : -1;
+
+            // Match log with the above calculated RTTs
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[2]), (expected_mean_latency_there == -1 ? -1 : expected_mean_latency_there / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[3], "ms");
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[4]), (expected_mean_latency_back == -1 ? -1 : expected_mean_latency_back / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[5], "ms");
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[6]), (min_rtt_ns == -1 ? -1 : min_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[7], "ms");
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[8]), (mean_rtt_ns == -1 ? -1 : mean_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[9], "ms");
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[10]), (max_rtt_ns == -1 ? -1 : max_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[11], "ms");
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[12]), (sample_std_rtt_ns == -1 ? -1 : sample_std_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[13], "ms");
+            ASSERT_EQUAL(line_spl[14], std::to_string(list_rtt_ns_valid.at(j).size()) + "/" + std::to_string(list_rtt_ns.at(j).size()));
+            ASSERT_EQUAL(line_spl[15], "(" + std::to_string((int) std::round(((double) list_rtt_ns_valid.at(j).size() / (double) list_rtt_ns.at(j).size()) * 100.0)) + "%)");
+
+        }
+        ASSERT_EQUAL(i - 1, ping_pairs.size());
 
     }
     

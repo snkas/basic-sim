@@ -1,5 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
+#include "ns3/traffic-control-layer.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string topology_ptop_test_dir = ".tmp-topology-ptop-test";
