@@ -43,9 +43,7 @@ namespace ns3 {
             m_enable_logging_for_udp_burst_ids = parse_set_positive_int64(m_basicSimulation->GetConfigParamOrDefault("udp_burst_enable_logging_for_udp_burst_ids", "set()"));
 
             // Distributed run information
-            m_system_id = m_basicSimulation->GetSystemId();
             m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
-            m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
             // Read schedule
             m_schedule = read_udp_burst_schedule(
@@ -67,10 +65,10 @@ namespace ns3 {
 
             // Determine filenames
             if (m_enable_distributed) {
-                m_udp_bursts_outgoing_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_outgoing.csv";
-                m_udp_bursts_outgoing_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_outgoing.txt";
-                m_udp_bursts_incoming_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_incoming.csv";
-                m_udp_bursts_incoming_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_udp_bursts_incoming.txt";
+                m_udp_bursts_outgoing_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_udp_bursts_outgoing.csv";
+                m_udp_bursts_outgoing_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_udp_bursts_outgoing.txt";
+                m_udp_bursts_incoming_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_udp_bursts_incoming.csv";
+                m_udp_bursts_incoming_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_udp_bursts_incoming.txt";
             } else {
                 m_udp_bursts_outgoing_csv_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts_outgoing.csv";
                 m_udp_bursts_outgoing_txt_filename = m_basicSimulation->GetLogsDir() + "/udp_bursts_outgoing.txt";
@@ -89,7 +87,7 @@ namespace ns3 {
             // Install sink on each endpoint node
             std::cout << "  > Setting up UDP burst applications on all endpoint nodes" << std::endl;
             for (int64_t endpoint : m_topology->GetEndpoints()) {
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(endpoint) == m_system_id) {
+                if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(endpoint)) {
 
                     // Setup the application
                     UdpBurstHelper udpBurstHelper(1026, m_basicSimulation->GetLogsDir());

@@ -44,9 +44,7 @@ namespace ns3 {
         std::string m_filename_link_interface_tc_qdisc_queue_pkt_csv;
         std::string m_filename_link_interface_tc_qdisc_queue_byte_csv;
 
-        uint32_t m_system_id;
         bool m_enable_distributed;
-        std::vector<int64_t> m_distributed_node_system_id_assignment;
 
     };
 

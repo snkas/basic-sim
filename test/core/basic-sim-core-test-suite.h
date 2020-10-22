@@ -1,5 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
+#include "basic-simulation-test.h"
 #include "exp-util-test.h"
 #include "log-update-helper-test.h"
 #include "tcp-optimizer-test.h"
@@ -18,6 +19,10 @@
 class BasicSimTestSuite : public TestSuite {
 public:
     BasicSimTestSuite() : TestSuite("basic-sim-core", UNIT) {
+
+        // Basic simulation
+        AddTestCase(new BasicSimulationNormalTestCase, TestCase::QUICK);
+        AddTestCase(new BasicSimulationUnusedKeyTestCase, TestCase::QUICK);
 
         // Experiment utilities
         AddTestCase(new ExpUtilStringsTestCase, TestCase::QUICK);

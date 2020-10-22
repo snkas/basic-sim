@@ -38,9 +38,7 @@ namespace ns3 {
         }
 
         // Distributed information
-        m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
-        m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
         // Check to enable for which links
         std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_interface_tc_qdisc_queue_tracking_enable_for_links", "all");
@@ -55,7 +53,7 @@ namespace ns3 {
 
         // Enable it for links in the set
         for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
-            if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
+            if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(p.first)) {
                 Ptr<QueueDisc> queueDisc = m_topology->GetNodes().Get(p.first)->GetObject<TrafficControlLayer>()->GetRootQueueDiscOnDevice(m_topology->GetNetDeviceForLink(p));
                 if (queueDisc == 0) {
                     throw std::invalid_argument(format_string(
@@ -72,8 +70,8 @@ namespace ns3 {
 
         // Determine filenames
         if (m_enable_distributed) {
-            m_filename_link_interface_tc_qdisc_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_interface_tc_qdisc_queue_pkt.csv";
-            m_filename_link_interface_tc_qdisc_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_interface_tc_qdisc_queue_byte.csv";
+            m_filename_link_interface_tc_qdisc_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_interface_tc_qdisc_queue_pkt.csv";
+            m_filename_link_interface_tc_qdisc_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_interface_tc_qdisc_queue_byte.csv";
         } else {
             m_filename_link_interface_tc_qdisc_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/link_interface_tc_qdisc_queue_pkt.csv";
             m_filename_link_interface_tc_qdisc_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/link_interface_tc_qdisc_queue_byte.csv";

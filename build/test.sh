@@ -61,6 +61,15 @@ fi
 # Coverage report
 if [ "$1" == "" ] || [ "$1" == "--coverage" ] || [ "$2" == "--coverage" ] || [ "$3" == "--coverage" ] || [ "$4" == "--coverage" ]; then
 
+  # Main failing without argument test
+  cd ${NS3_VERSION} || exit 1
+  ./waf --run="basic-sim-main-full" > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "Main failing without argument did not exit with 1"
+    exit 1
+  fi
+  cd .. || exit 1
+
   # Make coverage report
   rm -rf coverage_report
   mkdir -p coverage_report

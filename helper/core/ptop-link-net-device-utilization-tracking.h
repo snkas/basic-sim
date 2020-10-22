@@ -48,9 +48,7 @@ namespace ns3 {
         std::string m_filename_net_device_utilization_compressed_txt;
         std::string m_filename_net_device_utilization_summary_txt;
 
-        uint32_t m_system_id;
         bool m_enable_distributed;
-        std::vector<int64_t> m_distributed_node_system_id_assignment;
 
     };
 

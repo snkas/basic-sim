@@ -359,14 +359,30 @@ bool BasicSimulation::IsDistributedEnabled() {
 }
 
 uint32_t BasicSimulation::GetSystemId() {
+    if (!m_enable_distributed) {
+        throw std::runtime_error("Distributed mode is not enabled, as such the system id is zero always");
+    }
     return m_system_id;
 }
 
 uint32_t BasicSimulation::GetSystemsCount() {
+    if (!m_enable_distributed) {
+        throw std::runtime_error("Distributed mode is not enabled, as such the systems count is one always");
+    }
     return m_systems_count;
 }
 
-std::vector<int64_t> BasicSimulation::GetDistributedNodeSystemIdAssignment() {
+bool BasicSimulation::IsNodeAssignedToThisSystem(int64_t node_id) {
+    if (!m_enable_distributed) {
+        throw std::runtime_error("Distributed mode is not enabled, as such this check should not need to be done");
+    }
+    return m_distributed_node_system_id_assignment.at(node_id) == m_system_id;
+}
+
+const std::vector<int64_t>& BasicSimulation::GetDistributedNodeSystemIdAssignment() {
+    if (!m_enable_distributed) {
+        throw std::runtime_error("Distributed mode is not enabled, as such the node assignment should not need to be retrieved");
+    }
     return m_distributed_node_system_id_assignment;
 }
 

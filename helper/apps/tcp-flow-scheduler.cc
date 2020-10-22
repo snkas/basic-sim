@@ -73,9 +73,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
         m_enable_logging_for_tcp_flow_ids = parse_set_positive_int64(
                 m_basicSimulation->GetConfigParamOrDefault("tcp_flow_enable_logging_for_tcp_flow_ids", "set()"));
-        m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
-        m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
         // Read schedule
         std::vector<TcpFlowScheduleEntry> complete_schedule = read_tcp_flow_schedule(
@@ -95,7 +93,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         if (m_enable_distributed) {
             std::vector<TcpFlowScheduleEntry> filtered_schedule;
             for (TcpFlowScheduleEntry &entry : complete_schedule) {
-                if (m_distributed_node_system_id_assignment.at(entry.GetFromNodeId()) == m_system_id) {
+                if (m_basicSimulation->IsNodeAssignedToThisSystem(entry.GetFromNodeId())) {
                     filtered_schedule.push_back(entry);
                 }
             }
@@ -111,9 +109,9 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Determine filenames
         if (m_enable_distributed) {
             m_flows_csv_filename =
-                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_tcp_flows.csv";
+                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_tcp_flows.csv";
             m_flows_txt_filename =
-                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_tcp_flows.txt";
+                    m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_tcp_flows.txt";
         } else {
             m_flows_csv_filename = m_basicSimulation->GetLogsDir() + "/tcp_flows.csv";
             m_flows_txt_filename = m_basicSimulation->GetLogsDir() + "/tcp_flows.txt";
@@ -128,7 +126,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Install sink on each endpoint node
         std::cout << "  > Setting up TCP flow sinks" << std::endl;
         for (int64_t endpoint : m_topology->GetEndpoints()) {
-            if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(endpoint) == m_system_id) {
+            if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(endpoint)) {
                 TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
                 ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
                 app.Start(Seconds(0.0));

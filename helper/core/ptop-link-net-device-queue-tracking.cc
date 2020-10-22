@@ -38,9 +38,7 @@ namespace ns3 {
         }
 
         // Distributed information
-        m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
-        m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
         // Check to enable for which links
         std::string enable_for_links_str = basicSimulation->GetConfigParamOrDefault("link_net_device_queue_tracking_enable_for_links", "all");
@@ -55,7 +53,7 @@ namespace ns3 {
 
         // Enable it for links in the set
         for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
-            if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
+            if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(p.first)) {
                 Ptr<QueueTracker> tracker_a_b = CreateObject<QueueTracker>(m_topology->GetNetDeviceForLink(p)->GetQueue());
                 m_queue_trackers.push_back(std::make_pair(p, tracker_a_b));
             }
@@ -65,8 +63,8 @@ namespace ns3 {
 
         // Determine filenames
         if (m_enable_distributed) {
-            m_filename_link_net_device_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_queue_pkt.csv";
-            m_filename_link_net_device_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_queue_byte.csv";
+            m_filename_link_net_device_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_net_device_queue_pkt.csv";
+            m_filename_link_net_device_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_net_device_queue_byte.csv";
         } else {
             m_filename_link_net_device_queue_pkt_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_queue_pkt.csv";
             m_filename_link_net_device_queue_byte_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_queue_byte.csv";

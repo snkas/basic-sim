@@ -50,9 +50,7 @@ namespace ns3 {
         Ptr<Topology> m_topology = nullptr;
         bool m_enabled;
 
-        uint32_t m_system_id;
         bool m_enable_distributed;
-        std::vector<int64_t> m_distributed_node_system_id_assignment;
 
         std::vector<UdpBurstInfo> m_schedule;
         NodeContainer m_nodes;

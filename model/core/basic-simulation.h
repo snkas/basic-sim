@@ -49,7 +49,8 @@ public:
     bool IsDistributedEnabled();
     uint32_t GetSystemId();
     uint32_t GetSystemsCount();
-    std::vector<int64_t> GetDistributedNodeSystemIdAssignment();
+    bool IsNodeAssignedToThisSystem(int64_t node_id);
+    const std::vector<int64_t>& GetDistributedNodeSystemIdAssignment();
     int64_t GetSimulationEndTimeNs();
     std::string GetConfigParamOrFail(std::string key);
     std::string GetConfigParamOrDefault(std::string key, std::string default_value);

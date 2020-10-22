@@ -39,9 +39,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
         m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
         m_interval_ns = parse_positive_int64(basicSimulation->GetConfigParamOrFail("pingmesh_interval_ns"));
         std::string pingmesh_endpoints_pair_str = basicSimulation->GetConfigParamOrDefault("pingmesh_endpoint_pairs", "all");
-        m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
-        m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
         // Pairs
         if (pingmesh_endpoints_pair_str == "all") {
@@ -49,7 +47,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
             // All-to-all for all endpoints
             std::set<int64_t> endpoints = m_topology->GetEndpoints();
             for (int64_t i : endpoints) {
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(i) == m_system_id) {
+                if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(i)) {
                     for (int64_t j : endpoints) {
                         if (i != j) {
                             m_pingmesh_endpoint_pairs.push_back(std::make_pair(i, j));
@@ -69,7 +67,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
                 if (!m_topology->IsValidEndpoint(p.second)) {
                     throw std::invalid_argument(format_string("Right node identifier in pingmesh pair is not a valid endpoint: %" PRIu64 "", p.second));
                 }
-                if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
+                if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(p.first)) {
                     m_pingmesh_endpoint_pairs.push_back(std::make_pair(p.first, p.second));
                 }
             }
@@ -85,8 +83,8 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
 
         // Determine filenames
         if (m_enable_distributed) {
-            m_pingmesh_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_pingmesh.csv";
-            m_pingmesh_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_pingmesh.txt";
+            m_pingmesh_csv_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_pingmesh.csv";
+            m_pingmesh_txt_filename = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_pingmesh.txt";
         } else {
             m_pingmesh_csv_filename = m_basicSimulation->GetLogsDir() + "/pingmesh.csv";
             m_pingmesh_txt_filename = m_basicSimulation->GetLogsDir() + "/pingmesh.txt";
@@ -107,7 +105,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
         // Install echo server on each node
         std::cout << "  > Setting up " << endpoints.size() << " pingmesh servers" << std::endl;
         for (int64_t i : endpoints) {
-            if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(i) == m_system_id) {
+            if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(i)) {
                 UdpRttServerHelper echoServerHelper(1025);
                 ApplicationContainer app = echoServerHelper.Install(m_nodes.Get(i));
                 app.Start(Seconds(0.0));

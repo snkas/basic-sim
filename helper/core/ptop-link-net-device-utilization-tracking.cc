@@ -38,9 +38,7 @@ namespace ns3 {
         }
 
         // Distributed information
-        m_system_id = m_basicSimulation->GetSystemId();
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
-        m_distributed_node_system_id_assignment = m_basicSimulation->GetDistributedNodeSystemIdAssignment();
 
         // Read in parameters
         m_utilization_interval_ns = parse_geq_one_int64(m_basicSimulation->GetConfigParamOrFail("link_net_device_utilization_tracking_interval_ns"));
@@ -59,7 +57,7 @@ namespace ns3 {
 
         // Enable it for links in the set
         for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
-            if (!m_enable_distributed || m_distributed_node_system_id_assignment.at(p.first) == m_system_id) {
+            if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(p.first)) {
                 Ptr<NetDeviceUtilizationTracker> tracker_a_b = CreateObject<NetDeviceUtilizationTracker>(m_topology->GetNetDeviceForLink(p), m_utilization_interval_ns);
                 m_utilization_trackers.push_back(std::make_pair(p, tracker_a_b));
             }
@@ -69,10 +67,10 @@ namespace ns3 {
 
         // Determine filenames
         if (m_enable_distributed) {
-            m_filename_net_device_utilization_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization.csv";
-            m_filename_net_device_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization_compressed.csv";
-            m_filename_net_device_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization_compressed.txt";
-            m_filename_net_device_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_system_id) + "_link_net_device_utilization_summary.txt";
+            m_filename_net_device_utilization_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_net_device_utilization.csv";
+            m_filename_net_device_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_net_device_utilization_compressed.csv";
+            m_filename_net_device_utilization_compressed_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_net_device_utilization_compressed.txt";
+            m_filename_net_device_utilization_summary_txt = m_basicSimulation->GetLogsDir() + "/system_" + std::to_string(m_basicSimulation->GetSystemId()) + "_link_net_device_utilization_summary.txt";
         } else {
             m_filename_net_device_utilization_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_utilization.csv";
             m_filename_net_device_utilization_compressed_csv = m_basicSimulation->GetLogsDir() + "/link_net_device_utilization_compressed.csv";

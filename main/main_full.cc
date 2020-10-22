@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     cmd.Parse(argc, argv);
     if (run_dir.compare("") == 0) {
         printf("Usage: ./waf --run=\"basic-sim-main-full --run_dir='<path/to/run/directory>'\"");
-        return 0;
+        return 1;
     }
 
     // Load basic simulation environment
