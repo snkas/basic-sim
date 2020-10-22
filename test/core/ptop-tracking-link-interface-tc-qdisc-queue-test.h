@@ -2,11 +2,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTrackingLinkNetDeviceQueueBaseTestCase : public TestCaseWithLogValidators
+class PtopTrackingLinkInterfaceTcQdiscQueueBaseTestCase : public TestCaseWithLogValidators
 {
 public:
-    PtopTrackingLinkNetDeviceQueueBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
-    const std::string test_run_dir = ".tmp-ptop-tracking-link-net-device-queue-test";
+    PtopTrackingLinkInterfaceTcQdiscQueueBaseTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    const std::string test_run_dir = ".tmp-ptop-tracking-link-interface-tc-qdisc-queue-test";
 
     void prepare_test_dir() {
         mkdir_if_not_exists(test_run_dir);
@@ -20,8 +20,8 @@ public:
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-        config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
-        config_file << "link_net_device_queue_tracking_enable_for_links=" << log_for_links << std::endl;
+        config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
+        config_file << "link_interface_tc_qdisc_queue_tracking_enable_for_links=" << log_for_links << std::endl;
         config_file << "enable_udp_burst_scheduler=true" << std::endl;
         config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
         config_file.close();
@@ -38,9 +38,9 @@ public:
         topology_file << "undirected_edges=set(0-1,1-3,0-2,2-3)" << std::endl;
         topology_file << "link_channel_delay_ns=10" << std::endl;
         topology_file << "link_net_device_data_rate_megabit_per_s=100" << std::endl;
-        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(1p)" << std::endl;
         topology_file << "link_net_device_receive_error_model=none" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=fifo(100p)" << std::endl;
         topology_file << "all_nodes_are_endpoints=true" << std::endl;
         topology_file.close();
     }
@@ -52,8 +52,8 @@ public:
         remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
-        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
         remove_dir_if_exists(test_run_dir + "/logs_ns3");
         remove_dir_if_exists(test_run_dir);
     }
@@ -71,7 +71,7 @@ public:
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
         // Install link net-device queue trackers
-        PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology); // Requires enable_link_net_device_queue_tracking=true
+        PtopLinkInterfaceTcQdiscQueueTracking netDeviceQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology); // Requires enable_link_interface_tc_qdisc_queue_tracking=true
 
         // Run simulation
         basicSimulation->Run();
@@ -88,10 +88,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTrackingLinkNetDeviceQueueSimpleTestCase : public PtopTrackingLinkNetDeviceQueueBaseTestCase
+class PtopTrackingLinkInterfaceTcQdiscQueueSimpleTestCase : public PtopTrackingLinkInterfaceTcQdiscQueueBaseTestCase
 {
 public:
-    PtopTrackingLinkNetDeviceQueueSimpleTestCase () : PtopTrackingLinkNetDeviceQueueBaseTestCase ("ptop-tracking-link-net-device-queue simple") {};
+    PtopTrackingLinkInterfaceTcQdiscQueueSimpleTestCase () : PtopTrackingLinkInterfaceTcQdiscQueueBaseTestCase ("ptop-tracking-link-interface-qdisc-queue simple") {};
 
     void DoRun () {
 
@@ -122,29 +122,29 @@ public:
         dir_a_b_list.push_back(std::make_pair(2, 3));
 
         // Validate logs
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_pkt;
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_byte;
-        validate_link_net_device_queue_logs(test_run_dir, dir_a_b_list, link_net_device_queue_pkt, link_net_device_queue_byte);
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_pkt;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_byte;
+        validate_link_interface_tc_qdisc_queue_logs(test_run_dir, dir_a_b_list, link_interface_tc_qdisc_queue_pkt, link_interface_tc_qdisc_queue_byte);
 
         // Check if it matches with the traffic expectation for each pair
         for (std::pair <int64_t, int64_t> a_b : dir_a_b_list) {
 
             // Every entry for this pair
-            for (uint32_t i = 0; i < link_net_device_queue_byte.at(a_b).size(); i++) {
-                int64_t interval_start_ns = std::get<0>(link_net_device_queue_byte.at(a_b)[i]);
-                // int64_t interval_end_ns = std::get<1>(link_net_device_queue_byte.at(a_b)[i]);
-                int64_t num_byte = std::get<2>(link_net_device_queue_byte.at(a_b)[i]);
-                int64_t num_pkt = std::get<2>(link_net_device_queue_pkt.at(a_b)[i]);
+            for (uint32_t i = 0; i < link_interface_tc_qdisc_queue_byte.at(a_b).size(); i++) {
+                int64_t interval_start_ns = std::get<0>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]);
+                // int64_t interval_end_ns = std::get<1>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]);
+                int64_t num_byte = std::get<2>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]);
+                int64_t num_pkt = std::get<2>(link_interface_tc_qdisc_queue_pkt.at(a_b)[i]);
 
                 // Now we check that the number of packets/bytes make sense given the traffic started
                 if (a_b.first == 1 && a_b.second == 3 && interval_start_ns >= 250000000) {
-                    if (interval_start_ns >= 251000000) {
+                    if (interval_start_ns >= 252000000) {
                         ASSERT_TRUE(num_byte > 0);
                         ASSERT_TRUE(num_pkt > 0);
                     }
                     if (interval_start_ns >= 400000000) {
                         ASSERT_TRUE(num_pkt >= 99);
-                        ASSERT_TRUE(num_byte >= 99 * 1502);
+                        ASSERT_TRUE(num_byte >= 99 * 1500);
                     }
                 } else {
                     // All other links cannot have a queue building up
@@ -164,10 +164,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTrackingLinkNetDeviceQueueSpecificLinksTestCase : public PtopTrackingLinkNetDeviceQueueBaseTestCase
+class PtopTrackingLinkInterfaceTcQdiscQueueSpecificLinksTestCase : public PtopTrackingLinkInterfaceTcQdiscQueueBaseTestCase
 {
 public:
-    PtopTrackingLinkNetDeviceQueueSpecificLinksTestCase () : PtopTrackingLinkNetDeviceQueueBaseTestCase ("ptop-tracking-link-net-device-queue specific-links") {};
+    PtopTrackingLinkInterfaceTcQdiscQueueSpecificLinksTestCase () : PtopTrackingLinkInterfaceTcQdiscQueueBaseTestCase ("ptop-tracking-link-interface-qdisc-queue specific-links") {};
 
     void DoRun () {
 
@@ -191,29 +191,29 @@ public:
         dir_a_b_list.push_back(std::make_pair(3, 2));
 
         // Validate logs
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_pkt;
-        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_byte;
-        validate_link_net_device_queue_logs(test_run_dir, dir_a_b_list, link_net_device_queue_pkt, link_net_device_queue_byte);
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_pkt;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_byte;
+        validate_link_interface_tc_qdisc_queue_logs(test_run_dir, dir_a_b_list, link_interface_tc_qdisc_queue_pkt, link_interface_tc_qdisc_queue_byte);
 
         // Check if it matches with the traffic expectation for each pair
         for (std::pair<int64_t, int64_t> a_b : dir_a_b_list) {
 
             // Every entry for this pair
-            for (uint32_t i = 0; i < link_net_device_queue_byte.at(a_b).size(); i++) {
-                int64_t interval_start_ns = std::get<0>(link_net_device_queue_byte.at(a_b)[i]);
-                // int64_t interval_end_ns = std::get<1>(link_net_device_queue_byte.at(a_b)[i]);
-                int64_t num_byte = std::get<2>(link_net_device_queue_byte.at(a_b)[i]);
-                int64_t num_pkt = std::get<2>(link_net_device_queue_pkt.at(a_b)[i]);
+            for (uint32_t i = 0; i < link_interface_tc_qdisc_queue_byte.at(a_b).size(); i++) {
+                int64_t interval_start_ns = std::get<0>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]);
+                // int64_t interval_end_ns = std::get<1>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]);
+                int64_t num_byte = std::get<2>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]);
+                int64_t num_pkt = std::get<2>(link_interface_tc_qdisc_queue_pkt.at(a_b)[i]);
 
                 // Now we check that the number of packets/bytes make sense given the traffic started
                 if (a_b.first == 3 && a_b.second == 2 && interval_start_ns >= 250000000) {
-                    if (interval_start_ns >= 251000000) {
+                    if (interval_start_ns >= 252000000) {
                         ASSERT_TRUE(num_byte > 0);
                         ASSERT_TRUE(num_pkt > 0);
                     }
                     if (interval_start_ns >= 400000000) {
                         ASSERT_TRUE(num_pkt >= 99);
-                        ASSERT_TRUE(num_byte >= 148698);
+                        ASSERT_TRUE(num_byte >= 99 * 1500);
                     }
                 } else {
                     // All other links cannot have a queue building up
@@ -233,10 +233,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTrackingLinkNetDeviceQueueNotEnabledTestCase : public TestCase
+class PtopTrackingLinkInterfaceTcQdiscQueueNotEnabledTestCase : public TestCase
 {
 public:
-    PtopTrackingLinkNetDeviceQueueNotEnabledTestCase () : TestCase ("ptop-tracking-link-net-device-queue not-enabled") {};
+    PtopTrackingLinkInterfaceTcQdiscQueueNotEnabledTestCase () : TestCase ("ptop-tracking-link-interface-qdisc-queue not-enabled") {};
     const std::string test_run_dir = ".tmp-ptop-queue-test";
 
     void DoRun () {
@@ -246,7 +246,7 @@ public:
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-        config_file << "enable_link_net_device_queue_tracking=false" << std::endl;
+        config_file << "enable_link_interface_tc_qdisc_queue_tracking=false" << std::endl;
         config_file << "enable_udp_burst_scheduler=true" << std::endl;
         config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
         config_file.close();
@@ -282,21 +282,21 @@ public:
         // Schedule UDP bursts
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
 
-        // Install queue trackers
-        PtopLinkNetDeviceQueueTracking LinkNetDeviceQueueTracker = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
+        // Install TC qdisc queue trackers
+        PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracker = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology);
 
         // Run simulation
         basicSimulation->Run();
 
-        // Write queue results
-        LinkNetDeviceQueueTracker.WriteResults();
+        // Write TC qdisc queue trackers
+        tcQdiscQueueTracker.WriteResults();
 
         // Finalize the simulation
         basicSimulation->Finalize();
 
         // Nothing should have been logged
-        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv"));
-        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv"));
+        ASSERT_FALSE(file_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv"));
 
         remove_file_if_exists(test_run_dir + "/config_ns3.properties");
         remove_file_if_exists(test_run_dir + "/topology.properties.temp");

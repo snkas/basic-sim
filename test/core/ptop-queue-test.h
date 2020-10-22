@@ -11,7 +11,7 @@ void prepare_ptop_queue_test_config() {
     std::ofstream config_file(ptop_queue_test_dir + "/config_ns3.properties");
     config_file << "simulation_end_time_ns=10000000000" << std::endl;
     config_file << "simulation_seed=123456789" << std::endl;
-    config_file << "ptop_queue_filename=\"topology.properties.temp\"" << std::endl;
+    config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
     config_file.close();
 }
 
@@ -45,7 +45,7 @@ public:
         topology_file << "all_nodes_are_endpoints=false" << std::endl;
         topology_file << "link_channel_delay_ns=map(0-4: 400,1-4: 500,2-4: 600,3-4: 700,4-5: 900,4-6: 10000,4-7: 11000)" << std::endl;
         topology_file << "link_net_device_data_rate_megabit_per_s=map(0->4: 2.8,1->4: 3.1,2->4: 3.4,3->4: 3.7,4->5: 4.7,4->6: 5.4,4->7: 6.1,4->0: 1.2,4->1: 1.9,4->2: 2.6,4->3: 3.3,5->4: 4.3,6->4: 4.6,7->4: 4.9)" << std::endl;
-        topology_file << "link_net_device_queue=drop_tail(47000B)" << std::endl;
+        topology_file << "link_net_device_queue=map(0->4: drop_tail(4p),1->4: drop_tail(4B),2->4: drop_tail(4p),3->4: drop_tail(4B),4->5: drop_tail(5p),4->6: drop_tail(6p),4->7: drop_tail(7p),4->0: drop_tail(77p),4->1: drop_tail(1p),4->2: drop_tail(2p),4->3: drop_tail(3p),5->4: drop_tail(4B),6->4: drop_tail(4p),7->4: drop_tail(4B))" << std::endl;
         topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.2)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=fq_codel_better_rtt" << std::endl;
         topology_file.close();

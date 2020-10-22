@@ -9,10 +9,10 @@
 #include "ptop-queue-test.h"
 #include "ptop-receive-error-model-test.h"
 #include "ptop-tc-qdisc-test.h"
-#include "ptop-tc-qdisc-red-test.h"
 
 #include "ptop-tracking-link-net-device-utilization-test.h"
 #include "ptop-tracking-link-net-device-queue-test.h"
+#include "ptop-tracking-link-interface-tc-qdisc-queue-test.h"
 
 
 class BasicSimTestSuite : public TestSuite {
@@ -61,12 +61,9 @@ public:
         AddTestCase(new PtopReceiveErrorModelInvalidTestCase, TestCase::QUICK);
 
         // Point-to-point traffic-control qdisc
-        AddTestCase(new PtopTcQdiscValidTestCase, TestCase::QUICK);
-        AddTestCase(new PtopTcQdiscInvalidTestCase, TestCase::QUICK);
-
-        // Point-to-point traffic-control RED qdisc
+        AddTestCase(new PtopTcQdiscFqCodelValidTestCase, TestCase::QUICK);
         AddTestCase(new PtopTcQdiscRedValidTestCase, TestCase::QUICK);
-        AddTestCase(new PtopTcQdiscRedInvalidTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscInvalidTestCase, TestCase::QUICK);
         AddTestCase(new PtopTcQdiscRedEcnAndDropMarkingTestCase, TestCase::QUICK);
 
         // Point-to-point link net-device utilization tracking
@@ -78,6 +75,11 @@ public:
         AddTestCase(new PtopTrackingLinkNetDeviceQueueSimpleTestCase, TestCase::QUICK);
         AddTestCase(new PtopTrackingLinkNetDeviceQueueSpecificLinksTestCase, TestCase::QUICK);
         AddTestCase(new PtopTrackingLinkNetDeviceQueueNotEnabledTestCase, TestCase::QUICK);
+
+        // Point-to-point link interface traffic-control qdisc queue tracking
+        AddTestCase(new PtopTrackingLinkInterfaceTcQdiscQueueSimpleTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkInterfaceTcQdiscQueueSpecificLinksTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTrackingLinkInterfaceTcQdiscQueueNotEnabledTestCase, TestCase::QUICK);
 
     }
 };
