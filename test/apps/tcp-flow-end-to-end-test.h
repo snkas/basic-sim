@@ -571,6 +571,127 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
+class BeforeRunOperationScheduleClose : public BeforeRunOperation {
+public:
+    Ptr<TopologyPtop> m_topology;
+
+    BeforeRunOperationScheduleClose() { }
+
+    void operation(Ptr<TopologyPtop> topology) {
+        m_topology = topology;
+        // In 10 milliseconds, perform call close on the socket unexpectedly
+        Simulator::Schedule(NanoSeconds(10000000), &BeforeRunOperationScheduleClose::PerformBadClose, this);
+    }
+
+    void PerformBadClose() {
+        m_topology->GetNodes().Get(0)->GetApplication(1)->GetObject<TcpFlowSendApplication>()->GetSocket()->GetObject<TcpSocketBase>()->Close();
+    }
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class TcpFlowEndToEndBadCloseTestCase : public TcpFlowEndToEndTestCase
+{
+public:
+    TcpFlowEndToEndBadCloseTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end bad-close") {};
+
+    void DoRun () {
+
+        prepare_test_dir();
+
+        // One-to-one, 0.1s, 10.0 Mbit/s, 1 microsec delay
+        int64_t simulation_end_time_ns = 100000000;
+        write_basic_config(simulation_end_time_ns, 123456, 1);
+        std::ofstream topology_file;
+        topology_file.open(temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(2)" << std::endl;
+        topology_file << "switches_which_are_tors=set(2)" << std::endl;
+        topology_file << "servers=set(0, 1, 3)" << std::endl;
+        topology_file << "undirected_edges=set(0-2,1-2,2-3)" << std::endl;
+        topology_file << "link_channel_delay_ns=1000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(50p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=fifo(50p)" << std::endl;
+        topology_file.close();
+
+        // Two flows
+        std::vector <TcpFlowScheduleEntry> write_schedule;
+        write_schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 1000000000, 0, "", ""));
+
+        // Perform the run
+        std::vector <int64_t> end_time_ns_list;
+        std::vector <int64_t> sent_byte_list;
+        std::vector <std::string> finished_list;
+        BeforeRunOperationScheduleClose beforeRunOperation;
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/tcp_flow_schedule.csv");
+        for (TcpFlowScheduleEntry entry : write_schedule) {
+            schedule_file
+                    << entry.GetTcpFlowId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetSizeByte() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        Config::SetDefault("ns3::TcpSocket::SndBufSize", UintegerValue(100000)); // This is set exactly to the send-size to force the buffer to go empty after sending it out
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
+        beforeRunOperation.operation(topology);
+        basicSimulation->Run();
+        tcpFlowScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // Validate TCP flow logs
+        validate_tcp_flow_logs(
+                simulation_end_time_ns,
+                temp_dir,
+                write_schedule,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+        }
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+        // It must have closed bad
+        ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
+        ASSERT_EQUAL(sent_byte_list[0], 100000);
+        ASSERT_EQUAL(finished_list[0], "NO_BAD_CLOSE");
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 class TcpFlowEndToEndNonExistentRunDirTestCase : public TestCase
 {
 public:

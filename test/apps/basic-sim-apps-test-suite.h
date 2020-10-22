@@ -33,6 +33,7 @@ public:
         AddTestCase(new TcpFlowEndToEndOneDropOneNotTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndConnFailTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndPrematureCloseTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndBadCloseTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndNotEnabledTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndInvalidLoggingIdTestCase, TestCase::QUICK);
 

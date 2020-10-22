@@ -296,6 +296,10 @@ int64_t TcpFlowSendApplication::GetAckedBytes() {
     }
 }
 
+Ptr<Socket> TcpFlowSendApplication::GetSocket() {
+    return m_socket;
+}
+
 int64_t TcpFlowSendApplication::GetCompletionTimeNs() {
     return m_completionTimeNs;
 }

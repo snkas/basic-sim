@@ -46,6 +46,7 @@ public:
   virtual ~TcpFlowSendApplication ();
 
   int64_t GetAckedBytes();
+  Ptr<Socket> GetSocket();
   int64_t GetCompletionTimeNs();
   bool IsCompleted();
   bool IsConnFailed();
