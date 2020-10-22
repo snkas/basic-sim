@@ -81,7 +81,8 @@ which requires a topology (which is recommended).
 You MUST set the following key in `config_ns3.properties` for queue tracking to be enabled:
 
 * `enable_link_net_device_queue_tracking` : 
-  True iff link net-device queue tracking on all links should be enabled (boolean value, either `true` or `false`)
+  True iff link net-device queue tracking on links should be enabled 
+  (boolean value, either `true` or `false`)
 
 The following CAN be set:
 
