@@ -40,24 +40,24 @@ namespace ns3 {
      */
     std::pair<ObjectFactory, QueueSize> TopologyPtopQueueSelectorDefault::ParseQueueValue(Ptr<TopologyPtop>, std::string value) {
 
-        // First-in-first-out = drop-tail
+        // First-in-first-out = drop-tail (in ns-3, it is called "DropTail" for queues)
         if (starts_with(value, "drop_tail(") && ends_with(value, ")")) {
 
             // Get rid of the drop_tail( and ) part
-            std::string fifo_max_queue_size_value = value.substr(10, value.size() - 11);
+            std::string max_queue_size_value = value.substr(10, value.size() - 11);
 
             // Make sure it is either "100p" or "100000B'
-            if (!ends_with(fifo_max_queue_size_value, "p") && !ends_with(fifo_max_queue_size_value, "B")) {
+            if (!ends_with(max_queue_size_value, "p") && !ends_with(max_queue_size_value, "B")) {
                 throw std::runtime_error(
-                        "Invalid maximum drop-tail queue size value: " + fifo_max_queue_size_value);
+                        "Invalid maximum drop-tail queue size value: " + max_queue_size_value);
             }
-            parse_geq_one_int64(fifo_max_queue_size_value.substr(0, fifo_max_queue_size_value.size() - 1));
+            parse_geq_one_int64(max_queue_size_value.substr(0, max_queue_size_value.size() - 1));
 
             // Finally create the queue factory
             ObjectFactory queueFactory;
             queueFactory.SetTypeId("ns3::DropTailQueue<Packet>");
-            queueFactory.Set("MaxSize", QueueSizeValue(QueueSize(fifo_max_queue_size_value)));
-            return std::make_pair(queueFactory, QueueSize(fifo_max_queue_size_value));
+            queueFactory.Set("MaxSize", QueueSizeValue(QueueSize(max_queue_size_value)));
+            return std::make_pair(queueFactory, QueueSize(max_queue_size_value));
 
         } else {
             throw std::runtime_error("Invalid queue value: " + value);

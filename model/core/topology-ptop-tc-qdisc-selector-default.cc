@@ -60,6 +60,26 @@ namespace ns3 {
             );
             return std::make_pair(true, fqCoDelBetterRttHelper);
 
+        } else if (starts_with(value, "fifo(") && ends_with(value, ")")) { // First-in-first-out = drop-tail (in ns-3, it is called "FIFO" for qdiscs)
+
+            // Get rid of the fifo( and ) part
+            std::string max_queue_size_value = value.substr(5, value.size() - 6);
+
+            // Make sure it is either "100p" or "100000B'
+            if (!ends_with(max_queue_size_value, "p") && !ends_with(max_queue_size_value, "B")) {
+                throw std::runtime_error(
+                        "Invalid maximum FIFO queue size value: " + max_queue_size_value);
+            }
+            parse_geq_one_int64(max_queue_size_value.substr(0, max_queue_size_value.size() - 1));
+
+            // Return FIFO traffic control helper
+            TrafficControlHelper fifoHelper;
+            fifoHelper.SetRootQueueDisc(
+                    "ns3::FifoQueueDisc",
+                    "MaxSize", QueueSizeValue (QueueSize (max_queue_size_value))  // Maximum queue size (packets)
+            );
+            return std::make_pair(true, fifoHelper);
+
         } else if (starts_with(value, "simple_red(") && ends_with(value, ")")) {
 
             // Get rid of the "simple_red("-prefix and ")"-postfix
@@ -96,7 +116,7 @@ namespace ns3 {
                     "MeanPktSize", UintegerValue (1500),             // Mean packet size we set to 1500 byte always
                     "MinTh", DoubleValue (min_th_pkt),               // RED minimum threshold (packets)
                     "MaxTh", DoubleValue (max_th_pkt),               // RED maximum threshold (packets)
-                    "MaxSize", QueueSizeValue( QueueSize(std::to_string(max_size_pkt) + "p"))  // Maximum queue size (packets)
+                    "MaxSize", QueueSizeValue (QueueSize (std::to_string(max_size_pkt) + "p"))  // Maximum queue size (packets)
             );
 
             // Return traffic control qdisc is enabled and the helper to create it

@@ -18,8 +18,8 @@
  * Author: Simon
  */
 
-#ifndef PTOP_LINK_QUEUE_TRACKER_HELPER_H
-#define PTOP_LINK_QUEUE_TRACKER_HELPER_H
+#ifndef PTOP_LINK_NET_DEVICE_QUEUE_TRACKER_HELPER_H
+#define PTOP_LINK_NET_DEVICE_QUEUE_TRACKER_HELPER_H
 
 #include "ns3/basic-simulation.h"
 #include "ns3/topology-ptop.h"
@@ -52,4 +52,4 @@ namespace ns3 {
 
 } // namespace ns3
 
-#endif /* PTOP_LINK_QUEUE_TRACKER_HELPER_H */
+#endif /* PTOP_LINK_NET_DEVICE_QUEUE_TRACKER_HELPER_H */

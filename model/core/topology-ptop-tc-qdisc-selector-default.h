@@ -21,8 +21,9 @@
 #define TOPOLOGY_PTOP_TC_QDISC_SELECTOR_DEFAULT_H
 
 #include "ns3/topology-ptop.h"
-#include "ns3/red-queue-disc.h"
 #include "ns3/fq-codel-queue-disc.h"
+#include "ns3/fifo-queue-disc.h"
+#include "ns3/red-queue-disc.h"
 
 namespace ns3 {
 
