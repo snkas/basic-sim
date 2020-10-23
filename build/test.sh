@@ -29,6 +29,7 @@ fi
 
 # Apps tests
 if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ] || [ "$5" == "--apps" ]; then
+  echo "Performing apps tests"
   python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
   cat ../test_results/test_results_apps.txt
 fi
@@ -38,6 +39,7 @@ cd .. || exit 1
 
 # Distributed tests for equivalent outcome
 if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] || [ "$3" == "--distributed" ] || [ "$4" == "--distributed" ] || [ "$5" == "--distributed" ]; then
+  echo "Performing distributed tests"
 
   # Baseline
   bash run_assist.sh "test_run_folders/leaf_spine" 0 || exit 1
@@ -60,6 +62,7 @@ fi
 
 # Tests to see if outside calling checks and checks for distributed validity are being hit
 if [ "$1" == "" ] || [ "$1" == "--outside" ] || [ "$2" == "--outside" ] || [ "$3" == "--outside" ] || [ "$4" == "--outside" ] || [ "$5" == "--outside" ]; then
+  echo "Performing outside tests"
 
   # main-full fail-without-argument
   cd ${NS3_VERSION} || exit 1
@@ -109,6 +112,7 @@ fi
 
 # Coverage report
 if [ "$1" == "" ] || [ "$1" == "--coverage" ] || [ "$2" == "--coverage" ] || [ "$3" == "--coverage" ] || [ "$4" == "--coverage" ] || [ "$5" == "--coverage" ]; then
+  echo "Generating coverage report"
 
   # Make coverage report
   rm -rf coverage_report
