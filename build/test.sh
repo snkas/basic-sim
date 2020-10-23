@@ -70,6 +70,34 @@ if [ "$1" == "" ] || [ "$1" == "--outside" ] || [ "$2" == "--outside" ] || [ "$3
   fi
   cd .. || exit 1
 
+  # basic-simulation distributed
+  bash run_assist.sh "test_run_folders/basic_simulation_distributed" 2 > /dev/null 2>&1
+  if [ $? -eq 1 ]; then
+    echo "Failed test: basic-simulation distributed"
+    exit 1
+  fi
+
+  # basic-simulation distributed-wrong-systems-number
+  bash run_assist.sh "test_run_folders/basic_simulation_distributed" 3 > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "Failed test: basic-simulation distributed-wrong-systems-number"
+    exit 1
+  fi
+
+  # basic-simulation distributed-invalid-system-id
+  bash run_assist.sh "test_run_folders/basic_simulation_distributed_invalid_system_id" 2 > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "Failed test: basic-simulation distributed-invalid-system-id"
+    exit 1
+  fi
+
+  # basic-simulation distributed-incorrect-type
+  bash run_assist.sh "test_run_folders/basic_simulation_distributed_incorrect_type" 2 > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "Failed test: basic-simulation incorrect-distributed-type"
+    exit 1
+  fi
+
   # ptop-topology incorrect-node-assignment
   bash run_assist.sh "test_run_folders/ptop_topology_incorrect_node_assignment" 2 > /dev/null 2>&1
   if [ $? -eq 0 ]; then

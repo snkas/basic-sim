@@ -155,7 +155,7 @@ void BasicSimulation::ConfigureSimulation() {
         }
 
         // All good, showing summary
-        printf("  > System information:\n");
+        printf("  > System information (%u systems):\n", m_systems_count);
         for (uint32_t i = 0; i < m_systems_count; i++) {
             printf("    >> System %d has %d node(s)\n", i, system_id_counter.at(i));
         }
