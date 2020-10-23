@@ -61,11 +61,11 @@ fi
 # Tests to see if outside calling checks and checks for distributed validity are being hit
 if [ "$1" == "" ] || [ "$1" == "--outside" ] || [ "$2" == "--outside" ] || [ "$3" == "--outside" ] || [ "$4" == "--outside" ] || [ "$5" == "--outside" ]; then
 
-  # Main failing without argument test
+  # main-full fail-without-argument
   cd ${NS3_VERSION} || exit 1
   ./waf --run="basic-sim-main-full" > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    echo "Main failing without argument did not exit with 1"
+    echo "Failed test: main-full fail-without-argument"
     exit 1
   fi
   cd .. || exit 1
