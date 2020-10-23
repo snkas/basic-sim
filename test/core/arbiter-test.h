@@ -160,6 +160,12 @@ public:
         ASSERT_EQUAL(result.GetOutIfIdx(), 2);
         ASSERT_EQUAL(result.GetGatewayIpAddress(), 0);
 
+        // Check the string representation too
+        ASSERT_EQUAL(
+                arbiterParent->StringReprOfForwardingState(),
+                "ECMP state of node 0\n  -> 0: {}\n  -> 1: {1}\n  -> 2: {1,3}\n  -> 3: {3}\n"
+        );
+
         // Clean-up
         basicSimulation->Finalize();
         cleanup_arbiter_test();
