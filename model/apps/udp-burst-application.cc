@@ -119,7 +119,7 @@ namespace ns3 {
             m_socket = Socket::CreateSocket(GetNode(), tid);
             InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
             if (m_socket->Bind(local) == -1) {
-                NS_FATAL_ERROR("Failed to bind socket");
+                throw std::runtime_error("Failed to bind socket");
             }
         }
 
@@ -202,15 +202,20 @@ namespace ns3 {
 
     void
     UdpBurstApplication::StopApplication() {
-        NS_LOG_FUNCTION(this);
-        if (m_socket != 0) {
-            m_socket->Close();
-            m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
-            Simulator::Cancel(m_startNextBurstEvent);
-            for (EventId& eventId : m_outgoing_bursts_event_id) {
-                Simulator::Cancel(eventId);
-            }
-        }
+        throw std::runtime_error("UDP burst application is not intended to be stopped after being started.");
+        /*
+         * Deprecated stop code:
+         *
+         * NS_LOG_FUNCTION(this);
+         * if (m_socket != 0) {
+         *      m_socket->Close();
+         *      m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
+         *      Simulator::Cancel(m_startNextBurstEvent);
+         *      for (EventId& eventId : m_outgoing_bursts_event_id) {
+         *          Simulator::Cancel(eventId);
+         *      }
+         * }
+         */
     }
 
     void

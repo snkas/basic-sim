@@ -54,7 +54,7 @@ TcpFlowSendApplication::GetTypeId(void) {
                           UintegerValue(100000),
                           MakeUintegerAccessor(&TcpFlowSendApplication::m_sendSize),
                           MakeUintegerChecker<uint32_t>(1))
-            .AddAttribute("Remote", "The address of the destination",
+            .AddAttribute("Remote", "The address of the destination (IPv4 address, port)",
                           AddressValue(),
                           MakeAddressAccessor(&TcpFlowSendApplication::m_peer),
                           MakeAddressChecker())
@@ -131,23 +131,19 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
     if (!m_socket) {
         m_socket = Socket::CreateSocket(GetNode(), m_tid);
 
-        // Must be TCP basically
-        if (m_socket->GetSocketType() != Socket::NS3_SOCK_STREAM &&
-            m_socket->GetSocketType() != Socket::NS3_SOCK_SEQPACKET) {
-            NS_FATAL_ERROR("Using TcpFlowSendApplication with an incompatible socket type. "
-                           "TcpFlowSendApplication requires SOCK_STREAM or SOCK_SEQPACKET. "
-                           "In other words, use TCP instead of UDP.");
-        }
+        // Socket must be TCP basically
+        NS_ABORT_MSG_IF(
+                m_socket->GetSocketType() != Socket::NS3_SOCK_STREAM &&
+                m_socket->GetSocketType() != Socket::NS3_SOCK_SEQPACKET,
+                "Using TcpFlowSendApplication with an incompatible socket type. "
+                "TcpFlowSendApplication requires SOCK_STREAM or SOCK_SEQPACKET. "
+                "In other words, use TCP instead of UDP."
+        );
 
         // Bind socket
-        if (Inet6SocketAddress::IsMatchingType(m_peer)) {
-            if (m_socket->Bind6() == -1) {
-                NS_FATAL_ERROR("Failed to bind socket");
-            }
-        } else if (InetSocketAddress::IsMatchingType(m_peer)) {
-            if (m_socket->Bind() == -1) {
-                NS_FATAL_ERROR("Failed to bind socket");
-            }
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peer), "Only IPv4 is supported.");
+        if (m_socket->Bind() == -1) {
+            throw std::runtime_error("Failed to bind socket");
         }
 
         // Callbacks
@@ -198,13 +194,18 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
 }
 
 void TcpFlowSendApplication::StopApplication(void) { // Called at time specified by Stop
-    NS_LOG_FUNCTION(this);
-    if (m_socket != 0) {
-        m_socket->Close();
-        m_connected = false;
-    } else {
-        NS_LOG_WARN("TcpFlowSendApplication found null socket to close in StopApplication");
-    }
+    throw std::runtime_error("TCP flow send application is not intended to be stopped after being started.");
+    /*
+     * Deprecated stop code:
+     *
+     * NS_LOG_FUNCTION(this);
+     * if (m_socket != 0) {
+     *    m_socket->Close();
+     *    m_connected = false;
+     * } else {
+     *    NS_LOG_WARN("TcpFlowSendApplication found null socket to close in StopApplication");
+     * }
+     */
 }
 
 void TcpFlowSendApplication::SendData(void) {

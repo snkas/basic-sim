@@ -127,8 +127,7 @@ PingmeshScheduler::PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
 
             // Helper to install the source application
             UdpRttClientHelper source(
-                    m_nodes.Get(p.second)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(),
-                    1025,
+                    InetSocketAddress(m_nodes.Get(p.second)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
                     p.first,
                     p.second
             );

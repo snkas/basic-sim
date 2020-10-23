@@ -69,15 +69,18 @@ namespace ns3 {
         NS_LOG_FUNCTION(this);
 
         if (m_socket == 0) {
+
+            // Create socket
             TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
             m_socket = Socket::CreateSocket(GetNode(), tid);
+
+            // Bind to local port (and any local IP address)
+            NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_local), "Multi-cast is not supported.");
             InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
             if (m_socket->Bind(local) == -1) {
-                NS_FATAL_ERROR("Failed to bind socket");
+                throw std::runtime_error("Failed to bind socket");
             }
-            if (addressUtils::IsMulticast(m_local)) {
-                throw std::runtime_error("Multi-cast is not supported.");
-            }
+
         }
 
         m_socket->SetRecvCallback(MakeCallback(&UdpRttServer::HandleRead, this));
@@ -85,11 +88,16 @@ namespace ns3 {
 
     void
     UdpRttServer::StopApplication() {
-        NS_LOG_FUNCTION(this);
-        if (m_socket != 0) {
-            m_socket->Close();
-            m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
-        }
+        throw std::runtime_error("UDP RTT server is not intended to be stopped after being started.");
+        /*
+         * Deprecated stop code:
+         *
+         * NS_LOG_FUNCTION(this);
+         * if (m_socket != 0) {
+         *     m_socket->Close();
+         *     m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
+         * }
+         */
     }
 
     void

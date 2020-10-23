@@ -62,11 +62,10 @@ UdpRttServerHelper::InstallPriv (Ptr<Node> node) const
   return app;
 }
 
-UdpRttClientHelper::UdpRttClientHelper (Address address, uint16_t port, uint32_t from_node_id, uint32_t to_node_id)
+UdpRttClientHelper::UdpRttClientHelper (Address address, uint32_t from_node_id, uint32_t to_node_id)
 {
   m_factory.SetTypeId (UdpRttClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (address));
-  SetAttribute ("RemotePort", UintegerValue (port));
   SetAttribute ("FromNodeId", UintegerValue (from_node_id));
   SetAttribute ("ToNodeId", UintegerValue (to_node_id));
 }

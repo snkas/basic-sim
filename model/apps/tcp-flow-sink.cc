@@ -89,14 +89,24 @@ void TcpFlowSink::StartApplication() { // Called at time specified by Start
     // keeps the accept and close callbacks
     if (!m_socket) {
         m_socket = Socket::CreateSocket(GetNode(), m_tid);
+
+        // Socket must be TCP basically
+        NS_ABORT_MSG_IF(
+                m_socket->GetSocketType() != Socket::NS3_SOCK_STREAM &&
+                m_socket->GetSocketType() != Socket::NS3_SOCK_SEQPACKET,
+                "Using TcpFlowSink with an incompatible socket type. "
+                "TcpFlowSink requires SOCK_STREAM or SOCK_SEQPACKET. "
+                "In other words, use TCP instead of UDP."
+        );
+
+        // Bind socket
+        NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_local), "No support for multicast");
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_local), "Only IPv4 is supported.");
         if (m_socket->Bind(m_local) == -1) {
-            NS_FATAL_ERROR("Failed to bind socket");
+            throw std::runtime_error("Failed to bind socket");
         }
         m_socket->Listen();
         m_socket->ShutdownSend();
-        if (addressUtils::IsMulticast(m_local)) {
-            throw std::runtime_error("No support for UDP here");
-        }
     }
 
     // Callbacks
@@ -109,15 +119,20 @@ void TcpFlowSink::StartApplication() { // Called at time specified by Start
 }
 
 void TcpFlowSink::StopApplication() {  // Called at time specified by Stop
-    NS_LOG_FUNCTION(this);
-    while (!m_socketList.empty()) {
-        Ptr <Socket> socket = m_socketList.front();
-        m_socketList.pop_front();
-        socket->Close();
-    }
-    if (m_socket) {
-        m_socket->Close();
-    }
+    throw std::runtime_error("TCP flow sink is not intended to be stopped after being started.");
+    /*
+     * Deprecated stop code:
+     *
+     * NS_LOG_FUNCTION(this);
+     * while (!m_socketList.empty()) {
+     *     Ptr <Socket> socket = m_socketList.front();
+     *     m_socketList.pop_front();
+     *     socket->Close();
+     * }
+     * if (m_socket) {
+     *     m_socket->Close();
+     * }
+    */
 }
 
 void TcpFlowSink::HandleAccept(Ptr<Socket> socket, const Address &from) {

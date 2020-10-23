@@ -22,6 +22,7 @@ public:
         // Manual end-to-end, which means the application helpers are used
         // directly instead of the schedulers reading from files
         AddTestCase(new ManualEndToEndTestCase, TestCase::QUICK);
+        AddTestCase(new ManualTriggerStopExceptionsTestCase, TestCase::QUICK);
 
         // TCP flows end-to-end
         AddTestCase(new TcpFlowEndToEndOneToOneEqualStartTestCase, TestCase::QUICK);

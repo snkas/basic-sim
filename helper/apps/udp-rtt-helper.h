@@ -52,7 +52,7 @@ private:
 class UdpRttClientHelper
 {
 public:
-  UdpRttClientHelper (Address ip, uint16_t port, uint32_t from_node_id, uint32_t to_node_id);
+  UdpRttClientHelper (Address ip, uint32_t from_node_id, uint32_t to_node_id);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
 

@@ -58,8 +58,7 @@ private:
 
   Time m_interval; //!< Packet inter-send time
   Ptr<Socket> m_socket; //!< Socket
-  Address m_peerAddress; //!< Remote peer address
-  uint16_t m_peerPort; //!< Remote peer port
+  Address m_peerAddress; //!< Remote peer address (IP, port)
   EventId m_sendEvent; //!< Event to send the next packet
 
   uint32_t m_fromNodeId;

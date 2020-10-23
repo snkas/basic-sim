@@ -48,15 +48,10 @@ UdpRttClient::GetTypeId(void) {
                           MakeTimeAccessor(&UdpRttClient::m_interval),
                           MakeTimeChecker())
             .AddAttribute("RemoteAddress",
-                          "The destination Address of the outbound packets",
+                          "The destination address of the outbound packets (IPv4 address, port)",
                           AddressValue(),
                           MakeAddressAccessor(&UdpRttClient::m_peerAddress),
                           MakeAddressChecker())
-            .AddAttribute("RemotePort",
-                          "The destination port of the outbound packets",
-                          UintegerValue(0),
-                          MakeUintegerAccessor(&UdpRttClient::m_peerPort),
-                          MakeUintegerChecker<uint16_t>())
             .AddAttribute("FromNodeId",
                           "From node identifier",
                           UintegerValue(0),
@@ -94,19 +89,16 @@ UdpRttClient::StartApplication(void) {
     if (m_socket == 0) {
         TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
         m_socket = Socket::CreateSocket(GetNode(), tid);
-        if (Ipv4Address::IsMatchingType(m_peerAddress) == true) {
-            if (m_socket->Bind() == -1) {
-                NS_FATAL_ERROR("Failed to bind socket");
-            }
-            m_socket->Connect(InetSocketAddress(Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
-        } else if (InetSocketAddress::IsMatchingType(m_peerAddress) == true) {
-            if (m_socket->Bind() == -1) {
-                NS_FATAL_ERROR("Failed to bind socket");
-            }
-            m_socket->Connect(m_peerAddress);
-        } else {
-            NS_ASSERT_MSG(false, "Incompatible address type: " << m_peerAddress);
+
+        // Bind socket
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
+        if (m_socket->Bind() == -1) {
+            throw std::runtime_error("Failed to bind socket");
         }
+
+        // Connect
+        m_socket->Connect(m_peerAddress);
+
     }
     m_socket->SetRecvCallback(MakeCallback(&UdpRttClient::HandleRead, this));
     m_socket->SetAllowBroadcast(true);
@@ -114,14 +106,19 @@ UdpRttClient::StartApplication(void) {
 }
 
 void
-UdpRttClient::StopApplication() {
-    NS_LOG_FUNCTION(this);
-    if (m_socket != 0) {
-        m_socket->Close();
-        m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
-        m_socket = 0;
-    }
-    Simulator::Cancel(m_sendEvent);
+UdpRttClient::StopApplication() { // Called at time specified by Stop
+    throw std::runtime_error("UDP RTT client is not intended to be stopped after being started.");
+    /*
+     * Deprecated stop code:
+     *
+     * NS_LOG_FUNCTION(this);
+     * if (m_socket != 0) {
+     *     m_socket->Close();
+     *     m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
+     *     m_socket = 0;
+     * }
+     * Simulator::Cancel(m_sendEvent);
+     */
 }
 
 void
