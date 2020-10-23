@@ -87,6 +87,88 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
+class ArbiterResultTestCase : public TestCase
+{
+public:
+    ArbiterResultTestCase () : TestCase ("arbiter result") {};
+    void DoRun () {
+
+        // Correct success outcome
+        ArbiterResult result_success(false, 4, 53);
+        ASSERT_FALSE(result_success.Failed());
+        ASSERT_EQUAL(result_success.GetOutIfIdx(), 4);
+        ASSERT_EQUAL(result_success.GetGatewayIpAddress(), 53);
+
+        // Correct failure outcome
+        ArbiterResult result_fail(true, 0, 0);
+        ASSERT_TRUE(result_fail.Failed());
+        ASSERT_EXCEPTION_MATCH_WHAT(result_fail.GetOutIfIdx(), "Cannot retrieve out interface index if the arbiter did not succeed in finding a next hop");
+        ASSERT_EXCEPTION_MATCH_WHAT(result_fail.GetGatewayIpAddress(), "Cannot retrieve gateway IP address if the arbiter did not succeed in finding a next hop");
+
+        // Invalid constructions
+        ASSERT_EXCEPTION_MATCH_WHAT(ArbiterResult(true, 1, 0), "If the arbiter result is a failure, the out interface index must be zero.");
+        ASSERT_EXCEPTION_MATCH_WHAT(ArbiterResult(true, 0, 1), "If the arbiter result is a failure, the gateway IP address must be zero.");
+        ASSERT_EXCEPTION_MATCH_WHAT(ArbiterResult(false, 0, 0), "If the arbiter result is not a failure, the out interface index cannot be zero (= loop-back interface).");
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class ArbiterPtopOneTestCase : public TestCase
+{
+public:
+    ArbiterPtopOneTestCase () : TestCase ("arbiter-ptop one") {};
+    void DoRun () {
+
+        // Prepare
+        prepare_arbiter_test();
+
+        // Create topology
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(arbiter_test_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+
+        // Create nodes, setup links and create arbiter
+        NodeContainer nodes = topology->GetNodes();
+        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForUndirectedEdges();
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        // IP header which was stripped before
+        Ipv4Header ipHeader;
+        ipHeader.SetSource(Ipv4Address("10.0.0.1"));
+        ipHeader.SetDestination(Ipv4Address("10.0.3.1"));
+        ipHeader.SetProtocol(6);
+
+        // TCP packet
+        Ptr<Packet> p = Create<Packet>(100);
+        TcpHeader tcpHeader;
+        tcpHeader.SetSourcePort(24245);
+        tcpHeader.SetDestinationPort(222);
+        p->AddHeader(tcpHeader);
+
+        // Test one forwarding decision extensively
+        std::set<int64_t> neighbors_of_0;
+        neighbors_of_0.insert(1);
+        neighbors_of_0.insert(3);
+        Ptr<ArbiterEcmp> arbiter = nodes.Get(0)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->GetArbiter()->GetObject<ArbiterEcmp>();
+        ASSERT_EQUAL(3, arbiter->TopologyPtopDecide(0, 3, neighbors_of_0, p, ipHeader, false));
+
+        // Test one forwarding decision extensively
+        Ptr<Arbiter> arbiterParent = nodes.Get(0)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->GetArbiter();
+        ArbiterResult result = arbiterParent->BaseDecide(p, ipHeader);
+        ASSERT_FALSE(result.Failed());
+        ASSERT_EQUAL(result.GetOutIfIdx(), 2);
+        ASSERT_EQUAL(result.GetGatewayIpAddress(), 0);
+
+        // Clean-up
+        basicSimulation->Finalize();
+        cleanup_arbiter_test();
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 struct ecmp_fields_t {
     int32_t node_id;
     uint32_t src_ip;
@@ -413,21 +495,21 @@ public:
         p1 = Create<Packet>(555);
         create_headered_packet(p1, {1, Ipv4Address("10.0.2.1").Get(), Ipv4Address("10.0.3.2").Get(), true, false, 4663, 8888});
         p1->RemoveHeader(p1header);
-        ASSERT_EXCEPTION(arbiterBad.BaseDecide(p1, p1header));
+        ASSERT_EXCEPTION_MATCH_WHAT(arbiterBad.BaseDecide(p1, p1header), "The selected next node 3 is not a neighbor of node 1.");
 
         // Out of range <
         arbiterBad.SetDecision(-2);
         p1 = Create<Packet>(555);
         create_headered_packet(p1, {1, Ipv4Address("10.0.2.1").Get(), Ipv4Address("10.0.3.2").Get(), true, false, 4663, 8888});
         p1->RemoveHeader(p1header);
-        ASSERT_EXCEPTION(arbiterBad.BaseDecide(p1, p1header));
+        ASSERT_EXCEPTION_MATCH_WHAT(arbiterBad.BaseDecide(p1, p1header), "The selected next node -2 is out of node id range of [0, 4).");
 
         // Out of range >
         arbiterBad.SetDecision(4);
         p1 = Create<Packet>(555);
         create_headered_packet(p1, {1, Ipv4Address("10.0.2.1").Get(), Ipv4Address("10.0.3.2").Get(), true, false, 4663, 8888});
         p1->RemoveHeader(p1header);
-        ASSERT_EXCEPTION(arbiterBad.BaseDecide(p1, p1header));
+        ASSERT_EXCEPTION_MATCH_WHAT(arbiterBad.BaseDecide(p1, p1header), "The selected next node 4 is out of node id range of [0, 4).");
 
         // Clean-up
         basicSimulation->Finalize();

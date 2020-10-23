@@ -104,6 +104,7 @@ ArbiterEcmp::ComputeFiveTupleHash(const Ipv4Header &header, Ptr<const Packet> p,
                 p->PeekHeader(udpHeader);
                 uint16_t src_port = udpHeader.GetSourcePort();
                 uint16_t dst_port = udpHeader.GetDestinationPort();
+                NS_ABORT_MSG_IF(src_port == 0 || dst_port == 0, "Invalid port numbers; this indicates the UDP header is likely not present whereas it is expected to be");
                 std::memcpy(&m_hash_input_buff[13], &src_port, 2);
                 std::memcpy(&m_hash_input_buff[15], &dst_port, 2);
                 break;
@@ -113,6 +114,7 @@ ArbiterEcmp::ComputeFiveTupleHash(const Ipv4Header &header, Ptr<const Packet> p,
                 p->PeekHeader(tcpHeader);
                 uint16_t src_port = tcpHeader.GetSourcePort();
                 uint16_t dst_port = tcpHeader.GetDestinationPort();
+                NS_ABORT_MSG_IF(src_port == 0 || dst_port == 0, "Invalid port numbers; this indicates the TCP header is likely not present whereas it is expected to be");
                 std::memcpy(&m_hash_input_buff[13], &src_port, 2);
                 std::memcpy(&m_hash_input_buff[15], &dst_port, 2);
                 break;

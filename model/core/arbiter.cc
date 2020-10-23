@@ -25,6 +25,15 @@ namespace ns3 {
 
 ArbiterResult::ArbiterResult(bool failed, uint32_t out_if_idx, uint32_t gateway_ip_address) {
     m_failed = failed;
+    if (m_failed && out_if_idx != 0) {
+        throw std::invalid_argument("If the arbiter result is a failure, the out interface index must be zero.");
+    }
+    if (m_failed && gateway_ip_address != 0) {
+        throw std::invalid_argument("If the arbiter result is a failure, the gateway IP address must be zero.");
+    }
+    if (!m_failed && out_if_idx == 0) {
+        throw std::invalid_argument("If the arbiter result is not a failure, the out interface index cannot be zero (= loop-back interface).");
+    }
     m_out_if_idx = out_if_idx;
     m_gateway_ip_address = gateway_ip_address;
 }

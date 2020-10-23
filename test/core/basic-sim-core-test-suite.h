@@ -51,6 +51,8 @@ public:
 
         // Arbiter
         AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
+        AddTestCase(new ArbiterResultTestCase, TestCase::QUICK);
+        AddTestCase(new ArbiterPtopOneTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpHashTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
