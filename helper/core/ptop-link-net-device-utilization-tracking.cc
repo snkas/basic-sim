@@ -58,7 +58,7 @@ namespace ns3 {
         // Enable it for links in the set
         for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(p.first)) {
-                Ptr<NetDeviceUtilizationTracker> tracker_a_b = CreateObject<NetDeviceUtilizationTracker>(m_topology->GetNetDeviceForLink(p), m_utilization_interval_ns);
+                Ptr<NetDeviceUtilizationTracker> tracker_a_b = CreateObject<NetDeviceUtilizationTracker>(m_topology->GetSendingNetDeviceForLink(p), m_utilization_interval_ns);
                 m_utilization_trackers.push_back(std::make_pair(p, tracker_a_b));
             }
         }

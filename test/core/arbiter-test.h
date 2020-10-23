@@ -60,7 +60,7 @@ public:
 
         // Create nodes, setup links and create arbiter
         NodeContainer nodes = topology->GetNodes();
-        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForEdges();
+        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForUndirectedEdges();
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
         // Test valid IPs
@@ -140,7 +140,7 @@ public:
 
         // Create nodes, setup links and create arbiter
         NodeContainer nodes = topology->GetNodes();
-        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForEdges();
+        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForUndirectedEdges();
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
         // One example ECMP arbiter
@@ -295,7 +295,7 @@ public:
 
         // Create nodes, setup links and create arbiter
         NodeContainer nodes = topology->GetNodes();
-        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForEdges();
+        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForUndirectedEdges();
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
         for (int i = 0; i < topology->GetNumNodes(); i++) {
@@ -390,7 +390,7 @@ public:
 
         // Create nodes, setup links
         NodeContainer nodes = topology->GetNodes();
-        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForEdges();
+        std::vector<std::pair<uint32_t, uint32_t>> interface_idxs_for_edges = topology->GetInterfaceIdxsForUndirectedEdges();
         ArbiterBad arbiterBad = ArbiterBad(nodes.Get(1), nodes, topology);
 
         // This should be fine

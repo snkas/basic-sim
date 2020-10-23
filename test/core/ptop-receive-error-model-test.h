@@ -53,8 +53,8 @@ public:
 
         // And now we are going to go test all the network devices installed and their channels in-between
         for (const std::pair<int64_t, int64_t>& edge : topology->GetUndirectedEdges()) {
-            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetNetDeviceForLink(edge);
-            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetNetDeviceForLink(std::make_pair(edge.second, edge.first));
+            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetSendingNetDeviceForLink(edge);
+            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetSendingNetDeviceForLink(std::make_pair(edge.second, edge.first));
             std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PointToPointNetDevice>>> links_with_devices;
             links_with_devices.push_back(std::make_pair(edge, deviceAtoB));
             links_with_devices.push_back(std::make_pair(std::make_pair(edge.second, edge.first), deviceBtoA));

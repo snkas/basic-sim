@@ -100,9 +100,9 @@ public:
     const std::vector<std::set<int64_t>>& GetAllAdjacencyLists();
     const std::set<int64_t>& GetAdjacencyList(int64_t node_id);
     int64_t GetWorstCaseRttEstimateNs();
-    const std::vector<std::pair<uint32_t, uint32_t>>& GetInterfaceIdxsForEdges();
-    const std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>>& GetNetDevicesForEdges();
-    Ptr<PointToPointNetDevice> GetNetDeviceForLink(std::pair<int64_t, int64_t> link);
+    const std::vector<std::pair<uint32_t, uint32_t>>& GetInterfaceIdxsForUndirectedEdges();
+    const std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>>& GetNetDevicesForUndirectedEdges();
+    Ptr<PointToPointNetDevice> GetSendingNetDeviceForLink(std::pair<int64_t, int64_t> link);
 
 private:
 
@@ -155,9 +155,9 @@ private:
 
     // From generating ns-3 objects
     NodeContainer m_nodes;
-    std::vector<std::pair<uint32_t, uint32_t>> m_interface_idxs_for_edges;
-    std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>> m_net_devices_for_edges;
-    std::map<std::pair<uint32_t, uint32_t>, Ptr<PointToPointNetDevice>> m_link_to_net_device;
+    std::vector<std::pair<uint32_t, uint32_t>> m_interface_idxs_for_undirected_edges;
+    std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>> m_net_devices_for_undirected_edges;
+    std::map<std::pair<uint32_t, uint32_t>, Ptr<PointToPointNetDevice>> m_link_to_sending_net_device;
 
 };
 

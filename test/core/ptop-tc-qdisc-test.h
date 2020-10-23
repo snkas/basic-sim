@@ -94,8 +94,8 @@ public:
 
         // Test all the queueing disciplines installed
         for (const std::pair<int64_t, int64_t>& edge : topology->GetUndirectedEdges()) {
-            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetNetDeviceForLink(edge);
-            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetNetDeviceForLink(std::make_pair(edge.second, edge.first));
+            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetSendingNetDeviceForLink(edge);
+            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetSendingNetDeviceForLink(std::make_pair(edge.second, edge.first));
             std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PointToPointNetDevice>>> links_with_devices;
             links_with_devices.push_back(std::make_pair(edge, deviceAtoB));
             links_with_devices.push_back(std::make_pair(std::make_pair(edge.second, edge.first), deviceBtoA));
@@ -202,8 +202,8 @@ public:
 
         // And now we are going to go test all the network devices installed and their channels in-between
         for (const std::pair<int64_t, int64_t>& edge : topology->GetUndirectedEdges()) {
-            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetNetDeviceForLink(edge);
-            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetNetDeviceForLink(std::make_pair(edge.second, edge.first));
+            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetSendingNetDeviceForLink(edge);
+            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetSendingNetDeviceForLink(std::make_pair(edge.second, edge.first));
             std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PointToPointNetDevice>>> links_with_devices;
             links_with_devices.push_back(std::make_pair(edge, deviceAtoB));
             links_with_devices.push_back(std::make_pair(std::make_pair(edge.second, edge.first), deviceBtoA));
@@ -269,6 +269,10 @@ public:
 
         std::vector<std::pair<std::string, std::string>> qdisc_and_expected_what;
         qdisc_and_expected_what.push_back(std::make_pair("some_non_existent_qdisc(100)", "Invalid traffic control qdisc value: some_non_existent_qdisc(100)"));
+        qdisc_and_expected_what.push_back(std::make_pair("fifo(100)", "Invalid maximum FIFO queue size value: 100"));
+        qdisc_and_expected_what.push_back(std::make_pair("fifo(100b)", "Invalid maximum FIFO queue size value: 100b"));
+        qdisc_and_expected_what.push_back(std::make_pair("fifo(100P)", "Invalid maximum FIFO queue size value: 100P"));
+        qdisc_and_expected_what.push_back(std::make_pair("fifo(-1p)", "Negative int64 value not permitted: -1"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(abc; 10; 20; 30)", "Invalid RED action: abc"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(ecn; 10; 9; 30)", "RED minimum threshold cannot exceed maximum threshold"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(drop; 10; 20; 19)", "RED maximum threshold cannot exceed maximum queue size"));

@@ -615,19 +615,19 @@ void TopologyPtop::SetupLinks() {
 
     // Create Links
     std::cout << "  > Installing links" << std::endl;
-    m_interface_idxs_for_edges.clear();
+    m_interface_idxs_for_undirected_edges.clear();
     for (std::pair<int64_t, int64_t> undirected_edge : m_undirected_edges) {
 
         // Retrieve all relevant details
-        std::pair<int64_t, int64_t> edge_a_to_b = undirected_edge;
-        std::pair<int64_t, int64_t> edge_b_to_a = std::make_pair(undirected_edge.second, undirected_edge.first);
+        std::pair<int64_t, int64_t> link_a_to_b = undirected_edge;
+        std::pair<int64_t, int64_t> link_b_to_a = std::make_pair(undirected_edge.second, undirected_edge.first);
 
         // Point-to-point helper
         PointToPointAbHelper p2p;
-        p2p.SetDeviceAttributeA("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(edge_a_to_b)) + "Mbps")));
-        p2p.SetDeviceAttributeB("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(edge_b_to_a)) + "Mbps")));
-        p2p.SetQueueFactoryA(m_link_net_device_queue_mapping.at(edge_a_to_b).first);
-        p2p.SetQueueFactoryB(m_link_net_device_queue_mapping.at(edge_b_to_a).first);
+        p2p.SetDeviceAttributeA("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(link_a_to_b)) + "Mbps")));
+        p2p.SetDeviceAttributeB("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(link_b_to_a)) + "Mbps")));
+        p2p.SetQueueFactoryA(m_link_net_device_queue_mapping.at(link_a_to_b).first);
+        p2p.SetQueueFactoryB(m_link_net_device_queue_mapping.at(link_b_to_a).first);
         p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(m_link_channel_delay_ns_mapping.at(undirected_edge))));
         NetDeviceContainer container = p2p.Install(m_nodes.Get(undirected_edge.first), m_nodes.Get(undirected_edge.second));
 
@@ -636,16 +636,16 @@ void TopologyPtop::SetupLinks() {
         Ptr<PointToPointNetDevice> netDeviceB = container.Get(1)->GetObject<PointToPointNetDevice>();
 
         // Set receiving error model
-        if (m_link_net_device_receive_error_model_mapping.at(edge_b_to_a).first) {
-            netDeviceA->SetReceiveErrorModel(m_link_net_device_receive_error_model_mapping.at(edge_b_to_a).second);
+        if (m_link_net_device_receive_error_model_mapping.at(link_b_to_a).first) {
+            netDeviceA->SetReceiveErrorModel(m_link_net_device_receive_error_model_mapping.at(link_b_to_a).second);
         }
-        if (m_link_net_device_receive_error_model_mapping.at(edge_a_to_b).first) {
-            netDeviceB->SetReceiveErrorModel(m_link_net_device_receive_error_model_mapping.at(edge_a_to_b).second);
+        if (m_link_net_device_receive_error_model_mapping.at(link_a_to_b).first) {
+            netDeviceB->SetReceiveErrorModel(m_link_net_device_receive_error_model_mapping.at(link_a_to_b).second);
         }
 
         // Traffic control queueing discipline
-        std::pair<bool, TrafficControlHelper> a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_a_to_b);
-        std::pair<bool, TrafficControlHelper> b_to_a_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(edge_b_to_a);
+        std::pair<bool, TrafficControlHelper> a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(link_a_to_b);
+        std::pair<bool, TrafficControlHelper> b_to_a_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(link_b_to_a);
         if (a_to_b_traffic_control_qdisc.first) {
             a_to_b_traffic_control_qdisc.second.Install(netDeviceA);
         }
@@ -669,10 +669,10 @@ void TopologyPtop::SetupLinks() {
         // Save to mapping
         uint32_t a_if_idx = container.Get(0)->GetIfIndex();
         uint32_t b_if_idx = container.Get(1)->GetIfIndex();
-        m_interface_idxs_for_edges.push_back(std::make_pair(a_if_idx, b_if_idx));
-        m_net_devices_for_edges.push_back(std::make_pair(netDeviceA, netDeviceB));
-        m_link_to_net_device.insert(std::make_pair(edge_a_to_b, netDeviceA));
-        m_link_to_net_device.insert(std::make_pair(edge_b_to_a, netDeviceB));
+        m_interface_idxs_for_undirected_edges.push_back(std::make_pair(a_if_idx, b_if_idx));
+        m_net_devices_for_undirected_edges.push_back(std::make_pair(netDeviceA, netDeviceB));
+        m_link_to_sending_net_device.insert(std::make_pair(link_a_to_b, netDeviceA));
+        m_link_to_sending_net_device.insert(std::make_pair(link_b_to_a, netDeviceB));
 
     }
 
@@ -775,16 +775,16 @@ int64_t TopologyPtop::GetWorstCaseRttEstimateNs() {
     return m_worst_case_rtt_estimate_ns;
 }
 
-const std::vector<std::pair<uint32_t, uint32_t>>& TopologyPtop::GetInterfaceIdxsForEdges() {
-    return m_interface_idxs_for_edges;
+const std::vector<std::pair<uint32_t, uint32_t>>& TopologyPtop::GetInterfaceIdxsForUndirectedEdges() {
+    return m_interface_idxs_for_undirected_edges;
 }
 
-const std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>>& TopologyPtop::GetNetDevicesForEdges() {
-    return m_net_devices_for_edges;
+const std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>>& TopologyPtop::GetNetDevicesForUndirectedEdges() {
+    return m_net_devices_for_undirected_edges;
 }
 
-Ptr<PointToPointNetDevice> TopologyPtop::GetNetDeviceForLink(std::pair<int64_t, int64_t> link) {
-    return m_link_to_net_device.at(link);
+Ptr<PointToPointNetDevice> TopologyPtop::GetSendingNetDeviceForLink(std::pair<int64_t, int64_t> link) {
+    return m_link_to_sending_net_device.at(link);
 }
 
 }

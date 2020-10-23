@@ -2,7 +2,7 @@ NS3_VERSION="ns-3.31"
 
 # Usage help
 if [ "$1" == "--help" ]; then
-  echo "Usage: bash test.sh [--help] [--core, --apps, --distributed, --coverage]*"
+  echo "Usage: bash test.sh [--help] [--core, --apps, --distributed, --outside, --coverage]*"
   exit 0
 fi
 
@@ -21,14 +21,14 @@ echo "Zeroing coverage counters"
 lcov --directory build/debug_all --zerocounters
 
 # Core tests
-if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "--core" ] || [ "$4" == "--core" ]; then
+if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "--core" ] || [ "$4" == "--core" ] || [ "$5" == "--core" ]; then
   echo "Performing core tests"
   python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
   cat ../test_results/test_results_core.txt
 fi
 
 # Apps tests
-if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ]; then
+if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ] || [ "$5" == "--apps" ]; then
   python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
   cat ../test_results/test_results_apps.txt
 fi
@@ -36,30 +36,30 @@ fi
 # Back to build/ directory
 cd .. || exit 1
 
-# Distributed tests
-if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] || [ "$3" == "--distributed" ] || [ "$4" == "--distributed" ]; then
+# Distributed tests for equivalent outcome
+if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] || [ "$3" == "--distributed" ] || [ "$4" == "--distributed" ] || [ "$5" == "--distributed" ]; then
 
   # Baseline
-  bash run_assist.sh "example_run_folders/leaf_spine" 0 || exit 1
+  bash run_assist.sh "test_run_folders/leaf_spine" 0 || exit 1
 
   # 1 core tests
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
-  python test_distributed_exactly_equal.py "example_run_folders/leaf_spine" "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
+  bash run_assist.sh "test_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
+  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
 
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
-  python test_distributed_exactly_equal.py "example_run_folders/leaf_spine" "example_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
+  bash run_assist.sh "test_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
+  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
 
   # 2 core tests
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
-  python test_distributed_exactly_equal.py "example_run_folders/leaf_spine" "example_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
+  bash run_assist.sh "test_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
+  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
 
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
-  python test_distributed_exactly_equal.py "example_run_folders/leaf_spine" "example_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
+  bash run_assist.sh "test_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
+  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
 
 fi
 
-# Coverage report
-if [ "$1" == "" ] || [ "$1" == "--coverage" ] || [ "$2" == "--coverage" ] || [ "$3" == "--coverage" ] || [ "$4" == "--coverage" ]; then
+# Tests to see if outside calling checks and checks for distributed validity are being hit
+if [ "$1" == "" ] || [ "$1" == "--outside" ] || [ "$2" == "--outside" ] || [ "$3" == "--outside" ] || [ "$4" == "--outside" ] || [ "$5" == "--outside" ]; then
 
   # Main failing without argument test
   cd ${NS3_VERSION} || exit 1
@@ -69,6 +69,18 @@ if [ "$1" == "" ] || [ "$1" == "--coverage" ] || [ "$2" == "--coverage" ] || [ "
     exit 1
   fi
   cd .. || exit 1
+
+  # ptop-topology incorrect-node-assignment
+  bash run_assist.sh "test_run_folders/ptop_topology_incorrect_node_assignment" 2 > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "Failed test: ptop-topology incorrect-node-assignment"
+    exit 1
+  fi
+
+fi
+
+# Coverage report
+if [ "$1" == "" ] || [ "$1" == "--coverage" ] || [ "$2" == "--coverage" ] || [ "$3" == "--coverage" ] || [ "$4" == "--coverage" ] || [ "$5" == "--coverage" ]; then
 
   # Make coverage report
   rm -rf coverage_report
@@ -86,10 +98,10 @@ if [ "$1" == "" ] || [ "$1" == "--coverage" ] || [ "$2" == "--coverage" ] || [ "
 
   # Show results
   echo "Display test results"
-  if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "--core" ] || [ "$4" == "--core" ]; then
+  if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "--core" ] || [ "$4" == "--core" ] || [ "$5" == "--core" ]; then
     cat test_results/test_results_core.txt
   fi
-  if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ]; then
+  if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ] || [ "$5" == "--apps" ]; then
     cat test_results/test_results_apps.txt
   fi
 

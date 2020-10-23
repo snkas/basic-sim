@@ -19,12 +19,7 @@ bash run_assist.sh "example_run_folders/fat_tree_k4_servers" 0 || exit 1
 num_cores=$(nproc --all)
 
 # Distributed
-bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
-bash run_assist.sh "example_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
-if [ "${num_cores}" -ge "4" ]; then
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
-  bash run_assist.sh "example_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
-fi
+bash run_assist.sh "example_run_folders/leaf_spine_2_core" 2 || exit 1
 
 # Single process with some plotting
 bash run_assist.sh "example_run_folders/fat_tree_k4_servers_poisson" 0 || exit 1

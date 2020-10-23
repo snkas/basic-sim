@@ -54,7 +54,7 @@ namespace ns3 {
         // Enable it for links in the set
         for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(p.first)) {
-                Ptr<QueueTracker> tracker_a_b = CreateObject<QueueTracker>(m_topology->GetNetDeviceForLink(p)->GetQueue());
+                Ptr<QueueTracker> tracker_a_b = CreateObject<QueueTracker>(m_topology->GetSendingNetDeviceForLink(p)->GetQueue());
                 m_queue_trackers.push_back(std::make_pair(p, tracker_a_b));
             }
         }

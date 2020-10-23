@@ -54,7 +54,7 @@ namespace ns3 {
         // Enable it for links in the set
         for (std::pair<int64_t, int64_t> p : enable_for_links_set) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(p.first)) {
-                Ptr<QueueDisc> queueDisc = m_topology->GetNodes().Get(p.first)->GetObject<TrafficControlLayer>()->GetRootQueueDiscOnDevice(m_topology->GetNetDeviceForLink(p));
+                Ptr<QueueDisc> queueDisc = m_topology->GetNodes().Get(p.first)->GetObject<TrafficControlLayer>()->GetRootQueueDiscOnDevice(m_topology->GetSendingNetDeviceForLink(p));
                 if (queueDisc == 0) {
                     throw std::invalid_argument(format_string(
                             "Cannot enable traffic-control qdisc queue tracking on an interface which does not have a qdisc (%d -> %d).",

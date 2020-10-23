@@ -41,16 +41,16 @@ ArbiterPtop::ArbiterPtop(
     m_topology = topology;
 
     // Interface indices for all edges in-order
-    const std::vector<std::pair<uint32_t, uint32_t>>& interface_idxs_for_edges = topology->GetInterfaceIdxsForEdges();
+    const std::vector<std::pair<uint32_t, uint32_t>>& interface_idxs_for_undirected_edges = topology->GetInterfaceIdxsForUndirectedEdges();
 
     // Save which interface is for which neighbor node id
     m_neighbor_node_id_to_if_idx = std::vector<uint32_t>(m_topology->GetNumNodes(), 0);
     for (int i = 0; i < m_topology->GetNumUndirectedEdges(); i++) {
         std::pair<int64_t, int64_t> edge = m_topology->GetUndirectedEdges().at(i);
         if (edge.first == m_node_id) {
-            m_neighbor_node_id_to_if_idx.at(edge.second) = interface_idxs_for_edges.at(i).first;
+            m_neighbor_node_id_to_if_idx.at(edge.second) = interface_idxs_for_undirected_edges.at(i).first;
         } else if (edge.second == m_node_id) {
-            m_neighbor_node_id_to_if_idx.at(edge.first) = interface_idxs_for_edges.at(i).second;
+            m_neighbor_node_id_to_if_idx.at(edge.first) = interface_idxs_for_undirected_edges.at(i).second;
         }
     }
 

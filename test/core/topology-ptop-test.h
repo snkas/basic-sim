@@ -107,6 +107,9 @@ public:
         ASSERT_EQUAL(topology->GetAllAdjacencyLists().size(), 2);
         ASSERT_EQUAL(topology->GetAllAdjacencyLists()[0].size(), 1);
         ASSERT_EQUAL(topology->GetAllAdjacencyLists()[1].size(), 1);
+        ASSERT_EQUAL(topology->GetAdjacencyList(0).size(), 1);
+        ASSERT_EQUAL(topology->GetAdjacencyList(1).size(), 1);
+        ASSERT_EQUAL(topology->GetAllAdjacencyLists()[1].size(), 1);
         ASSERT_EQUAL(topology->GetEndpoints().size(), 2);
 
         // Check contents
@@ -121,6 +124,11 @@ public:
         ASSERT_TRUE(set_pair_int64_contains(topology->GetUndirectedEdgesSet(), std::make_pair<int64_t, int64_t>(0, 1)));
         ASSERT_TRUE(set_int64_contains(topology->GetAllAdjacencyLists()[0], 1));
         ASSERT_TRUE(set_int64_contains(topology->GetAllAdjacencyLists()[1], 0));
+        ASSERT_TRUE(set_int64_contains(topology->GetAdjacencyList(0), 1));
+        ASSERT_TRUE(set_int64_contains(topology->GetAdjacencyList(1), 0));
+        ASSERT_EQUAL(topology->GetInterfaceIdxsForUndirectedEdges()[0].first, 1);
+        ASSERT_EQUAL(topology->GetInterfaceIdxsForUndirectedEdges()[0].second, 1);
+        ASSERT_TRUE(set_int64_contains(topology->GetAdjacencyList(1), 0));
         std::set<int64_t> endpoints = topology->GetEndpoints();
         ASSERT_TRUE(set_int64_contains(endpoints, 0));
         ASSERT_TRUE(set_int64_contains(endpoints, 1));
@@ -185,6 +193,7 @@ public:
                 for (int j = 0; j < 8; j++) {
                     if (j != 4) {
                         ASSERT_TRUE(set_int64_contains(topology->GetAllAdjacencyLists()[i], j));
+                        ASSERT_TRUE(set_int64_contains(topology->GetAdjacencyList(i), j));
                     }
                 }
             } else {
@@ -195,6 +204,7 @@ public:
                 ASSERT_TRUE(set_int64_contains(topology->GetServers(), i));
                 ASSERT_TRUE(set_int64_contains(endpoints, i));
                 ASSERT_TRUE(set_int64_contains(topology->GetAllAdjacencyLists()[i], 4));
+                ASSERT_TRUE(set_int64_contains(topology->GetAdjacencyList(i), 4));
                 int a = i > 4 ? 4 : i;
                 int b = i > 4 ? i : 4;
                 ASSERT_TRUE(set_pair_int64_contains(topology->GetUndirectedEdgesSet(), std::make_pair<int64_t, int64_t>(a, b)));
@@ -202,9 +212,14 @@ public:
         }
 
         // And now we are going to go test all the network devices installed and their channels in-between
+        std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>> netDevicesForUndirectedEdges = topology->GetNetDevicesForUndirectedEdges();
+        size_t undirected_edge_id = 0;
         for (const std::pair<int64_t, int64_t>& edge : topology->GetUndirectedEdges()) {
-            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetNetDeviceForLink(edge);
-            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetNetDeviceForLink(std::make_pair(edge.second, edge.first));
+            Ptr<PointToPointNetDevice> deviceAtoB = topology->GetSendingNetDeviceForLink(edge);
+            Ptr<PointToPointNetDevice> deviceBtoA = topology->GetSendingNetDeviceForLink(std::make_pair(edge.second, edge.first));
+            ASSERT_EQUAL(deviceAtoB, netDevicesForUndirectedEdges.at(undirected_edge_id).first);
+            ASSERT_EQUAL(deviceBtoA, netDevicesForUndirectedEdges.at(undirected_edge_id).second);
+
             std::vector<std::pair<std::pair<int64_t, int64_t>, Ptr<PointToPointNetDevice>>> links_with_devices;
             links_with_devices.push_back(std::make_pair(edge, deviceAtoB));
             links_with_devices.push_back(std::make_pair(std::make_pair(edge.second, edge.first), deviceBtoA));
@@ -294,6 +309,9 @@ public:
                 ASSERT_TRUE((node_id_one == link.first && node_id_two == link.second) || (node_id_one == link.second && node_id_two == link.first));
 
             }
+
+            // Next edge
+            undirected_edge_id += 1;
 
         }
 
