@@ -142,20 +142,18 @@ void BasicSimulation::ConfigureSimulation() {
         std::vector<int> system_id_counter(m_systems_count, 0);
         for (uint32_t i = 0; i < m_distributed_node_system_id_assignment.size(); i++) {
             if (m_distributed_node_system_id_assignment.at(i) < 0 || m_distributed_node_system_id_assignment.at(i) >= m_systems_count) {
-                throw std::invalid_argument(
-                        format_string(
-                                "Node %d is assigned to an invalid system id %" PRId64 " (k=%" PRId64 ")",
+                throw std::invalid_argument(format_string(
+                        "Node %d is assigned to an invalid system id %" PRId64 " (k=%" PRId64 ")",
                         i,
                         m_distributed_node_system_id_assignment.at(i),
                         m_systems_count
-                )
-                );
+                ));
             }
             system_id_counter.at(m_distributed_node_system_id_assignment.at(i))++;
         }
 
         // All good, showing summary
-        printf("  > System information (%u systems):\n", m_systems_count);
+        printf("  > System information (%u systems):\n", GetSystemsCount());
         for (uint32_t i = 0; i < m_systems_count; i++) {
             printf("    >> System %d has %d node(s)\n", i, system_id_counter.at(i));
         }
