@@ -1,5 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
+#include "ns3/ipv4-routing-protocol.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string arbiter_test_dir = ".tmp-arbiter-test";
@@ -164,6 +166,74 @@ public:
         ASSERT_EQUAL(
                 arbiterParent->StringReprOfForwardingState(),
                 "ECMP state of node 0\n  -> 0: {}\n  -> 1: {1}\n  -> 2: {1,3}\n  -> 3: {3}\n"
+        );
+
+        // Clean-up
+        basicSimulation->Finalize();
+        cleanup_arbiter_test();
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class Ipv4ArbiterRoutingExceptionsTestCase : public TestCase
+{
+public:
+    Ipv4ArbiterRoutingExceptionsTestCase () : TestCase ("ipv4-arbiter-routing exceptions") {};
+    void DoRun () {
+
+        // Prepare
+        prepare_arbiter_test();
+
+        // Create topology
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(arbiter_test_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+
+        // Fetch nodes
+        NodeContainer nodes = topology->GetNodes();
+
+        // IP header which was stripped before
+        Ipv4Header ipHeader;
+        ipHeader.SetSource(Ipv4Address("10.0.0.1"));
+        ipHeader.SetDestination(Ipv4Address("10.0.3.1"));
+        ipHeader.SetProtocol(6);
+
+        // TCP packet
+        Ptr<Packet> p = Create<Packet>(100);
+        TcpHeader tcpHeader;
+        tcpHeader.SetSourcePort(24245);
+        tcpHeader.SetDestinationPort(222);
+        p->AddHeader(tcpHeader);
+
+        // Now check that indeed it throws exception the arbiter is not set
+        Ipv4RoutingProtocol::UnicastForwardCallback ucb;
+        Ipv4RoutingProtocol::MulticastForwardCallback mcb;
+        Ipv4RoutingProtocol::LocalDeliverCallback lcb;
+        Ipv4RoutingProtocol::ErrorCallback ecb;
+        ASSERT_EXCEPTION_MATCH_WHAT(
+                (nodes.Get(0)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->RouteInput(
+                        p,
+                        ipHeader,
+                        nodes.Get(0)->GetDevice(1),
+                        ucb,
+                        mcb,
+                        lcb,
+                        ecb
+                )),
+                "Arbiter has not been set"
+        );
+
+        // Check that interfaces are not permitted to go down
+        ASSERT_EXCEPTION_MATCH_WHAT(
+                (nodes.Get(0)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->NotifyInterfaceDown(1)),
+                "Interfaces are not permitted to go down."
+        );
+
+        // Check that addresses are not allowed to be removed
+        ASSERT_EXCEPTION_MATCH_WHAT(
+                (nodes.Get(0)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->NotifyRemoveAddress(1, Ipv4InterfaceAddress())),
+                "Not permitted to remove IP addresses."
         );
 
         // Clean-up
@@ -641,6 +711,108 @@ public:
         // Clean-up
         basicSimulation->Finalize();
         cleanup_arbiter_test();
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class Ipv4ArbiterRoutingNoRouteTestCase : public TestCaseWithLogValidators
+{
+public:
+    std::string run_test_dir = ".tmp-ipv4-arbiter-routing-no-route-test";
+
+    Ipv4ArbiterRoutingNoRouteTestCase () : TestCaseWithLogValidators ("ipv4-arbiter-routing no-route") {};
+
+    void DoRun () {
+        mkdir_if_not_exists(run_test_dir);
+
+        std::ofstream config_file(run_test_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=100000000" << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+        config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=set(0)" << std::endl;
+        config_file.close();
+
+        std::ofstream topology_file;
+        topology_file.open (run_test_dir + "/topology.properties.temp");
+        topology_file << "num_nodes=2" << std::endl;
+        topology_file << "num_undirected_edges=1" << std::endl;
+        topology_file << "switches=set(0,1)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,1)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=false" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10.0" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(10p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        std::ofstream schedule_file;
+        schedule_file.open (run_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file << "0,0,1,100000,0,," << std::endl;
+        schedule_file.close();
+
+        // Prepare simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(run_test_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        // Install an arbiter on 0 which always return there is no route
+        NodeContainer nodes = topology->GetNodes();
+        Ptr<ArbiterBad> arbiterBad = CreateObject<ArbiterBad>(
+                nodes.Get(0),
+                nodes,
+                topology
+        );
+        nodes.Get(0)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->SetArbiter(arbiterBad);
+
+        // Flow schedule
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
+
+        // Finalize
+        basicSimulation->Run();
+        tcpFlowScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // Validate TCP flow logs
+        std::vector <TcpFlowScheduleEntry> tcp_flow_schedule;
+        tcp_flow_schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 100000, 0, "", ""));
+        std::vector <int64_t> end_time_ns_list;
+        std::vector <int64_t> sent_byte_list;
+        std::vector <std::string> finished_list;
+        validate_tcp_flow_logs(
+                100000000,
+                run_test_dir,
+                tcp_flow_schedule,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
+
+        // Check that the connection failed
+        ASSERT_EQUAL(end_time_ns_list.at(0), 100000000);
+        ASSERT_EQUAL(sent_byte_list.at(0), 0);
+        ASSERT_EQUAL(finished_list.at(0), "NO_CONN_FAIL");
+
+        // Clean-up
+        remove_file_if_exists(run_test_dir + "/config_ns3.properties");
+        remove_file_if_exists(run_test_dir + "/topology.properties.temp");
+        remove_file_if_exists(run_test_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flows.txt");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_progress.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
+        remove_dir_if_exists(run_test_dir + "/logs_ns3");
+        remove_dir_if_exists(run_test_dir);
 
     }
 };

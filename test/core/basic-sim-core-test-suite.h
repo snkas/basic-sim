@@ -53,11 +53,13 @@ public:
         AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterResultTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterPtopOneTestCase, TestCase::QUICK);
+        AddTestCase(new Ipv4ArbiterRoutingExceptionsTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpHashTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpTooManyNodesTestCase, TestCase::QUICK);
         AddTestCase(new ArbiterEcmpSeparatedTestCase, TestCase::QUICK);
+        AddTestCase(new Ipv4ArbiterRoutingNoRouteTestCase, TestCase::QUICK);
 
         // Point-to-point queue
         AddTestCase(new PtopQueueValidTestCase, TestCase::QUICK);

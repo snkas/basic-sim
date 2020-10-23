@@ -77,34 +77,28 @@ namespace ns3 {
         }
 
         // Multi-cast not supported
-        if (dest.IsLocalMulticast()) {
-            throw std::runtime_error("Multi-cast is not supported");
-        }
+        NS_ABORT_MSG_IF(dest.IsLocalMulticast(), "Multi-cast is not supported");
 
         // No support for requested output interfaces
-        if (oif != 0) {
-            throw std::runtime_error("Requested output interfaces are not supported");
-        }
+        NS_ABORT_MSG_IF(oif != 0, "Requested output interfaces are not supported");
+
+        // A packet with as destination loop-back is likely not desired
+        // if it would be: if_idx = 0 and gateway_ip_address = 0 could have been set
+        NS_ABORT_MSG_IF(loopbackMask.IsMatch(dest, loopbackIp), "Loop-back as destination is typically not desired");
 
         // Decide interface index
-        uint32_t if_idx;
-        uint32_t gateway_ip_address;
-        if (loopbackMask.IsMatch(dest, loopbackIp)) { // Loop-back
-            if_idx = 0;
-            gateway_ip_address = 0;
+        // If is not loop-back (filtered out above), so it goes to the arbiter
+        // Local delivery has already been handled if it was input
+        ArbiterResult result = m_arbiter->BaseDecide(p, header);
 
-        } else { // If not loop-back, it goes to the arbiter
-                 // Local delivery has already been handled if it was input
-
-            ArbiterResult result = m_arbiter->BaseDecide(p, header);
-            if (result.Failed()) {
-                return 0;
-            } else {
-                if_idx = result.GetOutIfIdx();
-                gateway_ip_address = result.GetGatewayIpAddress();
-            }
-
+        // If it failed, return a zero pointer
+        if (result.Failed()) {
+            return 0;
         }
+
+        // If it succeeded to find a next hop, extract the output interface index and gateway IP address
+        uint32_t if_idx = result.GetOutIfIdx();
+        uint32_t gateway_ip_address = result.GetGatewayIpAddress();
 
         // Create routing entry
         Ptr<Ipv4Route> rtentry = Create<Ipv4Route>();
@@ -147,9 +141,7 @@ namespace ns3 {
         Ipv4Address destination = header.GetDestination();
 
         // Multi-cast to multiple interfaces is not supported
-        if (destination.IsMulticast()) {
-            throw std::runtime_error("Multi-cast not supported");
-        }
+        NS_ABORT_MSG_IF(destination.IsMulticast(), "Multi-cast not supported");
 
         // Perform lookup
         // Info: If no route is found for a packet with the header with source IP = 102.102.102.102,
@@ -176,17 +168,14 @@ namespace ns3 {
         uint32_t iif = m_ipv4->GetInterfaceForDevice(idev);
 
         // Multi-cast
-        if (ipHeader.GetDestination().IsMulticast()) {
-            throw std::runtime_error("Multi-cast not supported.");
-        }
+        NS_ABORT_MSG_IF(ipHeader.GetDestination().IsMulticast(), "Multi-cast not supported.");
 
         // Local delivery
         if (m_ipv4->IsDestinationAddress(ipHeader.GetDestination(), iif)) { // WeakESModel is set by default to true,
                                                                             // as such it works for any IP address
                                                                             // on any interface of the node
-            if (lcb.IsNull()) {
-                throw std::runtime_error("Local callback cannot be null");
-            }
+            NS_ABORT_MSG_IF(lcb.IsNull(), "Local callback cannot be null");
+
             // Info: If you want to decide that a packet should not be delivered (dropped),
             //       you can decide that here by not calling lcb(), but still returning true.
             lcb(p, ipHeader, iif);
@@ -194,9 +183,7 @@ namespace ns3 {
         }
 
         // Check if input device supports IP forwarding
-        if (m_ipv4->IsForwarding(iif) == false) {
-            throw std::runtime_error("Forwarding must be enabled for every interface");
-        }
+        NS_ABORT_MSG_IF(!m_ipv4->IsForwarding(iif), "Forwarding must be enabled for every interface");
 
         // Uni-cast delivery
         Ptr<Ipv4Route> route = LookupArbiter(ipHeader.GetDestination(), ipHeader, p);
@@ -221,28 +208,25 @@ namespace ns3 {
     Ipv4ArbiterRouting::NotifyInterfaceUp(uint32_t i) {
 
         // One IP address per interface
-        if (m_ipv4->GetNAddresses(i) != 1) {
-            throw std::runtime_error("Each interface is permitted exactly one IP address.");
-        }
+        NS_ABORT_MSG_IF(m_ipv4->GetNAddresses(i) != 1, "Each interface is permitted exactly one IP address.");
 
         // Get interface single IP's address and mask
         Ipv4Address if_addr = m_ipv4->GetAddress(i, 0).GetLocal();
         Ipv4Mask if_mask = m_ipv4->GetAddress(i, 0).GetMask();
 
         // Loopback interface must be 0
-        if (i == 0) {
-            if (if_addr != Ipv4Address("127.0.0.1") || if_mask != Ipv4Mask("255.0.0.0")) {
-                throw std::runtime_error("Loopback interface 0 must have IP 127.0.0.1 and mask 255.0.0.0");
-            }
+        NS_ABORT_MSG_IF(
+                i == 0 && (if_addr != Ipv4Address("127.0.0.1") || if_mask != Ipv4Mask("255.0.0.0")),
+                "Loopback interface 0 must have IP 127.0.0.1 and mask 255.0.0.0"
+        );
 
-        } else { // Towards another interface
-
-            // Check that the subnet mask is maintained
-            if (if_mask.Get() != Ipv4Mask("255.255.255.0").Get()) {
-                throw std::runtime_error("Each interface must have a subnet mask of 255.255.255.0");
-            }
-
-        }
+        // Towards another interface
+        // Check that the subnet mask is maintained
+        NS_ABORT_MSG_IF(
+                i != 0 &&
+                if_mask.Get() != Ipv4Mask("255.255.255.0").Get(),
+                "Each interface must have a subnet mask of 255.255.255.0"
+        );
 
     }
 
@@ -260,9 +244,7 @@ namespace ns3 {
 
     void
     Ipv4ArbiterRouting::NotifyRemoveAddress(uint32_t interface, Ipv4InterfaceAddress address) {
-        if (m_ipv4->IsUp(interface)) {
-            throw std::runtime_error("Not permitted to remove IP addresses after the interface has gone up.");
-        }
+        throw std::runtime_error("Not permitted to remove IP addresses.");
     }
 
     void

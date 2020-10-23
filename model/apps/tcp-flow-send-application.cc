@@ -150,10 +150,6 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
             }
         }
 
-        // Connect, no receiver
-        m_socket->Connect(m_peer);
-        m_socket->ShutdownRecv();
-
         // Callbacks
         m_socket->SetConnectCallback(
                 MakeCallback(&TcpFlowSendApplication::ConnectionSucceeded, this),
@@ -183,6 +179,18 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
             m_socket->TraceConnectWithoutContext("RTT", MakeCallback(&TcpFlowSendApplication::RttChange, this));
 
         }
+
+        // Connect
+        if (m_socket->Connect(m_peer) == -1) {
+            // If the connection error code is -1, the connection has already failed,
+            // typically because of no route being available
+            ConnectionFailed(m_socket);
+            return;
+        }
+
+        // No receiving necessary
+        m_socket->ShutdownRecv();
+
     }
     if (m_connected) {
         SendData();
@@ -270,9 +278,7 @@ void TcpFlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
     m_connFailed = false;
     m_closedByError = false;
     m_closedNormally = true;
-    if (m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size() != 0) {
-        throw std::runtime_error("Socket closed normally but send buffer is not empty");
-    }
+    NS_ABORT_MSG_IF(m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size() != 0, "Socket closed normally but send buffer is not empty");
     m_ackedBytes = m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size();
     m_isCompleted = m_ackedBytes == m_maxBytes;
     m_socket = 0;
