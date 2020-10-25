@@ -2,7 +2,7 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Tracking helper for queueing discipline queue tracking
+* List to be updated.
 
 When upgrading to a new version of ns-3, be sure to check:
 

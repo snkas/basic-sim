@@ -4,8 +4,28 @@ A point-to-point topology is aimed to provide a quick way to generate a network 
 
 It encompasses the following files:
 
-* `model/core/topology.h` - Base topology class
-* `model/core/ptop-topology.cc/h` -- Point-to-point topology class
+* **Topology:** `model/core/topology.h` 
+
+  Base topology class.
+  
+* **TopologyPtop:** `model/core/topology-ptop.cc/h`
+
+  Point-to-point topology class.
+  
+* **TopologyPtopQueueSelectorDefault:** `model/core/topology-ptop-queue-selector-default.cc/h`
+
+  Selector to parse a value into its corresponding queue for a sending
+  net-device.
+
+* **TopologyPtopReceiveErrorModelSelectorDefault:** `model/core/topology-ptop-receive-error-model-selector-default.cc/h`
+
+  Selector to parse a value into its corresponding receive error model
+  for a receiving net-device.
+  
+* **TopologyPtopTcQdiscSelectorDefault:** `model/core/topology-ptop-tc-qdisc-selector-default.cc/h`
+
+  Selector to parse a value into its corresponding traffic-control queue
+  discipline for a sending net-device.
 
 
 ## Getting started
@@ -62,7 +82,7 @@ It encompasses the following files:
 5. From then on you can use it. For example to get the nodes:
 
     ```c++
-    NodeContainer nodes = topology->GetNodes(); // Note: passed by reference
+    NodeContainer nodes = topology->GetNodes();
     ```
 
 
@@ -70,13 +90,15 @@ It encompasses the following files:
 
 If one uses the default point-to-point topology, the following properties MUST 
 also be defined in `config_ns3.properties`:
+
 * `topology_ptop_filename` : Topology filename (relative to run folder)
 
 ## Topology file: topology.properties
 
 Because the topology file can get quite big, and is independent to some extent, 
 it is in a separate configuration file. This configuration file contains both the 
-topological layout, and the link properties (delay, rate, queue size, qdisc).
+topological layout, and the link properties (channel delay, net-device rate, queue
+and error model, and interface traffic-control queueing discipline queue).
 
 **Example:**
 

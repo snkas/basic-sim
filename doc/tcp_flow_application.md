@@ -1,22 +1,44 @@
 # TCP flow application
 
-The TCP flow application is the most simple type of application. It schedules flows to start from A to B at time T to transfer X amount of bytes. It saves the results of the flow completion into useful file formats.
+The TCP flow application is the most simple type of application.
+It schedules flows to start from A to B at time T to transfer X
+amount of bytes. It saves the results of the flow completion into
+useful file formats.
 
 It encompasses the following files:
 
-* `model/apps/tcp-flow-send-application.cc/h` - Application which opens a TCP connection and uni-directionally sends data over it
-* `model/apps/tcp-flow-sink.cc/h` - Accepts incoming flows and acknowledges incoming data, does not send data back
-* `helper/apps/tcp-flow-send-helper.cc/h` - Helper to install flow send applications
-* `helper/apps/tcp-flow-sink-helper.cc/h` - Helper to install flow sink applications
-* `helper/apps/tcp-flow-scheduler.cc/h` - Reads in a schedule of flows and inserts events for them to start over time. Installs flow sinks on all nodes. Once the run is over, it can write the results to file.
-* `helper/apps/tcp-flow-schedule-reader.cc/h` - Schedule reader from file
+* **TcpFlowSendApplication:** `model/apps/tcp-flow-send-application.cc/h` 
 
-You can use the application(s) separately, or make use of the flow scheduler (which is recommended).
+  Application which opens a TCP connection and uni-directionally sends data over it.
+
+* **TcpFlowSink:** `model/apps/tcp-flow-sink.cc/h`
+
+  Accepts incoming flows and acknowledges incoming data, does not send data back.
+
+* **TcpFlowSendHelper:** `helper/apps/tcp-flow-send-helper.cc/h`
+
+  Helper to install flow send applications.
+  
+* **TcpFlowSinkHelper:** `helper/apps/tcp-flow-sink-helper.cc/h`
+
+  Helper to install flow sink applications.
+  
+* **TcpFlowScheduler:** `helper/apps/tcp-flow-scheduler.cc/h`
+
+  Reads in a schedule of flows and inserts events for them to start over time. 
+  Installs flow sinks on all nodes. Once the run is over, it can write the results to file.
+
+* **TcpFlowScheduleReader:** `helper/apps/tcp-flow-schedule-reader.cc/h`
+
+  Schedule reader for the TCP flow schedule from file.
+
+You can use the application(s) separately, or make use of the scheduler (which is recommended).
 
 
 ## Getting started: flow scheduler
 
-1. Add the following to the `config_ns3.properties` in your run folder (for 2 flows that need to be tracked):
+1. Add the following to the `config_ns3.properties` in your run folder
+  (for 2 flows that need to be tracked):
 
    ```
    enable_tcp_flow_scheduler=true
@@ -24,7 +46,8 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
    tcp_flow_enable_logging_for_tcp_flow_ids=set(0,1)
    ```
 
-2. Add the following schedule file `tcp_flow_schedule.csv` to your run folder (three flows from 0 to 1, resp. of size 10/3/34 KB and starting at T=0/10000/30000ns):
+2. Add the following schedule file `tcp_flow_schedule.csv` to your run folder
+  (three flows from 0 to 1, resp. of size 10/3/34 KB and starting at T=0/10000/30000ns):
 
    ```
    0,0,1,10000,0,,
@@ -32,9 +55,9 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
    2,0,1,34000,30000,,
    ```
 
-3. In your code, import the pingmesh scheduler:
+3. In your code, import the TCP flow scheduler:
 
-   ```
+   ```c++
    #include "ns3/tcp-flow-scheduler.h"
    ```
 
@@ -52,14 +75,14 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
     tcpFlowScheduler.WriteResults();
     ```
 
-5. After the run, you should have the flows log files in the `logs_ns3` of your run folder.
+5. After the run, you should have the TCP flow log files in the `logs_ns3` of your run folder.
 
 
 ## Getting started: directly installing applications
 
 1. In your code, import the TCP flow send and sink helper:
 
-   ```
+   ```c++
    #include "ns3/tcp-flow-send-helper.h"
    #include "ns3/tcp-flow-sink-helper.h"
    ```
@@ -82,7 +105,7 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
             m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{cwnd, rtt, progress}.csv are written
     );
     ApplicationContainer app_flow_0 = source.Install(node_a);
-    app.Start(NanoSeconds(0)); // Flow start time (ns)
+    app_flow_0.Start(NanoSeconds(0)); // Flow start time (ns)
    ```
 
 3. After the run, in your code add:
@@ -120,28 +143,26 @@ You can use the application(s) separately, or make use of the flow scheduler (wh
    ```
 
 
-## TCP flow scheduler information
+## TCP flow schedule configuration
 
 You MUST set the following keys in `config_ns3.properties`:
 
-* `enable_tcp_flow_scheduler` : Must be set to `true`
-* `tcp_flow_schedule_filename` : Schedule filename (relative to run folder) (path/to/tcp_flow_schedule.csv)
+* `enable_tcp_flow_scheduler` : 
+  Must be set to `true`
+
+* `tcp_flow_schedule_filename` :
+  Schedule filename (relative to run folder) (path/to/tcp_flow_schedule.csv)
 
 The following are OPTIONAL in `config_ns3.properties`:
 
 * `tcp_flow_enable_logging_for_tcp_flow_ids` : Set of flow identifiers for 
-  which you want logging to file for progress, cwnd and RTT 
-  (located at `logs_dir/tcp_flow_[id]_{progress, cwnd, rtt}.csv`). 
+  which you want logging to file for progress, cwnd and RTT.
   Example value: `set(0, 1)` to log for flows 0 and 1.
-  The file format is: 
-  
-  ```
-  [tcp_flow_id],[now_in_ns],[progress_byte/cwnd_byte/rtt_ns]
-  ```
 
-**tcp_flow_schedule.csv**
 
-Flow arrival schedule. 
+## TCP flow schedule format (input)
+
+TCP flow arrival schedule. 
 
 Each line defines a flow as follows:
 
@@ -149,22 +170,84 @@ Each line defines a flow as follows:
 [tcp_flow_id],[from_node_id],[to_node_id],[size_byte],[start_time_ns],[additional_parameters],[metadata]
 ```
 
-Notes: tcp_flow_id must increment each line. All values except additional_parameters and metadata are mandatory. `additional_parameters` should be set if you want to configure something special for each flow (e.g., different transport protocol, priority). `metadata` you can use for identification later on in the `tcp_flows.csv/txt` logs (e.g., to indicate the workload or coflow it was part of).
+Notes: tcp_flow_id must increment each line. Start time has to be weakly increasing.
+All values except additional_parameters and metadata are mandatory.
+`additional_parameters` should be set if you want to configure something special
+for each flow (e.g., different transport protocol, priority). `metadata` you can
+use for identification later on in the `tcp_flows.csv/txt` logs (e.g., to indicate
+the workload or coflow it was part of).
 
-**The flow log files**
+## TCP flow scheduler logs (output)
 
 There are two log files generated by the run in the `logs_ns3` folder within the run folder:
 
-* `tcp_flows.txt` : Flow results in a human readable table.
-* `tcp_flows.csv` : Flow results in CSV format for processing with each line:
+* `tcp_flows.txt` : TCP flow results in a human readable table.
+* `tcp_flows.csv` : TCP flow results in CSV format for processing with each line:
 
    ```
-   tcp_flow_id,from_node_id,to_node_id,size_byte,start_time_ns,end_time_ns,duration_ns,amount_sent_byte,[finished: YES/CONN_FAIL/NO_BAD_CLOSE/NO_ERR_CLOSE/NO_ONGOING],metadata
+   [tcp flow id],[from node id],[to node id],[size (byte)],[start time (ns since epoch)],[end time (ns since epoch)],[duration (ns)],[amount sent (byte)],[finished],[metadata]
    ```
 
-  Finished can have the following outcomes:
-  * `YES` = All data was sent and acknowledged fully and there was a normal socket close.
-  * `NO_CONN_FAIL` = Connection could not be established (i.e., the handshake failed). Can be caused by sending of SYN / SYN+ACK reaching too many timeouts resulting in no more retries left. In rare cases, it is also possible `NO_BAD_CLOSE` is the outcome of an unsuccessful handshake.
-  * `NO_BAD_CLOSE` = Socket was closed prematurely meaning it was closed normally but not all data was transferred.
-  * `NO_ERR_CLOSE` = Socket closed because of an error. This can be that a RST was received, or it reached too many timeouts (no more retries left).
-  * `NO_ONGOING` = Socket is still sending/receiving and is not yet closed because not all data has been transferred yet.
+  Finished (`[finished]`) can have the following values:
+  
+  * `YES`
+  
+    All data was sent and acknowledged fully and there was a normal socket close.
+    
+  * `NO_CONN_FAIL`
+  
+    Connection could not be established (e.g., the handshake failed).
+    This can be caused by:
+    (a) Sending of SYN / SYN+ACK reaching too many timeouts resulting in no more retries left.
+    (b) It can also be caused by the routing protocol unable to find a route.
+  
+  * `NO_BAD_CLOSE`
+  
+    Socket was closed prematurely meaning it was closed normally but not all data was transferred.
+    This should in general not occur.
+    This can be caused by:
+    (a) Something external calls Close() on the TcpSocket directly when not
+        everything has yet been put into the send buffer AND the send buffer occupancy reaches 0.
+    (b) In rare cases, it is also possible to be the outcome of an unsuccessful handshake.
+  
+  * `NO_ERR_CLOSE`
+  
+    Socket closed because of an error.
+    This can be caused:
+    (a) A RST was received.
+    (b) It reached too many timeouts (no more (data) retries left).
+  
+  * `NO_ONGOING`
+  
+    Socket is still sending/receiving and is not yet closed because
+    not all data has been transferred yet.
+
+Additionally, if the `tcp_flow_enable_logging_for_tcp_flow_ids` was set for some TCP flows,
+there will have also been generated for those flows:
+
+ * **Progress (in byte)**
+ 
+   File: `logs_dir/tcp_flow_[id]_progress.csv`
+ 
+   Format:
+   ```
+   [tcp flow id],[now (ns since epoch)],[progress (byte)]
+   ```
+   
+ * **Congestion window (in byte)**
+ 
+   File: `logs_dir/tcp_flow_[id]_cwnd.csv`
+ 
+   Format:
+   ```
+   [tcp flow id],[now (ns since epoch)],[cwnd (byte)]
+   ```
+   
+ * **Estimated round-trip time (RTT) (in ns)**
+ 
+   File: `logs_dir/tcp_flow_[id]_rtt.csv`
+ 
+   Format:
+   ```
+   [tcp flow id],[now (ns since epoch)],[rtt (ns)]
+   ```

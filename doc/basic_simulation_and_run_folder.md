@@ -1,6 +1,7 @@
 # Basic simulation / run folder
 
-The `BasicSimulation` class is just a wrapper which makes managing the simulation easier. Essentially, it is a super complicated way to write 4 lines of ns-3 C++ code:
+The `BasicSimulation` class is just a wrapper which makes managing the simulation easier.
+Essentially, it is a super complicated way to write 4 lines of ns-3 C++ code:
 
 ```
 ns3::RngSeedManager::SetSeed(simulation_seed);
@@ -9,14 +10,28 @@ Simulator::Run();
 Simulator::Destroy();
 ```
 
-However, it offers a lot of (often needed) experiment functionality out-of-the-box. It allows you to read and manage a configuration file. It keeps track of time and shows progress. It does a two-phase writing in a file called 'finished.txt' ("No" at the start, "Yes" after the run) to be able to verify that the run finished successfully. It also supports a way to integrate distributed simulation a bit easier.
+However, it offers a lot of (often needed) experiment functionality out-of-the-box.
+It allows you to read and manage a configuration file. It keeps track of time and shows
+progress. It does a two-phase writing in a file called 'finished.txt' ("No" at the start,
+"Yes" after the run) to be able to verify that the run finished successfully. It also supports
+a way to integrate distributed simulation a bit easier.
 
 It encompasses the following files:
 
-* `model/core/basic-simulation.cc/h` - Basic simulation class
-* `model/core/exp-util.cc/h` - A couple of handy parsing and experiment tools
+* **BasicSimulation:** `model/core/basic-simulation.cc/h`
 
-Beyond this basic functionality, the basic simulation is very modularized such that you can add only what you want. The basic-sim module as a whole is divided into two sub-modules: `core` and `apps`. `core` is the framework, including an improved routing implementation (called 'arbiter routing') and topology management. `apps` is about applications to run -- either inside or outside of this framework. One can simply take the apps and use them somewhere else without even having to deal with the framework.
+  Basic simulation class.
+  
+* **Experiment utilities:** `model/core/exp-util.cc/h`
+
+  A couple of handy parsing and experiment tools
+
+Beyond this basic functionality, the basic simulation is very modularized such that
+you can add only what you want. The basic-sim module as a whole is divided into two
+sub-modules: `core` and `apps`. `core` is the framework, including an improved routing
+implementation (called 'arbiter routing') and topology management. `apps` is about
+applications to run -- either inside or outside of this framework. One can simply take
+the apps and use them somewhere else without even having to deal with the framework.
 
 
 # Run folder
