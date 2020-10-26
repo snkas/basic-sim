@@ -31,9 +31,8 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
     queue_pkt_size_pkt_list = queue_pkt_csv_columns[4]
 
     # For packets
-    data_filename = "%s/link_net_device_queue_%d_to_%d_pkt_changes.csv" % (data_out_dir, from_node_id, to_node_id)
+    data_filename = "%s/link_net_device_queue_%d_to_%d_pkt_in_intervals.csv" % (data_out_dir, from_node_id, to_node_id)
     expected_next_start_ns = 0
-    last_queue_size_packets = -1
     with open(data_filename, "w+") as f_out:
         matched = False
         for i in range(queue_pkt_num_entries):
@@ -50,17 +49,15 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
                 # Write to file
                 f_out.write("%.10f,%.10f\n"
                             % (queue_pkt_interval_start_ns_list[i], queue_pkt_size_pkt_list[i]))
+                f_out.write("%.10f,%.10f\n"
+                            % (queue_pkt_interval_end_ns_list[i] - 0.000001, queue_pkt_size_pkt_list[i]))
 
                 # Keeping track
                 expected_next_start_ns = queue_pkt_interval_end_ns_list[i]
-                last_queue_size_packets = queue_pkt_size_pkt_list[i]
 
         # Must find data, else probably invalid node ids
         if not matched:
             raise ValueError("No entries found link %d -> %d" % (from_node_id, to_node_id))
-
-        # Write the final one to finish the plotting step line
-        f_out.write("%.10f,%.10f\n" % (expected_next_start_ns, last_queue_size_packets))
 
     # Plot time vs. queue (packets)
     pdf_filename = pdf_out_dir + "/plot_link_net_device_queue_pkt_%d_to_%d.pdf" % (from_node_id, to_node_id)
@@ -85,9 +82,8 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
     queue_byte_size_byte_list = queue_byte_csv_columns[4]
 
     # For byte
-    data_filename = "%s/link_net_device_queue_%d_to_%d_byte_changes.csv" % (data_out_dir, from_node_id, to_node_id)
+    data_filename = "%s/link_net_device_queue_%d_to_%d_byte_in_intervals.csv" % (data_out_dir, from_node_id, to_node_id)
     expected_next_start_ns = 0
-    last_queue_size_byte = -1
     with open(data_filename, "w+") as f_out:
         matched = False
         for i in range(queue_byte_num_entries):
@@ -104,17 +100,15 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
                 # Write to file
                 f_out.write("%.10f,%.10f\n"
                             % (queue_byte_interval_start_ns_list[i], queue_byte_size_byte_list[i]))
+                f_out.write("%.10f,%.10f\n"
+                            % (queue_byte_interval_end_ns_list[i] - 0.000001, queue_byte_size_byte_list[i]))
 
                 # Keeping track
                 expected_next_start_ns = queue_byte_interval_end_ns_list[i]
-                last_queue_size_byte = queue_byte_size_byte_list[i]
 
         # Must find data, else probably invalid node ids
         if not matched:
             raise ValueError("No entries found link %d -> %d" % (from_node_id, to_node_id))
-
-        # Write the final one to finish the plotting step line
-        f_out.write("%.10f,%.10f\n" % (expected_next_start_ns, last_queue_size_byte))
 
     # Plot time vs. queue (byte)
     pdf_filename = pdf_out_dir + "/plot_link_net_device_queue_byte_%d_to_%d.pdf" % (from_node_id, to_node_id)

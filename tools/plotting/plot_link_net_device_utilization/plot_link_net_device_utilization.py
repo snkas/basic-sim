@@ -28,9 +28,10 @@ def plot_link_net_device_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, fr
     busy_ns_list = utilization_compressed_csv_columns[4]
 
     # Create step plottable utilization file with only the changes
-    data_filename = "%s/link_net_device_utilization_%d_to_%d_changes.csv" % (data_out_dir, from_node_id, to_node_id)
+    data_filename = "%s/link_net_device_utilization_%d_to_%d_in_intervals.csv" % (
+        data_out_dir, from_node_id, to_node_id
+    )
     expected_next_start_ns = 0
-    last_utilization_fraction = -1
     with open(data_filename, "w+") as f_out:
         matched = False
         for i in range(num_entries):
@@ -47,20 +48,17 @@ def plot_link_net_device_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, fr
                 # Write to file
                 utilization_fraction = busy_ns_list[i] / (range_end_ns_list[i] - range_start_ns_list[i])
                 f_out.write("%.10f,%.10f\n" % (range_start_ns_list[i], utilization_fraction))
+                f_out.write("%.10f,%.10f\n" % (range_end_ns_list[i] - 0.000001, utilization_fraction))
 
                 # Keeping track
                 expected_next_start_ns = range_end_ns_list[i]
-                last_utilization_fraction = utilization_fraction
 
         # Must find data, else probably invalid node ids
         if not matched:
             raise ValueError("No entries found link %d -> %d" % (from_node_id, to_node_id))
 
-        # Write the final one to finish the plotting step line
-        f_out.write("%.10f,%.10f\n" % (expected_next_start_ns, last_utilization_fraction))
-
     # Plot time vs. utilization
-    pdf_filename = pdf_out_dir + "/plot_link_net_device_utilization_" + str(from_node_id) + "_to_" + str(to_node_id) + ".pdf"
+    pdf_filename = pdf_out_dir + "/plot_link_net_device_utilization_%d_to_%d.pdf" % (from_node_id, to_node_id)
     plt_filename = "plot_time_vs_link_net_device_utilization.plt"
     local_shell.copy_file(plt_filename, "temp.plt")
     local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
