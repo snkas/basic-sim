@@ -2,16 +2,16 @@ import sys
 from exputil import *
 
 
-def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_node_id):
+def plot_link_interface_tc_qdisc_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_node_id, to_node_id):
     local_shell = LocalShell()
 
     # Check that the plotting file is available
     if (
-        not local_shell.file_exists("plot_time_vs_link_net_device_queue_pkt.plt") or
-        not local_shell.file_exists("plot_time_vs_link_net_device_queue_byte.plt")
+        not local_shell.file_exists("plot_time_vs_link_interface_tc_qdisc_queue_pkt.plt") or
+        not local_shell.file_exists("plot_time_vs_link_interface_tc_qdisc_queue_byte.plt")
     ):
         print("The gnuplot file(s) is not present.")
-        print("Are you executing this python file inside the plot_link_net_device_queue directory?")
+        print("Are you executing this python file inside the plot_link_interface_tc_qdisc_queue directory?")
         exit(1)
 
     # Create the output directories if they don't exist yet
@@ -20,7 +20,7 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
 
     # Packets CSV
     queue_pkt_csv_columns = read_csv_direct_in_columns(
-        logs_ns3_dir + "/link_net_device_queue_pkt.csv",
+        logs_ns3_dir + "/link_interface_tc_qdisc_queue_pkt.csv",
         "pos_int,pos_int,pos_int,pos_int,pos_int"
     )
     queue_pkt_num_entries = len(queue_pkt_csv_columns[0])
@@ -31,7 +31,9 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
     queue_pkt_size_pkt_list = queue_pkt_csv_columns[4]
 
     # For packets
-    data_filename = "%s/link_net_device_queue_%d_to_%d_pkt_changes.csv" % (data_out_dir, from_node_id, to_node_id)
+    data_filename = "%s/link_interface_tc_qdisc_queue_%d_to_%d_pkt_changes.csv" % (
+        data_out_dir, from_node_id, to_node_id
+    )
     expected_next_start_ns = 0
     last_queue_size_packets = -1
     with open(data_filename, "w+") as f_out:
@@ -63,8 +65,8 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
         f_out.write("%.10f,%.10f\n" % (expected_next_start_ns, last_queue_size_packets))
 
     # Plot time vs. queue (packets)
-    pdf_filename = pdf_out_dir + "/plot_link_net_device_queue_pkt_%d_to_%d.pdf" % (from_node_id, to_node_id)
-    plt_filename = "plot_time_vs_link_net_device_queue_pkt.plt"
+    pdf_filename = pdf_out_dir + "/plot_link_interface_tc_qdisc_queue_pkt_%d_to_%d.pdf" % (from_node_id, to_node_id)
+    plt_filename = "plot_time_vs_link_interface_tc_qdisc_queue_pkt.plt"
     local_shell.copy_file(plt_filename, "temp.plt")
     local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
     local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
@@ -74,7 +76,7 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
 
     # Byte CSV
     queue_byte_csv_columns = read_csv_direct_in_columns(
-        logs_ns3_dir + "/link_net_device_queue_byte.csv",
+        logs_ns3_dir + "/link_interface_tc_qdisc_queue_byte.csv",
         "pos_int,pos_int,pos_int,pos_int,pos_int"
     )
     queue_byte_num_entries = len(queue_byte_csv_columns[0])
@@ -85,7 +87,9 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
     queue_byte_size_byte_list = queue_byte_csv_columns[4]
 
     # For byte
-    data_filename = "%s/link_net_device_queue_%d_to_%d_byte_changes.csv" % (data_out_dir, from_node_id, to_node_id)
+    data_filename = "%s/link_interface_tc_qdisc_queue_%d_to_%d_byte_changes.csv" % (
+        data_out_dir, from_node_id, to_node_id
+    )
     expected_next_start_ns = 0
     last_queue_size_byte = -1
     with open(data_filename, "w+") as f_out:
@@ -117,8 +121,8 @@ def plot_link_net_device_queue(logs_ns3_dir, data_out_dir, pdf_out_dir, from_nod
         f_out.write("%.10f,%.10f\n" % (expected_next_start_ns, last_queue_size_byte))
 
     # Plot time vs. queue (byte)
-    pdf_filename = pdf_out_dir + "/plot_link_net_device_queue_byte_%d_to_%d.pdf" % (from_node_id, to_node_id)
-    plt_filename = "plot_time_vs_link_net_device_queue_byte.plt"
+    pdf_filename = pdf_out_dir + "/plot_link_interface_tc_qdisc_queue_byte_%d_to_%d.pdf" % (from_node_id, to_node_id)
+    plt_filename = "plot_time_vs_link_interface_tc_qdisc_queue_byte.plt"
     local_shell.copy_file(plt_filename, "temp.plt")
     local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
     local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
@@ -131,11 +135,11 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python plot_link_net_device_queue.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
+        print("Usage: python plot_link_interface_tc_qdisc_queue.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
               " [from_node_id] [to_node_id]")
         exit(1)
     else:
-        plot_link_net_device_queue(
+        plot_link_interface_tc_qdisc_queue(
             args[0],
             args[1],
             args[2],

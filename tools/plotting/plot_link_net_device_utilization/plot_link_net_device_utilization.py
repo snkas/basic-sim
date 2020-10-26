@@ -27,21 +27,37 @@ def plot_link_net_device_utilization(logs_ns3_dir, data_out_dir, pdf_out_dir, fr
     range_end_ns_list = utilization_compressed_csv_columns[3]
     busy_ns_list = utilization_compressed_csv_columns[4]
 
-    # Create step plottable utilization file
-    #
-    # Each interval [a, b] with busy time c, gets converted into two points:
-    # a, c / (b - a)
-    # b - (small number), c / (b - a)
-    #
-    # This effectively creates a step function as a continuous line, which can then be plotted by gnuplot.
-    #
-    data_filename = "%s/link_net_device_utilization_%d_to_%d_fraction_in_intervals.csv" % (data_out_dir, from_node_id, to_node_id)
+    # Create step plottable utilization file with only the changes
+    data_filename = "%s/link_net_device_utilization_%d_to_%d_changes.csv" % (data_out_dir, from_node_id, to_node_id)
+    expected_next_start_ns = 0
+    last_utilization_fraction = -1
     with open(data_filename, "w+") as f_out:
+        matched = False
         for i in range(num_entries):
             if from_list[i] == from_node_id and to_list[i] == to_node_id:
+                matched = True
+
+                # One interval after the other
+                if not range_start_ns_list[i] == expected_next_start_ns:
+                    raise ValueError("Intervals do not match up: %d vs. %d" % (
+                        range_start_ns_list[i],
+                        expected_next_start_ns
+                    ))
+
+                # Write to file
                 utilization_fraction = busy_ns_list[i] / (range_end_ns_list[i] - range_start_ns_list[i])
                 f_out.write("%.10f,%.10f\n" % (range_start_ns_list[i], utilization_fraction))
-                f_out.write("%.10f,%.10f\n" % (range_end_ns_list[i] - 0.000001, utilization_fraction))
+
+                # Keeping track
+                expected_next_start_ns = range_end_ns_list[i]
+                last_utilization_fraction = utilization_fraction
+
+        # Must find data, else probably invalid node ids
+        if not matched:
+            raise ValueError("No entries found link %d -> %d" % (from_node_id, to_node_id))
+
+        # Write the final one to finish the plotting step line
+        f_out.write("%.10f,%.10f\n" % (expected_next_start_ns, last_utilization_fraction))
 
     # Plot time vs. utilization
     pdf_filename = pdf_out_dir + "/plot_link_net_device_utilization_" + str(from_node_id) + "_to_" + str(to_node_id) + ".pdf"
