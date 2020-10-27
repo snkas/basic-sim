@@ -92,8 +92,8 @@ If one uses the default point-to-point topology, the following property MUST
 also be defined in `config_ns3.properties`:
 
 * `topology_ptop_filename`
-  - **Description:** Topology filename (relative to run folder)
-  - **Value type:** Path (string)
+  - **Description:** topology filename (relative to run folder)
+  - **Value type:** path (string)
 
 ## Topology file: ptop_topology.properties
 
@@ -134,7 +134,7 @@ Besides it just defining a graph, the following rules apply:
 
 #### `num_nodes`
 
-* **Description:** Number of nodes
+* **Description:** number of nodes
 
 * **Value type:** positive integer
   
@@ -148,9 +148,9 @@ Besides it just defining a graph, the following rules apply:
 
 #### `switches`
 
-* **Description:** All node identifiers of switches
+* **Description:** all node identifiers of switches
 
-* **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
+* **Value type:** set of node identifiers, expressed as `set(a, b, ...)` 
 
 * **Examples:**
   - `set(1, 2, 5)` means node 1, 2 and 5 are switches
@@ -158,9 +158,9 @@ Besides it just defining a graph, the following rules apply:
   
 #### `switches_which_are_tors`
 
-* **Description:** All node identifiers of switches which are also ToRs
+* **Description:** all node identifiers of switches which are also ToRs
 
-* **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
+* **Value type:** set of node identifiers, expressed as `set(a, b, ...)` 
 
 * **Examples:**
   - `set(1, 2)` means node 1 and2 are switches which are also ToRs
@@ -168,18 +168,18 @@ Besides it just defining a graph, the following rules apply:
   
 #### `servers`
 
-* **Description:** All node identifiers which are servers
+* **Description:** all node identifiers which are servers
 
-* **Value type:** Set of node identifiers, expressed as `set(a, b, ...)`
+* **Value type:** set of node identifiers, expressed as `set(a, b, ...)`
   
 * **Examples:**
   - `set(0, 3, 4)` means node 0, 3, and 4 are servers
   
 #### `undirected_edges`
 
-* **Description:** All undirected edges
+* **Description:** all undirected edges
 
-* **Value type:** Set of undirected edges, expressed as `set(a-b, b-c, ...)` 
+* **Value type:** set of undirected edges, expressed as `set(a-b, b-c, ...)` 
     
 * **Examples:**
   - `set(0-2, 2-3)` means two undirected edges, between 0 and 2, and between 2 and 3.
@@ -198,7 +198,7 @@ Besides it just defining a graph, the following rules apply:
 
 #### `link_channel_delay_ns` 
 
-* **Description:** Propagation delay set for undirected edges (= two links) (ns).
+* **Description:** propagation delay set for undirected edges (= two links) (ns).
 
 * **Value type:** 
   - Single global value as a positive integer (ns) applied to all links
@@ -212,7 +212,7 @@ Besides it just defining a graph, the following rules apply:
    
 #### `link_net_device_data_rate_megabit_per_s` 
   
-* **Description:** Data rate set for the sending network device 
+* **Description:** data rate set for the sending network device 
   of this directed edge (link) (Mbit/s).
    
 * **Value type:** 
