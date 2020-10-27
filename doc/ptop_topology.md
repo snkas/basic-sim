@@ -88,12 +88,14 @@ It encompasses the following files:
 
 ## Configuration properties
 
-If one uses the default point-to-point topology, the following properties MUST 
+If one uses the default point-to-point topology, the following property MUST 
 also be defined in `config_ns3.properties`:
 
-* `topology_ptop_filename` : Topology filename (relative to run folder)
+* `topology_ptop_filename`
+  - **Description:** Topology filename (relative to run folder)
+  - **Value type:** Path (string)
 
-## Topology file: topology.properties
+## Topology file: ptop_topology.properties
 
 Because the topology file can get quite big, and is independent to some extent, 
 it is in a separate configuration file. This configuration file contains both the 
@@ -117,7 +119,7 @@ link_net_device_receive_error_model=uniform_random_pkt(0.0)
 link_interface_traffic_control_qdisc=disabled
 ```
 
-### Properties
+### Point-to-point topology properties constraints
 
 All mandatory properties must be present. Empty sets are permitted. 
 Empty lines and lines starting with a comment sign (#) are permitted. 
@@ -128,63 +130,63 @@ Besides it just defining a graph, the following rules apply:
   are ToRs and servers. If there are servers, only servers should be 
   valid endpoints for applications. If there are no servers, ToRs should be valid endpoints instead.
   
-The properties:
+### Point-to-point topology properties
 
-* `num_nodes` (type: positive integer)
+#### `num_nodes`
 
-  **Property description:** Number of nodes
+* **Description:** Number of nodes
+
+* **Value type:** positive integer
   
-  **Value type:** Positive integer
-  
-* `num_undirected_edges` (type: positive integer)
+#### `num_undirected_edges`
 
-  **Property description:** number of undirected edges (each undirected 
+* **Description:** number of undirected edges (each undirected 
   edge will be expressed into two links). This must be equal to the 
   amount of entries in the `undirected_edges` property.
-
-  **Value type:** Positive integer
-
-* `switches` (type: set of node identifiers)
-
-  **Property description:** All node identifiers of switches
   
-  **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
-  
-  **Examples:**
+* **Value type:** positive integer
+
+#### `switches`
+
+* **Description:** All node identifiers of switches
+
+* **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
+
+* **Examples:**
   - `set(1, 2, 5)` means node 1, 2 and 5 are switches
   - `set(2)` means only node 2 is a switch
   
-* `switches_which_are_tors`
+#### `switches_which_are_tors`
 
-  **Property description:** All node identifiers of switches which are also ToRs
+* **Description:** All node identifiers of switches which are also ToRs
 
-  **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
-  
-  **Examples:**
+* **Value type:** Set of node identifiers, expressed as `set(a, b, ...)` 
+
+* **Examples:**
   - `set(1, 2)` means node 1 and2 are switches which are also ToRs
   - `set(2)` means only node 2 is a switch which is also a ToR
   
-* `servers`
+#### `servers`
 
-  **Property description:** All node identifiers which are servers
+* **Description:** All node identifiers which are servers
 
-  **Value type:** Set of node identifiers, expressed as `set(a, b, ...)`
+* **Value type:** Set of node identifiers, expressed as `set(a, b, ...)`
   
-  **Examples:**
+* **Examples:**
   - `set(0, 3, 4)` means node 0, 3, and 4 are servers
   
-* `undirected_edges`
+#### `undirected_edges`
 
-  **Property description:** All undirected edges
+* **Description:** All undirected edges
 
-  **Value type:** Set of undirected edges, expressed as `set(a-b, b-c, ...)` 
+* **Value type:** Set of undirected edges, expressed as `set(a-b, b-c, ...)` 
     
-  **Examples:**
+* **Examples:**
   - `set(0-2, 2-3)` means two undirected edges, between 0 and 2, and between 2 and 3.
 
-* `all_nodes_are_endpoints`
+#### `all_nodes_are_endpoints`
 
-  **Property description:**  
+* **Description:**  
   Whether to allow all nodes to be endpoints for applications or not. 
   Normally, the topology only considers servers (or in absence thereof: ToRs) 
   as valid endpoints. Setting this to `true` will have the topology return 
@@ -192,93 +194,112 @@ The properties:
   code that checks with topology explicitly will adhere to the endpoints the 
   topology claims are permissible for applications.
   
-  **Value type:** boolean
+* **Value type:** boolean: `true` or `false`
+
+#### `link_channel_delay_ns` 
+
+* **Description:** Propagation delay set for undirected edges (= two links) (ns).
+
+* **Value type:** 
+  - Single global value as a positive integer (ns) applied to all links
+  - Map of all undirected edges (= two links) to their respective delays as positive integers (ns),
+    i.e. `map(a-b: [delay in ns], b-c: [delay in ns], ...)`
+
+* **Examples:**
+  - `link_channel_delay_ns=10000` for 10 microseconds propagation delay
+  - `link_channel_delay_ns=1000000000` for 1 second propagation delay
+  - `link_channel_delay_ns=map(0-1: 10000, 1-2: 30000)`
+   
+#### `link_net_device_data_rate_megabit_per_s` 
   
-  **Possible values:** `true` or `false`
-
-* `link_channel_delay_ns` 
-
-   **Property description:** Propagation delay set for undirected edges (= two links) (ns).
-
-   **Value type:** undirected edge (= two links) map or single global value
+* **Description:** Data rate set for the sending network device 
+  of this directed edge (link) (Mbit/s).
    
-   **Possible value:** ns as a positive integer
-
-   **Examples:**
-   - `link_channel_delay_ns=10000` for 10 microseconds propagation delay
-   - `link_channel_delay_ns=1000000000` for 1 second propagation delay
-   - `link_channel_delay_ns=map(0-1: 10000, 1-2: 30000)`
+* **Value type:** 
+  - Single global value as a positive double (Mbit/s) applied to all links
+  - Map of all directed edges (= links) map to their respective rate as positive double (Mbit/s)
+    i.e. `map(a->b: [rate in Mbit/s], b->a: [rate in Mbit/s], ...)`
    
-* `link_net_device_data_rate_megabit_per_s` 
-  
-   **Property description:** Data rate set for the sending network device 
-   of this directed edge (link) (Mbit/s).
+* **Examples:**
+  - `link_net_device_data_rate_megabit_per_s=0.6` for 0.6 Mbit/s
+  - `link_net_device_data_rate_megabit_per_s=100.0` for 100 Mbit/s
+  - `link_net_device_data_rate_megabit_per_s=map(0->1: 0.8, 1->0: 12.0, 1->2: 10, 2->1: 100.8)`
    
-   **Value type:** directed edge (link) map or single global value
-   
-   **Possible value:** Mbit/s as a positive double
-   
-   **Examples:**
-   - `link_net_device_data_rate_megabit_per_s=0.6` for 0.6 Mbit/s
-   - `link_net_device_data_rate_megabit_per_s=100.0` for 100 Mbit/s
-   - `link_net_device_data_rate_megabit_per_s=map(0->1: 0.8, 1->0: 12.0, 1->2: 10, 2->1: 100.8)`
-   
-* `link_net_device_queue`
+#### `link_net_device_queue`
 
-   **Property description:** queue implementation for the sending network device
-   of this directed edge (link).
+* **Description:** queue implementation for the sending network device
+  of this directed edge (link).
 
-   **Value type:** directed edge (link) map or single global value
-   
-   **Possible values:**
-   - `drop_tail(<integer>p)` for a drop-tail queue with a size in packets
-   - `drop_tail(<integer>B)` for a drop-tail queue with a size in byte
-
-   **Examples:**
-   - `link_net_device_queue=drop_tail(100p)`
-   - `link_net_device_queue=drop_tail(100000B)`
-   - `link_net_device_queue=map(0->1: drop_tail(100p), 1->0: drop_tail(90p), 
-     1->2: drop_tail(100000B), 2->1: drop_tail(100p))`
-  
-* `link_net_device_receive_error_model` 
-
-   **Property description:** error model of the receiving network device
-    of the directed edge (link).
-
-   **Value type:** directed edge (link) map or single global value
-   
-   **Possible values:**
-   - `none` for no random drops (if it is sent, it will arrive perfectly always)
-   - `iid_uniform_random_pkt(<double in [0.0, 1.0])` for a i.i.d. uniform random 
-     drop probability for each packet traversing the directed edge (link) 
-
-   **Examples:**
-   - `link_net_device_receive_error_model=none` for no reception errors (perfect)
-   - `link_net_device_receive_error_model=iid_uniform_random_pkt(0.0001)` for a 0.01% 
-     probability of a packet getting dropped when traversing every link
-   - `link_net_device_receive_error_model=map(0->1: none, 1->0: iid_uniform_random_pkt(0.0001), 
-     1->2: iid_uniform_random_pkt(1.0), 2->1: iid_uniform_random_pkt(0.3))`
-
-* `link_interface_traffic_control_qdisc` 
-
-   **Property description:** traffic control queueing discipline for the interface
-   in front of the sending network device of the directed edge (link).
+* **Value type:** 
+  - Single global queue implementation value applied to all links
+  - Map of all directed edges (= links) map to their respective queue implementation
+    i.e. `map(a->b: [queue], b->a: [queue], ...)`
     
-   **Value type:** directed edge (link) map or single global value
+* **Possible queue types:**
+  - `drop_tail(<integer>p)` for a drop-tail queue with a size in packets
+  - `drop_tail(<integer>B)` for a drop-tail queue with a size in byte
+
+* **Examples:**
+  - `link_net_device_queue=drop_tail(100p)`
+  - `link_net_device_queue=drop_tail(100000B)`
+  - `link_net_device_queue=map(0->1: drop_tail(100p), 1->0: drop_tail(90p), 
+    1->2: drop_tail(100000B), 2->1: drop_tail(100p))`
+  
+#### `link_net_device_receive_error_model` 
+
+* **Description:** error model of the receiving network device
+  of the directed edge (link).
+
+* **Value type:** 
+  - Single global receive error model implementation value applied to all links
+  - Map of all directed edges (= links) map to their respective receive error model implementation
+    i.e. `map(a->b: [error model], b->a: [error model], ...)`
     
-   **Possible values:**
-   - `default` for the ns-3 default (fq_codel with a pretty high RTT estimate)
-   - `disabled` for no queueing discipline
-   - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology
-   - `simple_red(ecn/drop; min_th; max_th; max_size)` for a simple RED queueing discipline.
-     It does a simple linear probability between the minimum and maximum threshold.
-     The instantaneous queue size is used as the "average queue size" (which means, no exponential
-     weighted averaging is done). The action taken if a packet is probabilistically
-     determined to be marked by RED can be set to either mark ECN (ecn) or drop the packet (drop).
+* **Possible error model types:**
+  - `none` for no random drops (if it is sent, it will arrive perfectly always)
+  - `iid_uniform_random_pkt([double in [0.0, 1.0]-range])` for a i.i.d. uniform random 
+    drop probability for each packet traversing the directed edge (link) 
+
+* **Examples:**
+  - `link_net_device_receive_error_model=none` for no reception errors (perfect)
+  - `link_net_device_receive_error_model=iid_uniform_random_pkt(0.0001)` for a 0.01% 
+    probability of a packet getting dropped when traversing every link
+  - `link_net_device_receive_error_model=map(0->1: none, 1->0: iid_uniform_random_pkt(0.0001), 
+    1->2: iid_uniform_random_pkt(1.0), 2->1: iid_uniform_random_pkt(0.3))`
+
+#### `link_interface_traffic_control_qdisc` 
+
+* **Description:** traffic control queueing discipline for the interface
+  in front of the sending network device of the directed edge (link).
+    
+* **Value type:**
+  - Single global traffic-control qdisc implementation value applied to all links
+  - Map of all directed edges (= links) map to their respective traffic-control qdisc implementation
+    i.e. `map(a->b: [tc qdisc], b->a: [tc qdisc], ...)`
+    
+* **Possible traffic control qdisc types:**
+  - `default` for the ns-3 default (fq_codel with a pretty high RTT estimate)
+  - `disabled` for no queueing discipline
+  - `fifo(<integer>p)` or `fifo(<integer>B)` for first-in-first-out (= tail-drop)
+  - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology
+  - `simple_red(ecn/drop; min_th; max_th; max_size)` for a simple RED queueing discipline.
+    It does a simple linear probability between the minimum and maximum threshold.
+    The instantaneous queue size is used as the "average queue size" (which means, no exponential
+    weighted averaging is done). The action taken if a packet is probabilistically
+    determined to be marked by RED can be set to either mark ECN (ecn) or drop the packet (drop).
      
-     The parameters:
-     - `ecn/drop`: the action; set to `ecn` or to `drop`
-     - `min_th`: RED minimum threshold in packets
-     - `max_th`: RED maximum threshold in packets
-     - `max_size`: Maximum queue size in packets (if the action is `drop`, 
-       `max_th` will effectively be a lower `max_size`)
+    The parameters:
+    - `ecn/drop`: the action; set to `ecn` or to `drop`
+    - `min_th`: RED minimum threshold in packets
+    - `max_th`: RED maximum threshold in packets
+    - `max_size`: Maximum queue size in packets (if the action is `drop`, 
+      `max_th` will effectively be a lower `max_size`)
+
+* **Examples:**
+  - `link_interface_traffic_control_qdisc=none` for no traffic-control at any link
+  - `link_interface_traffic_control_qdisc=fifo(100p)` for a 100 packets tail-drop for all links
+  - `link_interface_traffic_control_qdisc=simple_red(ecn; 50; 80; 100)` for a queue which has linear probability to
+    mark ECN from 50 to 80, and maximum queue size of 100 packets before tail-drop
+  - `link_interface_traffic_control_qdisc=map(0->1: none, 1->0: fifo(100000B), 
+    1->2: fifo(80p), 2->1: fq_codel_better_rtt)`
+    
