@@ -291,7 +291,8 @@ Besides it just defining a graph, the following rules apply:
     For an explanation of the behavior of RED, see the source code in ns3:
     `src/traffic-control/model/red-queue-disc.h/cc` and the original
     RED paper "Random Early Detection Gateways for Congestion Avoidance" by 
-    Sally Floyd and Van Jacobson.
+    Sally Floyd and Van Jacobson. Additionally helpful webpage:
+    https://sites.google.com/a/ncsu.edu/tail-drop-vs-red/plan-of-work/red-algorithm
     
     The parameters:
     - `ecn/drop`: the action; set to `ecn` or to `drop`
