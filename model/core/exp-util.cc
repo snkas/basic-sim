@@ -148,7 +148,7 @@ std::vector<std::string> split_string(const std::string line, const std::string 
 }
 
 /**
- * Parse string into an int64, or throw an exception.
+ * Parse string (whitespace removed) into an int64, or throw an exception.
  *
  * @param str  Input string
  *
@@ -157,16 +157,17 @@ std::vector<std::string> split_string(const std::string line, const std::string 
 int64_t parse_int64(const std::string& str) {
 
     // Parse using stoll -- rethrow argument to be a bit easier debuggable
+    std::string str_no_whitespace = trim(str);
     int64_t val;
     size_t i;
     try {
-        val = std::stoll(str, &i);
+        val = std::stoll(str_no_whitespace, &i);
     } catch (const std::invalid_argument&) {
         throw std::invalid_argument("Could not convert to int64: " + str);
     }
 
     // No remainder
-    if (i != str.size()) {
+    if (i != str_no_whitespace.size()) {
         throw std::invalid_argument("Could not convert to int64: " + str);
     }
 
@@ -204,7 +205,7 @@ int64_t parse_geq_one_int64(const std::string& str) {
 }
 
 /**
- * Parse string into a double, or throw an exception.
+ * Parse string (whitespace removed) into a double, or throw an exception.
  *
  * @param str  Input string
  *
@@ -213,16 +214,17 @@ int64_t parse_geq_one_int64(const std::string& str) {
 double parse_double(const std::string& str) {
 
     // Parse using stod -- rethrow argument to be a bit easier debuggable
+    std::string str_no_whitespace = trim(str);
     double val;
     size_t i;
     try {
-        val = std::stod(str, &i);
+        val = std::stod(str_no_whitespace, &i);
     } catch (const std::invalid_argument&) {
         throw std::invalid_argument("Could not convert to double: " + str);
     }
 
     // No remainder
-    if (i != str.size()) {
+    if (i != str_no_whitespace.size()) {
         throw std::invalid_argument("Could not convert to double: " + str);
     }
 
@@ -260,16 +262,17 @@ double parse_double_between_zero_and_one(const std::string& str) {
 }
 
 /**
- * Parse string into a boolean, or throw an exception.
+ * Parse string (whitespace removed) into a boolean, or throw an exception.
  *
  * @param str  Input string (e.g., "true", "false", "0", "1")
  *
  * @return Boolean
  */
 bool parse_boolean(const std::string& str) {
-    if (str == "true" || str == "1") {
+    std::string str_no_whitespace = trim(str);
+    if (str_no_whitespace == "true" || str_no_whitespace == "1") {
         return true;
-    } else if (str == "false" || str == "0") {
+    } else if (str_no_whitespace == "false" || str_no_whitespace == "0") {
         return false;
     } else {
         throw std::invalid_argument(format_string("Value could not be converted to bool: %s", str.c_str()));

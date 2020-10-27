@@ -82,6 +82,9 @@ public:
         ASSERT_EQUAL(parse_int64("-1"), -1);
         ASSERT_EQUAL(parse_int64("5848484"), 5848484);
         ASSERT_EQUAL(parse_int64("-9"), -9);
+        ASSERT_EQUAL(parse_int64("5848484 "), 5848484);
+        ASSERT_EQUAL(parse_int64(" 5848484"), 5848484);
+        ASSERT_EQUAL(parse_int64(" -5848484 "), -5848484);
         ASSERT_EXCEPTION(parse_int64("3.5"));
         ASSERT_EXCEPTION(parse_int64("-0.00001"));
         ASSERT_EXCEPTION(parse_int64("-8888.0"));
@@ -90,6 +93,7 @@ public:
         // Positive in64
         ASSERT_EQUAL(parse_positive_int64("1"), 1);
         ASSERT_EQUAL(parse_positive_int64("0"), 0);
+        ASSERT_EQUAL(parse_positive_int64("4 "), 4);
         ASSERT_EXCEPTION(parse_positive_int64(""));
         ASSERT_EXCEPTION(parse_positive_int64("-6"));
         ASSERT_EXCEPTION(parse_positive_int64("3.5"));
@@ -97,6 +101,7 @@ public:
         // Positive int64 >= 1
         ASSERT_EQUAL(parse_geq_one_int64("345"), 345);
         ASSERT_EQUAL(parse_geq_one_int64("1"), 1);
+        ASSERT_EQUAL(parse_geq_one_int64("3 "), 3);
         ASSERT_EXCEPTION(parse_geq_one_int64("0"));
         ASSERT_EXCEPTION(parse_geq_one_int64("1.1"));
 
@@ -108,6 +113,9 @@ public:
         ASSERT_EQUAL(parse_double("-0.00001"), -0.00001);
         ASSERT_EQUAL(parse_double("-8888"), -8888);
         ASSERT_EQUAL(parse_double("5e-1"), 0.5);
+        ASSERT_EQUAL(parse_double("6.89 "), 6.89);
+        ASSERT_EQUAL(parse_double(" 6.89"), 6.89);
+        ASSERT_EQUAL(parse_double(" \t-6.39\n "), -6.39);
         ASSERT_EXCEPTION(parse_double("abc"));
         ASSERT_EXCEPTION(parse_double("58.2abc"));
         ASSERT_EXCEPTION(parse_double("a58.2"));
@@ -118,6 +126,8 @@ public:
         ASSERT_EQUAL(parse_positive_double("-0.0"), 0.0);
         ASSERT_EQUAL(parse_positive_double("6.89"), 6.89);
         ASSERT_EQUAL(parse_positive_double("99"), 99.0);
+        ASSERT_EQUAL(parse_positive_double("6.89 "), 6.89);
+        ASSERT_EQUAL(parse_positive_double(" 6.89"), 6.89);
         ASSERT_EXCEPTION(parse_positive_double("-0.00001"));
         ASSERT_EXCEPTION(parse_positive_double("-8888"));
 
@@ -125,6 +135,8 @@ public:
         ASSERT_EQUAL(parse_double_between_zero_and_one("0.0"), 0.0);
         ASSERT_EQUAL(parse_double_between_zero_and_one("0.6"), 0.6);
         ASSERT_EQUAL(parse_double_between_zero_and_one("1.0"), 1.0);
+        ASSERT_EQUAL(parse_double_between_zero_and_one("0.87 "), 0.87);
+        ASSERT_EQUAL(parse_double_between_zero_and_one(" 0.87"), 0.87);
         ASSERT_EXCEPTION(parse_double_between_zero_and_one("-0.00001"));
         ASSERT_EXCEPTION(parse_double_between_zero_and_one("1.00001"));
 
@@ -133,6 +145,10 @@ public:
         ASSERT_TRUE(parse_boolean("true"));
         ASSERT_FALSE(parse_boolean("0"));
         ASSERT_FALSE(parse_boolean("false"));
+        ASSERT_FALSE(parse_boolean("false "));
+        ASSERT_FALSE(parse_boolean(" false"));
+        ASSERT_TRUE(parse_boolean("true "));
+        ASSERT_TRUE(parse_boolean(" true"));
         ASSERT_EXCEPTION(parse_boolean("y"));
         ASSERT_EXCEPTION(parse_boolean("n"));
         ASSERT_EXCEPTION(parse_boolean("yes"));
