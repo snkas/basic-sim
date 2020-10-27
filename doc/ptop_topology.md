@@ -282,18 +282,31 @@ Besides it just defining a graph, the following rules apply:
   - `disabled` for no queueing discipline
   - `fifo(<integer>p)` or `fifo(<integer>B)` for first-in-first-out (= tail-drop)
   - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology
-  - `simple_red(ecn/drop; min_th; max_th; max_size)` for a simple RED queueing discipline.
-    It does a simple linear probability between the minimum and maximum threshold.
-    The instantaneous queue size is used as the "average queue size" (which means, no exponential
-    weighted averaging is done). The action taken if a packet is probabilistically
-    determined to be marked by RED can be set to either mark ECN (ecn) or drop the packet (drop).
-     
+  - `simple_red(ecn/drop; queue_weight; min_th; max_th; max_size; max_p; wait/no_wait; gentle/not_gentle)` 
+    for a simple RED queueing discipline. It does an increasing linear probability
+    between the minimum (having p_b = 0.0) and maximum threshold (p_b = MaxP).
+    The action taken if a packet is probabilistically determined to be marked by
+    RED can be set to either mark ECN (ecn) or drop the packet (drop).
+    
+    For an explanation of the behavior of RED, see the source code in ns3:
+    `src/traffic-control/model/red-queue-disc.h/cc` and the original
+    RED paper "Random Early Detection Gateways for Congestion Avoidance" by 
+    Sally Floyd and Van Jacobson.
+    
     The parameters:
     - `ecn/drop`: the action; set to `ecn` or to `drop`
+    - `queue_weight`: the queue weight for EWMA estimate of average queue size (in range (0, 1])
     - `min_th`: RED minimum threshold in packets
     - `max_th`: RED maximum threshold in packets
-    - `max_size`: Maximum queue size in packets (if the action is `drop`, 
-      `max_th` will effectively be a lower `max_size`)
+    - `max_size`: maximum queue size in packets
+    - `max_p`: p_b probability at the maximum threshold (in range (0, 1])
+    - `wait/no_wait`: whether to wait between dropping packets
+    - `gentle/not_gentle`:  if gentle, then the p_b probability
+      increases linearly from `max_p` to 1.0 between `max_th` and `2 * max_th`.
+      If not_gentle, the p_b probability at `max_th` will be 1.0 immediately 
+      (effectively, `max_th` will is a lower `max_size`) -- this is called not
+      gentle because it goes from `max_p` to 1.0 immediately from `max_th` to `max_th + 1`
+      queue size.
 
 * **Examples:**
   - `link_interface_traffic_control_qdisc=none` for no traffic-control at any link
@@ -302,4 +315,3 @@ Besides it just defining a graph, the following rules apply:
     mark ECN from 50 to 80, and maximum queue size of 100 packets before tail-drop
   - `link_interface_traffic_control_qdisc=map(0->1: none, 1->0: fifo(100000B), 
     1->2: fifo(80p), 2->1: fq_codel_better_rtt)`
-    

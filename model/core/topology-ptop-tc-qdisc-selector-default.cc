@@ -80,29 +80,50 @@ namespace ns3 {
             );
             return std::make_pair(true, fifoHelper);
 
+        // simple_red(ecn/drop; queue_weight; min_th; max_th; max_size; max_p; wait/no_wait; gentle/not_gentle)
         } else if (starts_with(value, "simple_red(") && ends_with(value, ")")) {
 
             // Get rid of the "simple_red("-prefix and ")"-postfix
             std::string inner_part = value.substr(11, value.size() - 12);
-            std::vector<std::string> spl = split_string(inner_part, ";", 4);
+            std::vector<std::string> spl = split_string(inner_part, ";", 8);
 
             // Action
-            std::string str_action = spl.at(0);
+            std::string str_action = trim(spl.at(0));
             if (str_action != "ecn" && str_action != "drop") {
                 throw std::invalid_argument("Invalid RED action: " + str_action);
             }
             bool action_is_ecn = str_action == "ecn";
 
             // Thresholds and maximum size
-            int64_t min_th_pkt = parse_positive_int64(spl.at(1));
-            int64_t max_th_pkt = parse_positive_int64(spl.at(2));
-            int64_t max_size_pkt = parse_positive_int64(spl.at(3));
+            double queue_weight = parse_double(spl.at(1));
+            if (queue_weight <= 0.0 || queue_weight > 1.0) {
+                throw std::invalid_argument("Queue weight must be in range (0, 1.0]");
+            }
+            int64_t min_th_pkt = parse_positive_int64(spl.at(2));
+            int64_t max_th_pkt = parse_positive_int64(spl.at(3));
+            int64_t max_size_pkt = parse_positive_int64(spl.at(4));
             if (min_th_pkt > max_th_pkt) {
                 throw std::invalid_argument("RED minimum threshold cannot exceed maximum threshold");
             }
             if (max_th_pkt > max_size_pkt) {
                 throw std::invalid_argument("RED maximum threshold cannot exceed maximum queue size");
             }
+            double max_p = parse_double(spl.at(5));
+            if (max_p <= 0.0 || max_p > 1.0) {
+                throw std::invalid_argument("Maximum probability must be in range (0, 1.0]");
+            }
+
+            std::string str_wait = trim(spl.at(6));
+            if (str_wait != "wait" && str_wait != "no_wait") {
+                throw std::invalid_argument("Invalid RED wait: " + str_wait);
+            }
+            bool wait = str_wait == "wait";
+
+            std::string str_gentle = trim(spl.at(7));
+            if (str_gentle != "gentle" && str_gentle != "not_gentle") {
+                throw std::invalid_argument("Invalid RED gentle: " + str_gentle);
+            }
+            bool gentle = str_gentle == "gentle";
 
             // Create the traffic control helper
             TrafficControlHelper simpleRedHelper;
@@ -110,7 +131,12 @@ namespace ns3 {
             // Set the root queueing discipline to RED with the attributes
             simpleRedHelper.SetRootQueueDisc(
                     "ns3::RedQueueDisc",
-                    "QW", DoubleValue (1),                           // Only instantaneous queue size is used to estimate average queue size (thus they are equal)
+                    "Wait", BooleanValue (wait),                     // Whether to wait one packet after dropping one
+                    "Gentle", BooleanValue (gentle),                 // Whether to start dropping hard at maximum threshold, or scale linearly to 2 * maximum threshold first
+                    "LInterm", DoubleValue(1.0 / max_p),             // The probability at the RED maximum threshold (inverse)
+                    "QW", DoubleValue (queue_weight),                // EWMA weight of the instantaneous queue size
+                                                                     // At QW = 1: Only instantaneous queue size is used to estimate average queue size (thus they are equal)
+                                                                     // At QW < 1: The average queue size changes not as quickly
                     "UseEcn", BooleanValue (action_is_ecn),          // Either: (a) mark with ECN
                     "UseHardDrop", BooleanValue (!action_is_ecn),    //         (b) drop
                     "MeanPktSize", UintegerValue (1500),             // Mean packet size we set to 1500 byte always
