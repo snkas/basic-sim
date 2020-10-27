@@ -364,7 +364,7 @@ public:
         topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
         topology_file << "link_net_device_queue=map(0->1: drop_tail(1p), 1->0: drop_tail(100p), 0->2: drop_tail(100p), 2->0: drop_tail(100p))" << std::endl;
         topology_file << "link_net_device_receive_error_model=none" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=map(0->1: simple_red(drop; 1.0; 100; 500; 4000; 0.1; wait; gentle), 1->0: fifo(100p), 0->2: fifo(100p), 2->0: fifo(100p))" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->1: simple_red(drop; 1.0; 100; 500; 4000; 0.1; no_wait; gentle), 1->0: fifo(100p), 0->2: fifo(100p), 2->0: fifo(100p))" << std::endl;
         topology_file.close();
 
         // Write UDP burst file
