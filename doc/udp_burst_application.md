@@ -155,7 +155,7 @@ Each line defines a burst as follows:
 [udp burst id],[from node id],[to node id],[target rate (Mbit/s)],[start time (ns since epoch)],[duration (ns)],[additional parameters],[metadata]
 ```
 
-Notes: `udp_burst_id` must increment each line. All values except additional_parameters
+Notes: `udp burst id` must increment each line. All values except additional_parameters
 and metadata are mandatory. `additional parameters` should be set if you want to configure
 something special for each burst (e.g., different priority). `metadata` you can use for
 identification later on in the `udp_bursts.csv/txt` logs (e.g., to indicate the workload

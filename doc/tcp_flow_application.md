@@ -173,7 +173,7 @@ Each line defines a flow as follows:
 [tcp flow id],[from node id],[to node id],[size (byte)],[start time (ns since epoch)],[additional parameters],[metadata]
 ```
 
-Notes: tcp_flow_id must increment each line. Start time has to be weakly increasing.
+Notes: `tcp flow id` must increment each line. Start time has to be weakly increasing.
 All values except additional_parameters and metadata are mandatory.
 `additional parameters` should be set if you want to configure something special
 for each flow (e.g., different transport protocol, priority). `metadata` you can
