@@ -105,7 +105,7 @@ You can use the application(s) separately, or make use of the scheduler (which i
             m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{cwnd, rtt, progress}.csv are written
     );
     ApplicationContainer app_flow_0 = source.Install(node_a);
-    app_flow_0.Start(NanoSeconds(0)); // Flow start time (ns)
+    app_flow_0.Start(NanoSeconds(0)); // Flow start time (ns since epoch)
    ```
 
 3. After the run, in your code add:
@@ -167,12 +167,12 @@ TCP flow arrival schedule.
 Each line defines a flow as follows:
 
 ```
-[tcp_flow_id],[from_node_id],[to_node_id],[size_byte],[start_time_ns],[additional_parameters],[metadata]
+[tcp flow id],[from node id],[to node id],[size (byte)],[start time (ns since epoch)],[additional parameters],[metadata]
 ```
 
 Notes: tcp_flow_id must increment each line. Start time has to be weakly increasing.
 All values except additional_parameters and metadata are mandatory.
-`additional_parameters` should be set if you want to configure something special
+`additional parameters` should be set if you want to configure something special
 for each flow (e.g., different transport protocol, priority). `metadata` you can
 use for identification later on in the `tcp_flows.csv/txt` logs (e.g., to indicate
 the workload or coflow it was part of).
