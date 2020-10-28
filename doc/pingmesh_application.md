@@ -117,6 +117,17 @@ You MUST set the following keys in `config_ns3.properties`:
 * `pingmesh_interval_ns`
   - **Description:** interval to send a ping (in nanoseconds)
   - **Value type:** positive integer
+  - **Note:** 
+    If all pings would start at the same time (t=0), they would all get simultaneously
+    put into the same same queue. If you would have 10000 nodes (and endpoints), and 1 outgoing
+    net-device (link) then there will be in one logical time moment (t=0) 9999 packets being put
+    into the queue. Even if the net-device rate is high (10 Gbit/s), the maximum queue size
+    will cause the drop of a large portion of the 9999. To mitigate this, pings are started
+    with `interval / (no. of endpoints - 1)` between each other for each node. For example:
+    there are 5 endpoints, with ping pairs `set(0->1, 0->2, 0->3, 1->0, 1->2)` at interval 80ms.
+    The ping 0->1 will start at t=0ms, 0->2 at t=20ms, 0->3 at t=40ms, 1->0 at t=0ms and 1->2 at t=20ms
+    (ping pairs are ordered such that the start difference is known in advance irrespective of
+    ordering in the set).
 
 The following are OPTIONAL:
 
@@ -126,7 +137,8 @@ The following are OPTIONAL:
     - `all` (default)
     - Set of directed pairs: `set(a->b, c->d, ...)`
   - **Example:**
-    - `pingmesh_endpoint_pairs=set(0->1, 5->6)` to only have pinging from 0 to 1 and from 5 to 6 (directed pairs)
+    - `pingmesh_endpoint_pairs=set(0->1, 5->6)` to only have pinging from 0 to 1 and 
+      from 5 to 6 (directed pairs)
 
 
 ## Pingmesh scheduler logs (output)
