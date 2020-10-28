@@ -22,7 +22,7 @@ You can either immediately start with the tutorial below, or read more documenta
 
 We are going to have a single switch which has 3 servers under it. A switch which
 has servers directly under it is typically referred to as a ToR. Link delay is 10 
-microseconds, link rate is 100 Mb/s. Each link net-device has a tail-drop
+microseconds, link rate is 100 Mb/s. Each link net-device has a drop-tail
 (= first-in-first-out) queue of 100 packets. The link's interface traffic-control
 queueing discipline is not enabled. There will be no random drops happening 
 (net-device receiving error model is not set). The simulation will be run for 4 seconds.
