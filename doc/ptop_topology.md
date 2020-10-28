@@ -278,11 +278,16 @@ Besides it just defining a graph, the following rules apply:
     i.e. `map(a->b: [tc qdisc], b->a: [tc qdisc], ...)`
     
 * **Possible traffic control qdisc types:**
+
   - `default` for the ns-3 default (fq_codel with a pretty high RTT estimate)
+  
   - `disabled` for no queueing discipline
-  - `fifo(<integer>p)` or `fifo(<integer>B)` for first-in-first-out (= tail-drop)
+  
+  - `fifo(<integer>p)` or `fifo(<integer>B)` for first-in-first-out (= drop-tail)
+  
   - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology
-  - `simple_red(ecn/drop; queue_weight; min_th; max_th; max_size; max_p; wait/no_wait; gentle/not_gentle)` 
+  
+  - `simple_red(ecn/drop; mean_pkt_size_byte; queue_weight; min_th_pkt; max_th_pkt; max_size; max_p; wait/no_wait; gentle/not_gentle)` 
     for a simple RED queueing discipline. It does an increasing linear probability
     between the minimum (having p_b = 0.0) and maximum threshold (p_b = MaxP).
     The action taken if a packet is probabilistically determined to be marked by
@@ -296,10 +301,12 @@ Besides it just defining a graph, the following rules apply:
     
     The parameters:
     - `ecn/drop`: the action; set to `ecn` or to `drop`
-    - `queue_weight`: the queue weight for EWMA estimate of average queue size (in range (0, 1])
+    - `mean_pkt_size_byte`: mean packet size in byte
+    - `queue_weight`: the queue weight for EWMA estimate of average queue size (in range (0, 1]).
+      Instantaneous queue size only is when the queue weight is 1.
     - `min_th`: RED minimum threshold in packets
     - `max_th`: RED maximum threshold in packets
-    - `max_size`: maximum queue size in packets
+    - `max_size`: maximum queue size in either packets (`<number>p`) or byte (`<number>B`)
     - `max_p`: p_b probability at the maximum threshold (in range (0, 1])
     - `wait/no_wait`: whether to wait between dropping packets
     - `gentle/not_gentle`:  if gentle, then the p_b probability
@@ -310,9 +317,21 @@ Besides it just defining a graph, the following rules apply:
       queue size.
 
 * **Examples:**
+
   - `link_interface_traffic_control_qdisc=none` for no traffic-control at any link
-  - `link_interface_traffic_control_qdisc=fifo(100p)` for a 100 packets tail-drop for all links
-  - `link_interface_traffic_control_qdisc=simple_red(ecn; 50; 80; 100)` for a queue which has linear probability to
-    mark ECN from 50 to 80, and maximum queue size of 100 packets before tail-drop
+  
+  - `link_interface_traffic_control_qdisc=fifo(100p)` for a 100 packets drop-tail for all links
+  
+  - `link_interface_traffic_control_qdisc=simple_red(ecn; 1500; 1.0; 50; 80; 300p; 0.2; wait; gentle)` 
+    for a RED queue which marks ECN with min. threshold of 50 and a max. threshold of 80.
+    It waits between ECN marking. Between 50 and 80 probability goes from 0.0 to 0.3.
+    Between 80 and 160 packets because it is gentle the probability goes from 0.2 to 1.0.
+    
+  - `link_interface_traffic_control_qdisc=simple_red(drop; 1500; 1.0; 20; 60; 200p; 0.3; wait; gentle)` 
+    for a RED queue which marks ECN with min. threshold of 20 and a max. threshold of 60.
+    The maximum queue size of 200p will not be reached (as 60p * 2 = 120p with gentle on).
+    It waits between dropping. Between 20 and 60 probability goes from 0.0 to 0.3.
+    Between 60 and 120 packets because it is gentle the probability goes from 0.3 to 1.0.
+    
   - `link_interface_traffic_control_qdisc=map(0->1: none, 1->0: fifo(100000B), 
     1->2: fifo(80p), 2->1: fq_codel_better_rtt)`
