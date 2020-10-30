@@ -32,7 +32,7 @@
 
 namespace ns3 {
 
-    NS_LOG_COMPONENT_DEFINE ("UdpRttServerApplication");
+    NS_LOG_COMPONENT_DEFINE ("UdpRttServer");
 
     NS_OBJECT_ENSURE_REGISTERED (UdpRttServer);
 
