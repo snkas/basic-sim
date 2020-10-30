@@ -75,7 +75,6 @@ namespace ns3 {
             m_socket = Socket::CreateSocket(GetNode(), tid);
 
             // Bind to local port (and any local IP address)
-            NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_local), "Multi-cast is not supported.");
             InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
             if (m_socket->Bind(local) == -1) {
                 throw std::runtime_error("Failed to bind socket");
