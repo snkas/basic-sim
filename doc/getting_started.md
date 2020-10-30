@@ -245,14 +245,14 @@ We are going to install three different applications:
 5. Run it by executing in your ns-3 folder:
 
    ```
-   ./waf --run="my_main --run_dir='/your/path/to/example_run'"
+   ./waf --run="scratch/my-main --run_dir='/your/path/to/example_run'"
    ```
    
    ... or if you also want to save the console output:
    
    ```
    mkdir -p /your/path/to/example_run/logs_ns3
-   ./waf --run="my_main --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
+   ./waf --run="scratch/my-main --run_dir='/your/path/to/example_run'" 2>&1 | tee /your/path/to/example_run/logs_ns3/console.txt
    ```
    
 6. Within `/your/path/to/example_run/logs_ns3` you should find the following output:
