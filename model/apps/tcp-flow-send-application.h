@@ -70,9 +70,8 @@ private:
   bool            m_connected;    //!< True if connected
   uint32_t        m_sendSize;     //!< Size of data to send each time
   uint64_t        m_maxBytes;     //!< Limit total number of bytes sent
-  uint64_t        m_tcpFlowId;       //!< Flow identifier
-  uint64_t        m_totBytes;     //!< Total bytes sent so far
-  TypeId          m_tid;          //!< The type of protocol to use.
+  uint64_t        m_tcpFlowId;        //!< Flow identifier
+  uint64_t        m_totBytes;         //!< Total bytes sent so far
   int64_t         m_completionTimeNs; //!< Completion time in nanoseconds
   bool            m_connFailed;       //!< Whether the connection failed
   bool            m_closedNormally;   //!< Whether the connection closed normally

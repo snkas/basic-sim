@@ -28,6 +28,7 @@
 #include "ns3/string.h"
 #include "ns3/simulator.h"
 #include "ns3/socket-factory.h"
+#include "ns3/tcp-socket-factory.h"
 #include "ns3/packet.h"
 #include "ns3/uinteger.h"
 #include "ns3/trace-source-accessor.h"
@@ -71,10 +72,6 @@ TcpFlowSendApplication::GetTypeId(void) {
                           UintegerValue(0),
                           MakeUintegerAccessor(&TcpFlowSendApplication::m_tcpFlowId),
                           MakeUintegerChecker<uint64_t>())
-            .AddAttribute("Protocol", "The type of protocol to use.",
-                          TypeIdValue(TcpSocketFactory::GetTypeId()),
-                          MakeTypeIdAccessor(&TcpFlowSendApplication::m_tid),
-                          MakeTypeIdChecker())
             .AddAttribute("EnableTcpFlowLoggingToFile",
                           "True iff you want to track some aspects (progress, CWND, RTT) of the TCP flow over time.",
                           BooleanValue(true),
@@ -129,16 +126,7 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
 
     // Create the socket if not already
     if (!m_socket) {
-        m_socket = Socket::CreateSocket(GetNode(), m_tid);
-
-        // Socket must be TCP basically
-        NS_ABORT_MSG_IF(
-                m_socket->GetSocketType() != Socket::NS3_SOCK_STREAM &&
-                m_socket->GetSocketType() != Socket::NS3_SOCK_SEQPACKET,
-                "Using TcpFlowSendApplication with an incompatible socket type. "
-                "TcpFlowSendApplication requires SOCK_STREAM or SOCK_SEQPACKET. "
-                "In other words, use TCP instead of UDP."
-        );
+       m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
 
         // Bind socket
         NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peer), "Only IPv4 is supported.");

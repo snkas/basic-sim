@@ -32,7 +32,6 @@ void TcpFlowScheduler::StartNextFlow(int i) {
 
     // Helper to install the source application
     TcpFlowSendHelper source(
-            "ns3::TcpSocketFactory",
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             entry.GetSizeByte(),
             entry.GetTcpFlowId(),

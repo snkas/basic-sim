@@ -79,7 +79,6 @@ public:
 
         // 0 --> 1
         TcpFlowSendHelper source0(
-                "ns3::TcpSocketFactory",
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 1000000,
                 0,
@@ -92,7 +91,6 @@ public:
 
         // 1 --> 0
         TcpFlowSendHelper source1(
-                "ns3::TcpSocketFactory",
                 InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 89999,
                 1,
@@ -317,7 +315,6 @@ public:
 
         // Flow 0 --> 1
         TcpFlowSendHelper source0(
-                "ns3::TcpSocketFactory",
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 1000000,
                 0,

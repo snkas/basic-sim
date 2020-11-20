@@ -26,10 +26,9 @@
 
 namespace ns3 {
 
-TcpFlowSendHelper::TcpFlowSendHelper (std::string protocol, Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters)
+TcpFlowSendHelper::TcpFlowSendHelper (Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters)
 {
   m_factory.SetTypeId ("ns3::TcpFlowSendApplication");
-  m_factory.Set ("Protocol", StringValue (protocol));
   m_factory.Set ("Remote", AddressValue (address));
   m_factory.Set ("MaxBytes", UintegerValue (maxBytes));
   m_factory.Set ("TcpFlowId", UintegerValue (flowId));

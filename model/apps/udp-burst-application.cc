@@ -115,8 +115,7 @@ namespace ns3 {
 
         // Bind a socket to the UDP port
         if (m_socket == 0) {
-            TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-            m_socket = Socket::CreateSocket(GetNode(), tid);
+            m_socket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
             InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
             if (m_socket->Bind(local) == -1) {
                 throw std::runtime_error("Failed to bind socket");
