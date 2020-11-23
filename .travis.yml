@@ -26,6 +26,7 @@ install:
 # Command(s) to run tests and examples
 script:
   - bash test.sh
+  - bash one_tcp.sh
   - bash tutorial.sh
   - bash example.sh
 
