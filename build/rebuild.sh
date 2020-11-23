@@ -2,7 +2,7 @@ NS3_VERSION="ns-3.31"
 
 # Extract copy of ns-3
 echo "Unzipping clean ns-3 (no overwrites)"
-unzip -n ${NS3_VERSION}.zip
+unzip -nq ${NS3_VERSION}.zip
 
 # Removing non-dependent modules for quicker compilation
 echo "Removing modules in ${NS3_VERSION}/src/ on which basic-sim is not dependent"

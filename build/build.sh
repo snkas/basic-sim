@@ -8,7 +8,7 @@ fi
 
 # Extract copy of ns-3
 echo "Unzipping clean ns-3 (no overwrites)"
-unzip -n ${NS3_VERSION}.zip || exit 1
+unzip -nq ${NS3_VERSION}.zip || exit 1
 
 # Removing non-dependent modules for quicker compilation
 echo "Removing modules in ${NS3_VERSION}/src/ on which basic-sim is not dependent on"
