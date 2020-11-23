@@ -12,8 +12,12 @@ The following commands are defined (in order in which they can be executed):
 
 * `test.sh` : Run all the `basic-sim` tests. It outputs the results in `test_results/` and the coverage report in `coverage_report/`.
 
-* `tutorial.sh` : Runs the tutorial described in the `<basic-sim>/doc/getting_started.md` (and showcases the plotting helper tools by producing a bunch of plots)
+* `test_distributed_exactly_equal.py` : Takes in a run folder of a run which was not distributed, and compares its logs exactly to another run folder of a run which was distributed.
+
+* `tutorial.sh` : Runs the tutorial described in the `<basic-sim>/doc/getting_started.md` (and showcases the plotting helper tools by producing a bunch of plots).
 
 * `example.sh` : Runs a variety of example run folders (located in `example_run_folders/`).
+
+* `one_tcp.sh` : Run the most simple example run folder of one TCP flow over a two node with one link topology.
  
 * `clean.sh` : Removes test results, coverage report, builds and tutorial/example log files.
