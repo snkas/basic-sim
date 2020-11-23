@@ -40,6 +40,15 @@ python plot_tcp_flows_ecdfs.py path/to/run_folder/logs_ns3 path/to/run_folder/lo
 ```
 
 
+### UDP burst plotting
+
+Plotting UDP burst with id 33 (arrived/sent amount, arrived/sent rate (in 100ms intervals), one-way latency):
+```
+cd /path/to/tools/plotting/plot_udp_burst
+python plot_udp_burst.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 33 100000000
+```
+
+
 ### Ping plotting
 
 Plotting pings between 21 -> 30 (RTT, # of out-of-order (in 10ms intervals))
@@ -58,11 +67,18 @@ cd /path/to/tools/plotting/plot_link_net_device_utilization
 python plot_link_net_device_utilization.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
 ```
 
+### Link net-device queue plotting
 
-### UDP burst plotting
-
-Plotting UDP burst with id 33 (arrived/sent amount, arrived/sent rate (in 100ms intervals), one-way latency):
+Plotting queue of link 5 -> 9:
 ```
-cd /path/to/tools/plotting/plot_udp_burst
-python plot_udp_burst.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 33 100000000
+cd /path/to/tools/plotting/plot_link_net_device_queue
+python plot_link_net_device_queue.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
+```
+
+### Interface traffic-control queue discipline queue plotting
+
+Plotting traffic-control qdisc queue of link 5 -> 9:
+```
+cd /path/to/tools/plotting/plot_link_interface_tc_qdisc_queue
+python plot_link_interface_tc_qdisc_queue.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 5 9
 ```

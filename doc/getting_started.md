@@ -311,3 +311,38 @@ We are going to install three different applications:
     2        0        93.77%
     3        0        1.54%                     
     ```
+
+
+### Making some plots
+
+The `basic-sim` module also has a few helper Python files which can be used to plot the simple
+plots like TCP congestion window or link net-device queue size over time. They are located
+in the `tools/plotting/` directory. Each plotting command takes as first argument the `logs_ns3` directory.
+The second argument is an output directory `data` where it places the data files it used to plot,
+and the third argument is an output directory `pdf` where it outputs the plot PDFs.
+
+A few example plots you could make:
+
+1. Plot the TCP flow with ID 1:
+   ```
+   cd /path/to/basic-sim/tools/plotting/plot_tcp_flow
+   python plot_tcp_flow.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 1 10000000
+   ```
+   
+2. Plot the UDP burst with ID 0:
+   ```
+   cd /path/to/basic-sim/tools/plotting/plot_udp_burst
+   python plot_udp_burst.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 0 100000000
+   ```
+   
+3. Plot the ping from 2 to 1:
+   ```
+   cd /path/to/basic-sim/tools/plotting/plot_ping
+   python plot_ping.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 2 1 10000000
+   ```
+   
+4. Plot the net-device queue of the link from node 1 to node 0:
+   ```
+   cd /path/to/basic-sim/tools/plotting/plot_link_net_device_queue
+   python plot_link_net_device_queue.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 1 0
+   ```
