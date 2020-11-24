@@ -28,6 +28,7 @@ def build(bld):
         'helper/core/ptop-link-net-device-utilization-tracking.cc',
         'helper/core/ptop-link-net-device-queue-tracking.cc',
         'helper/core/ptop-link-interface-tc-qdisc-queue-tracking.cc',
+        'helper/core/initial-helpers.cc',
         'helper/core/tcp-optimizer.cc',
         'helper/core/point-to-point-ab-helper.cc',
 
@@ -76,6 +77,7 @@ def build(bld):
         'helper/core/ptop-link-net-device-utilization-tracking.h',
         'helper/core/ptop-link-net-device-queue-tracking.h',
         'helper/core/ptop-link-interface-tc-qdisc-queue-tracking.h',
+        'helper/core/initial-helpers.h',
         'helper/core/tcp-optimizer.h',
         'helper/core/point-to-point-ab-helper.h',
 

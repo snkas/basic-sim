@@ -281,15 +281,22 @@ void BasicSimulation::Run() {
 void BasicSimulation::CleanUpSimulation() {
     std::cout << "CLEAN-UP" << std::endl;
 
+    // Destroy
     Simulator::Destroy();
     std::cout << "  > Simulator is destroyed" << std::endl;
     RegisterTimestamp("Destroy simulator");
 
+    // Disable MPI
     if (m_enable_distributed) {
         MpiInterface::Disable ();
         std::cout << "  > MPI interface is disabled" << std::endl;
         RegisterTimestamp("Disable MPI interface");
     }
+
+    // Reset configuration
+    Config::Reset();
+    std::cout << "  > Reset initial attribute and global values in configuration" << std::endl;
+    RegisterTimestamp("Reset configuration");
 
     std::cout << std::endl;
 }

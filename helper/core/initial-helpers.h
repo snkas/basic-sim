@@ -17,24 +17,19 @@
  * Author: Simon
  */
 
-#ifndef TCP_OPTIMIZER_H
-#define TCP_OPTIMIZER_H
+#ifndef INITIAL_HELPERS_H
+#define INITIAL_HELPERS_H
 
-#include "ns3/basic-simulation.h"
-#include "ns3/ipv4-routing-helper.h"
-#include "ns3/initial-helpers.h"
+#include "ns3/core-module.h"
 
 namespace ns3 {
 
-    class TcpOptimizer
-    {
-    public:
-        static void OptimizeBasic(Ptr<BasicSimulation> basicSimulation);
-        static void OptimizeUsingWorstCaseRtt(Ptr<BasicSimulation> basicSimulation, int64_t worst_case_rtt_ns);
-    private:
-        static void Generic();
-    };
+    struct TypeId::AttributeInformation GetAttributeInformation(std::string tidName, std::string attributeName);
+    int64_t GetInitialUintValue(std::string tidName, std::string attributeName);
+    double GetInitialDoubleValue(std::string tidName, std::string attributeName);
+    TimeValue GetInitialTimeValue(std::string tidName, std::string attributeName);
+    bool GetInitialBooleanValue(std::string tidName, std::string attributeName);
 
 } // namespace ns3
 
-#endif /* TCP_OPTIMIZER_H */
+#endif /* INITIAL_HELPERS_H */

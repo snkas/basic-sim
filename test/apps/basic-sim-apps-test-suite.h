@@ -1,5 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
+#include "initial-helpers-test.h"
 #include "tcp-flow-schedule-reader-test.h"
 #include "udp-burst-schedule-reader-test.h"
 #include "tcp-flow-end-to-end-test.h"
@@ -10,6 +11,10 @@
 class BasicAppsTestSuite : public TestSuite {
 public:
     BasicAppsTestSuite() : TestSuite("basic-sim-apps", UNIT) {
+
+        // Initial helpers test case
+        AddTestCase(new InitialHelpersCorrectTestCase, TestCase::QUICK);
+        AddTestCase(new InitialHelpersMismatchesTestCase, TestCase::QUICK);
 
         // TCP flow schedule reader
         AddTestCase(new TcpFlowScheduleReaderNormalTestCase, TestCase::QUICK);
