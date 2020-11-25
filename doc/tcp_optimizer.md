@@ -4,8 +4,12 @@ The TCP optimizer can be used to change (hopefully for the better) the
 default parameters of the TCP stack.
 
 It encompasses the following files:
+  
+* **Extra initial attribute value helpers:** `helper/core/initial-helpers.cc/h`
 
-* **TcpOptimizer:** `helper/core/tcp-optimizer`
+  A few extra useful functions to retrieve typed initial attribute values.
+  
+* **TcpOptimizer:** `helper/core/tcp-optimizer.cc/h`
 
   TCP optimizer.
 
