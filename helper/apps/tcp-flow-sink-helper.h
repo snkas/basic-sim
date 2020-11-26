@@ -36,7 +36,7 @@ namespace ns3 {
 class TcpFlowSinkHelper
 {
 public:
-  TcpFlowSinkHelper (std::string protocol, Address address);
+  TcpFlowSinkHelper (Address address);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (NodeContainer c) const;
   ApplicationContainer Install (Ptr<Node> node) const;

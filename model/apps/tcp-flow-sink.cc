@@ -17,7 +17,7 @@
  *
  * Author: Simon
  * Adapted from PacketSink by:
- * Author:  Tom Henderson (tomhend@u.washington.edu)
+ * Author: Tom Henderson (tomhend@u.washington.edu)
  */
 
 #include "ns3/address.h"
@@ -52,11 +52,7 @@ TcpFlowSink::GetTypeId(void) {
                           AddressValue(),
                           MakeAddressAccessor(&TcpFlowSink::m_local),
                           MakeAddressChecker())
-            .AddAttribute("Protocol",
-                          "The type id of the protocol to use for the rx socket.",
-                          TypeIdValue(TcpSocketFactory::GetTypeId()),
-                          MakeTypeIdAccessor(&TcpFlowSink::m_tid),
-                          MakeTypeIdChecker());
+            ;
     return tid;
 }
 
@@ -88,16 +84,7 @@ void TcpFlowSink::StartApplication() { // Called at time specified by Start
     // it forks itself into a new socket, which
     // keeps the accept and close callbacks
     if (!m_socket) {
-        m_socket = Socket::CreateSocket(GetNode(), m_tid);
-
-        // Socket must be TCP basically
-        NS_ABORT_MSG_IF(
-                m_socket->GetSocketType() != Socket::NS3_SOCK_STREAM &&
-                m_socket->GetSocketType() != Socket::NS3_SOCK_SEQPACKET,
-                "Using TcpFlowSink with an incompatible socket type. "
-                "TcpFlowSink requires SOCK_STREAM or SOCK_SEQPACKET. "
-                "In other words, use TCP instead of UDP."
-        );
+        m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
 
         // Bind socket
         NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_local), "No support for multicast");
@@ -156,13 +143,6 @@ void TcpFlowSink::HandleRead(Ptr<Socket> socket) {
             break;
         }
         m_totalRx += packet->GetSize ();
-
-        // Other fields that could be useful here if actually did something:
-        // Size: packet->GetSize()
-        // Source IP: InetSocketAddress::ConvertFrom(from).GetIpv4 ()
-        // Source port: InetSocketAddress::ConvertFrom (from).GetPort ()
-        // Our own IP / port: Address localAddress; socket->GetSockName (localAddress);
-
     }
 }
 

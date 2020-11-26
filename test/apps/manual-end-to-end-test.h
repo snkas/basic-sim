@@ -73,7 +73,7 @@ public:
         );
 
         // Install flow sink on all
-        TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        TcpFlowSinkHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
         ApplicationContainer app = sink.Install(topology->GetNodes());
         app.Start(NanoSeconds(0));
 
@@ -295,7 +295,7 @@ public:
         setup_basic();
 
         // Install flow sink on node 1
-        TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        TcpFlowSinkHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
         ApplicationContainer app = sink.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
         app.Stop(Seconds(0.1));
@@ -309,7 +309,7 @@ public:
         setup_basic();
 
         // Install flow sink on node 1
-        TcpFlowSinkHelper sink2("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        TcpFlowSinkHelper sink2(InetSocketAddress(Ipv4Address::GetAny(), 1024));
         app = sink2.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
 

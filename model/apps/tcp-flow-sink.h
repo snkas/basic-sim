@@ -56,12 +56,11 @@ private:
   void HandlePeerError (Ptr<Socket> socket);
   void CleanUp (Ptr<Socket> socket);
 
-  Ptr<Socket> m_socket;                 //!< Listening socket
-  std::list<Ptr<Socket> > m_socketList; //!< the accepted sockets
+  Ptr<Socket> m_socket;                 //!< Listening socket (upon connection request, forks off a socket)
+  std::list<Ptr<Socket> > m_socketList; //!< List of accepted sockets (are removed upon closed)
 
   Address m_local;        //!< Local address to bind to
-  TypeId  m_tid;          //!< Protocol TypeId
-  uint64_t m_totalRx;     //!< Total bytes received
+  uint64_t m_totalRx;     //!< Total (payload) bytes received
 
 };
 

@@ -126,7 +126,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         std::cout << "  > Setting up TCP flow sinks" << std::endl;
         for (int64_t endpoint : m_topology->GetEndpoints()) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(endpoint)) {
-                TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+                TcpFlowSinkHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
                 ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
                 app.Start(Seconds(0.0));
             }

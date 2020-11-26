@@ -24,10 +24,9 @@
 
 namespace ns3 {
 
-TcpFlowSinkHelper::TcpFlowSinkHelper (std::string protocol, Address address)
+TcpFlowSinkHelper::TcpFlowSinkHelper (Address address)
 {
   m_factory.SetTypeId ("ns3::TcpFlowSink");
-  SetAttribute ("Protocol", StringValue (protocol));
   SetAttribute ("Local", AddressValue (address));
 }
 
