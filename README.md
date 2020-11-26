@@ -14,7 +14,12 @@ See the GNU General Public License for more details (in ./LICENSE).**
 
 ## Installation
 
-1. Install the following dependencies:
+The below instructions assume you already have a working copy of ns-3 located at 
+`/path/to/your/folder/of/ns-3`.
+
+1. **Dependencies**
+   
+   Install the following dependencies:
 
    * Python 3.7+
    * MPI:
@@ -31,7 +36,9 @@ See the GNU General Public License for more details (in ./LICENSE).**
    * statsmodels (for plotting): `pip install statsmodels`
    * exputilpy (for testing and plotting): `pip install git+https://github.com/snkas/exputilpy.git`
 
-2. You need to add the `basic-sim` module into your own ns-3's `contrib/` folder.
+2. **Add the basic-sim module**
+
+   You need to add the `basic-sim` module into your own ns-3's `contrib/` folder.
 
     Method 1: git clone
     ```
@@ -47,8 +54,15 @@ See the GNU General Public License for more details (in ./LICENSE).**
    
     Method 3: download the zip of this git repository and extract it there.
    
-3. Now you should be able to compile it along with all your other modules.
+3. **Compile**
+
+   Now you should be able to compile it along with all your other modules.
    It has been tested for ns-3 version 3.31.
+   ```
+   cd /path/to/your/folder/of/ns-3
+   ./waf configure
+   ./waf
+   ```
 
 
 ## Getting started
