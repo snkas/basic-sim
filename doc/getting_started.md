@@ -13,6 +13,7 @@ You can either immediately start with the tutorial below, or read more documenta
 * `pingmesh_application.md` -- Ping application ("send from A to B a ping at an interval I")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
 * `future_work.md` -- To find out what can be extended / improved
+* `general_coding_notes.md` -- A collection of general notes about how ns-3 is modeled and how one uses that model
 
 
 ## Tutorial
