@@ -83,8 +83,9 @@ Ptr<Socket> localSocket = Socket::CreateSocket (n0n1.Get (0), TcpSocketFactory::
 
 Of course, if you just want a default TCP on all nodes
 (before installing the Internet stack on nodes, as it is a default, and once initialized
-is set!), you can set it in the following way:
+is set!), you can set it in the following two ways:
 
 ```
-Config::Set ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpVegas::GetTypeId ()));
+Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::TcpVegas"));
+Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpVegas::GetTypeId ()));
 ```
