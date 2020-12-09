@@ -88,11 +88,18 @@ public:
         ASSERT_EQUAL(finished_lines.size(), 1);
         ASSERT_EQUAL(finished_lines[0], "Yes");
 
+        // For which logging was enabled (all)
+        std::set<int64_t> udp_burst_ids_with_logging;
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            udp_burst_ids_with_logging.insert(i);
+        }
+
         // Validate UDP burst logs
         validate_udp_burst_logs(
                 simulation_end_time_ns,
                 temp_dir,
                 write_schedule,
+                udp_burst_ids_with_logging,
                 list_outgoing_rate_megabit_per_s,
                 list_incoming_rate_megabit_per_s
        );
@@ -456,6 +463,242 @@ public:
 
     }
 
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpBurstEndToEndLoggingSpecificTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndLoggingSpecificTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end logging-specific") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 100000000;
+        int64_t simulation_seed = 1839582950225;
+
+        // topology.properties
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=4" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file << "link_channel_delay_ns=100000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=20" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // config_ns3.properties
+        std::ofstream config_file;
+        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
+        config_file << "simulation_seed=" << simulation_seed << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_udp_burst_scheduler=true" << std::endl;
+        config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
+        config_file << "udp_burst_enable_logging_for_udp_burst_ids=set(2, 4, 5)" << std::endl;
+        config_file.close();
+
+        // Couple of UDP bursts
+        std::vector<UdpBurstInfo> write_schedule;
+        write_schedule.push_back(UdpBurstInfo(0, 0, 3, 10.0, 0, 131525125, "", ""));
+        write_schedule.push_back(UdpBurstInfo(1, 1, 2, 6.0, 2525, 1351515151, "", ""));
+        write_schedule.push_back(UdpBurstInfo(2, 3, 1, 7.0, 2525, 2223515, "", ""));
+        write_schedule.push_back(UdpBurstInfo(3, 2, 3, 13.45, 2525, 22222, "", ""));
+        write_schedule.push_back(UdpBurstInfo(4, 1, 2, 8.2, 3255235, 3525, "", ""));
+        write_schedule.push_back(UdpBurstInfo(5, 1, 0, 1.463, 25253552, 422462, "", ""));
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/udp_burst_schedule.csv");
+        for (UdpBurstInfo entry : write_schedule) {
+            schedule_file
+                    << entry.GetUdpBurstId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetTargetRateMegabitPerSec() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetDurationNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
+        basicSimulation->Run();
+        udpBurstScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // For which logging was enabled
+        std::set<int64_t> udp_burst_ids_with_logging;
+        udp_burst_ids_with_logging.insert(2);
+        udp_burst_ids_with_logging.insert(4);
+        udp_burst_ids_with_logging.insert(5);
+
+        // For results (in this case, we don't check this, as we just care about logging)
+        std::vector<double> list_outgoing_rate_megabit_per_s;
+        std::vector<double> list_incoming_rate_megabit_per_s;
+
+        // Validate UDP burst logs
+        validate_udp_burst_logs(
+                simulation_end_time_ns,
+                temp_dir,
+                write_schedule,
+                udp_burst_ids_with_logging,
+                list_outgoing_rate_megabit_per_s,
+                list_incoming_rate_megabit_per_s
+        );
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_outgoing.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_outgoing.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_incoming.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_incoming.txt");
+        for (int64_t i : udp_burst_ids_with_logging) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(i) + "_outgoing.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(i) + "_incoming.csv");
+        }
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpBurstEndToEndLoggingAllTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndLoggingAllTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end logging-all") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 100000000;
+        int64_t simulation_seed = 1839582950225;
+
+        // topology.properties
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=4" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file << "link_channel_delay_ns=100000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=20" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // config_ns3.properties
+        std::ofstream config_file;
+        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
+        config_file << "simulation_seed=" << simulation_seed << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_udp_burst_scheduler=true" << std::endl;
+        config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
+        config_file << "udp_burst_enable_logging_for_udp_burst_ids=all" << std::endl;
+        config_file.close();
+
+        // Couple of UDP bursts
+        std::vector<UdpBurstInfo> write_schedule;
+        write_schedule.push_back(UdpBurstInfo(0, 0, 3, 10.0, 0, 131525125, "", ""));
+        write_schedule.push_back(UdpBurstInfo(1, 1, 2, 6.0, 2525, 1351515151, "", ""));
+        write_schedule.push_back(UdpBurstInfo(2, 3, 1, 7.0, 2525, 2223515, "", ""));
+        write_schedule.push_back(UdpBurstInfo(3, 2, 3, 13.45, 2525, 22222, "", ""));
+        write_schedule.push_back(UdpBurstInfo(4, 1, 2, 8.2, 3255235, 3525, "", ""));
+        write_schedule.push_back(UdpBurstInfo(5, 1, 0, 1.463, 25253552, 422462, "", ""));
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/udp_burst_schedule.csv");
+        for (UdpBurstInfo entry : write_schedule) {
+            schedule_file
+                    << entry.GetUdpBurstId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetTargetRateMegabitPerSec() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetDurationNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
+        basicSimulation->Run();
+        udpBurstScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // For which logging was enabled (all)
+        std::set<int64_t> udp_burst_ids_with_logging;
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            udp_burst_ids_with_logging.insert(i);
+        }
+
+        // For results (in this case, we don't check this, as we just care about logging)
+        std::vector<double> list_outgoing_rate_megabit_per_s;
+        std::vector<double> list_incoming_rate_megabit_per_s;
+
+        // Validate UDP burst logs
+        validate_udp_burst_logs(
+                simulation_end_time_ns,
+                temp_dir,
+                write_schedule,
+                udp_burst_ids_with_logging,
+                list_outgoing_rate_megabit_per_s,
+                list_incoming_rate_megabit_per_s
+        );
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_outgoing.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_outgoing.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_incoming.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_bursts_incoming.txt");
+        for (int64_t i : udp_burst_ids_with_logging) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(i) + "_outgoing.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_" + std::to_string(i) + "_incoming.csv");
+        }
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////

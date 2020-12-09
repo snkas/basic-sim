@@ -141,8 +141,11 @@ The following are OPTIONAL in `config_ns3.properties`:
 
 * `udp_burst_enable_logging_for_udp_burst_ids` : 
   - **Description:** for which bursts to enable detailed logging (sent/receive timestamps)
-  - **Value type:** set of UDP burst identifiers, i.e., `set(a, b, ...)`
+  - **Value types:** 
+    - `all` to enable for all bursts
+    - Set of UDP burst identifiers, i.e., `set(a, b, ...)` (default: `set()`)
   - **Example:**
+    - `udp_burst_enable_logging_for_udp_burst_ids=all` to log for all UDP bursts
     - `udp_burst_enable_logging_for_udp_burst_ids=set(2, 8)` to log for UDP bursts 2 and 8
     
 ## UDP burst schedule format (input)

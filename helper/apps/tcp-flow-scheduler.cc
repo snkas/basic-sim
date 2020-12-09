@@ -70,8 +70,6 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Properties we will use often
         m_nodes = m_topology->GetNodes();
         m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
-        m_enable_logging_for_tcp_flow_ids = parse_set_positive_int64(
-                m_basicSimulation->GetConfigParamOrDefault("tcp_flow_enable_logging_for_tcp_flow_ids", "set()"));
         m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
 
         // Read schedule
@@ -80,6 +78,16 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
                 m_topology,
                 m_simulation_end_time_ns
         );
+
+        // Enable logging for TCP flow IDs
+        std::string enable_for_tcp_flows_ids_str = basicSimulation->GetConfigParamOrDefault("tcp_flow_enable_logging_for_tcp_flow_ids", "set()");
+        if (enable_for_tcp_flows_ids_str == "all") {
+            for (size_t tcp_flow_id = 0; tcp_flow_id < complete_schedule.size(); tcp_flow_id++) {
+                m_enable_logging_for_tcp_flow_ids.insert(tcp_flow_id);
+            }
+        } else {
+            m_enable_logging_for_tcp_flow_ids = parse_set_positive_int64(enable_for_tcp_flows_ids_str);
+        }
 
         // Check that the TCP flow IDs exist in the logging
         for (int64_t tcp_flow_id : m_enable_logging_for_tcp_flow_ids) {

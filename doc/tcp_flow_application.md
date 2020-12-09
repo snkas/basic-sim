@@ -158,8 +158,11 @@ The following are OPTIONAL in `config_ns3.properties`:
 
 * `tcp_flow_enable_logging_for_tcp_flow_ids` : 
   - **Description:** for which flows to enable detailed logging (progress, cwnd, RTT)
-  - **Value type:** set of flow identifiers, i.e., `set(a, b, ...)`
+  - **Value types:** 
+    - `all` to enable for all flows
+    - Set of flow identifiers, i.e., `set(a, b, ...)` (default: `set()`)
   - **Example:**
+    - `tcp_flow_enable_logging_for_tcp_flow_id=all` to log for all flows defined.
     - `tcp_flow_enable_logging_for_tcp_flow_id=set(0, 1)` to log for flows 0 and 1.
 
 

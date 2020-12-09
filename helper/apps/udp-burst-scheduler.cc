@@ -40,7 +40,6 @@ namespace ns3 {
             // Properties we will use often
             m_nodes = m_topology->GetNodes();
             m_simulation_end_time_ns = m_basicSimulation->GetSimulationEndTimeNs();
-            m_enable_logging_for_udp_burst_ids = parse_set_positive_int64(m_basicSimulation->GetConfigParamOrDefault("udp_burst_enable_logging_for_udp_burst_ids", "set()"));
 
             // Distributed run information
             m_enable_distributed = m_basicSimulation->IsDistributedEnabled();
@@ -51,6 +50,16 @@ namespace ns3 {
                     m_topology,
                     m_simulation_end_time_ns
             );
+
+            // Enable logging for UDP burst IDs
+            std::string enable_for_udp_burst_ids_str = basicSimulation->GetConfigParamOrDefault("udp_burst_enable_logging_for_udp_burst_ids", "set()");
+            if (enable_for_udp_burst_ids_str == "all") {
+                for (size_t udp_burst_id = 0; udp_burst_id < m_schedule.size(); udp_burst_id++) {
+                    m_enable_logging_for_udp_burst_ids.insert(udp_burst_id);
+                }
+            } else {
+                m_enable_logging_for_udp_burst_ids = parse_set_positive_int64(enable_for_udp_burst_ids_str);
+            }
 
             // Check that the UDP burst IDs exist in the logging
             for (int64_t udp_burst_id : m_enable_logging_for_udp_burst_ids) {

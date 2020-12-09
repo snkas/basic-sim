@@ -785,10 +785,13 @@ public:
         std::vector <int64_t> end_time_ns_list;
         std::vector <int64_t> sent_byte_list;
         std::vector <std::string> finished_list;
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        tcp_flow_ids_with_logging.insert(0);
         validate_tcp_flow_logs(
                 100000000,
                 run_test_dir,
                 tcp_flow_schedule,
+                tcp_flow_ids_with_logging,
                 end_time_ns_list,
                 sent_byte_list,
                 finished_list

@@ -446,6 +446,7 @@ public:
      * @param simulation_end_time_ns           In:  duration of simulation
      * @param run_dir                          In:  run directory
      * @param tcp_flow_schedule                In:  TCP flow schedule
+     * @param tcp_flow_ids_with_logging        In:  TCP flow IDs for which there are detailed logs
      * @param end_time_ns_list                 Out: vector of TCP flows' ending time in ns
      * @param sent_byte_list                   Out: vector of TCP flows' amount of acknowledged sent data amount in byte
      * @param finished_list                    Out: vector of TCP flows' finished status
@@ -453,7 +454,8 @@ public:
     void validate_tcp_flow_logs(
             int64_t simulation_end_time_ns, 
             std::string run_dir, 
-            std::vector<TcpFlowScheduleEntry> tcp_flow_schedule, 
+            std::vector<TcpFlowScheduleEntry> tcp_flow_schedule,
+            std::set<int64_t> tcp_flow_ids_with_logging,
             std::vector<int64_t>& end_time_ns_list, 
             std::vector<int64_t>& sent_byte_list, 
             std::vector<std::string>& finished_list
@@ -536,78 +538,80 @@ public:
 
         // Now go over all the detailed logs
         for (TcpFlowScheduleEntry& entry : tcp_flow_schedule) {
+            if (tcp_flow_ids_with_logging.find(entry.GetTcpFlowId()) != tcp_flow_ids_with_logging.end()) {
 
-            // TCP congestion window
-            // tcp_flow_[id]_cwnd.csv
-            std::vector<std::string> lines_cwnd_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd.csv");
-            int64_t prev_timestamp_ns = 0;
-            int64_t prev_cwnd_byte = -1;
-            for (size_t i = 0; i < lines_cwnd_csv.size(); i++) {
-                std::vector<std::string> line_spl = split_string(lines_cwnd_csv.at(i), ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
+                // TCP congestion window
+                // tcp_flow_[id]_cwnd.csv
+                std::vector<std::string> lines_cwnd_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd.csv");
+                int64_t prev_timestamp_ns = 0;
+                int64_t prev_cwnd_byte = -1;
+                for (size_t i = 0; i < lines_cwnd_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_cwnd_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
 
-                // Correct TCP flow ID
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
 
-                // Weakly ascending timestamp
-                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
-                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
-                prev_timestamp_ns = timestamp_ns;
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
 
-                // Congestion window has to be positive and different
-                int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(cwnd_byte != prev_cwnd_byte || (i == lines_cwnd_csv.size() - 1 && cwnd_byte == prev_cwnd_byte));
-                prev_cwnd_byte = cwnd_byte;
+                    // Congestion window has to be positive and different
+                    int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(cwnd_byte != prev_cwnd_byte || (i == lines_cwnd_csv.size() - 1 && cwnd_byte == prev_cwnd_byte));
+                    prev_cwnd_byte = cwnd_byte;
+                }
+
+                // TCP connection progress
+                // tcp_flow_[id]_progress.csv
+                std::vector<std::string> lines_progress_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_progress.csv");
+                prev_timestamp_ns = 0;
+                int64_t prev_progress_byte = 0;
+                for (size_t i = 0; i < lines_progress_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_progress_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // Progress has to be positive and ascending
+                    int64_t progress_byte = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(progress_byte >= prev_progress_byte);
+                    prev_progress_byte = progress_byte;
+                }
+                ASSERT_EQUAL(prev_progress_byte, sent_byte_list.at(entry.GetTcpFlowId())); // Progress must be equal to the sent amount reported in the end
+
+                // TCP RTT
+                // tcp_flow_[id]_rtt.csv
+                std::vector<std::string> lines_rtt_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_rtt.csv");
+                prev_timestamp_ns = 0;
+                int64_t prev_rtt_ns = -1;
+                for (size_t i = 0; i < lines_rtt_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_rtt_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // RTT has to be positive and different
+                    int64_t rtt_ns = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(rtt_ns >= 0);
+                    ASSERT_TRUE(rtt_ns != prev_rtt_ns || (i == lines_rtt_csv.size() - 1 && rtt_ns == prev_rtt_ns));
+                    prev_rtt_ns = rtt_ns;
+                }
+
             }
-
-            // TCP connection progress
-            // tcp_flow_[id]_progress.csv
-            std::vector<std::string> lines_progress_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_progress.csv");
-            prev_timestamp_ns = 0;
-            int64_t prev_progress_byte = 0;
-            for (size_t i = 0; i < lines_progress_csv.size(); i++) {
-                std::vector<std::string> line_spl = split_string(lines_progress_csv.at(i), ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
-
-                // Correct TCP flow ID
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
-
-                // Weakly ascending timestamp
-                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
-                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
-                prev_timestamp_ns = timestamp_ns;
-
-                // Progress has to be positive and ascending
-                int64_t progress_byte = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(progress_byte >= prev_progress_byte);
-                prev_progress_byte = progress_byte;
-            }
-            ASSERT_EQUAL(prev_progress_byte, sent_byte_list.at(entry.GetTcpFlowId())); // Progress must be equal to the sent amount reported in the end
-
-            // TCP RTT
-            // tcp_flow_[id]_rtt.csv
-            std::vector<std::string> lines_rtt_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_rtt.csv");
-            prev_timestamp_ns = 0;
-            int64_t prev_rtt_ns = -1;
-            for (size_t i = 0; i < lines_rtt_csv.size(); i++) {
-                std::vector<std::string> line_spl = split_string(lines_rtt_csv.at(i), ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
-
-                // Correct TCP flow ID
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
-
-                // Weakly ascending timestamp
-                int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
-                ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
-                prev_timestamp_ns = timestamp_ns;
-
-                // RTT has to be positive and different
-                int64_t rtt_ns = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(rtt_ns >= 0);
-                ASSERT_TRUE(rtt_ns != prev_rtt_ns || (i == lines_rtt_csv.size() - 1 && rtt_ns == prev_rtt_ns));
-                prev_rtt_ns = rtt_ns;
-            }
-
         }
 
     }
@@ -618,6 +622,7 @@ public:
      * @param simulation_end_time_ns             In:  duration of simulation
      * @param run_dir                            In:  run directory
      * @param udp_burst_schedule                 In:  UDP burst schedule
+     * @param udp_burst_ids_with_logging         In:  UDP burst IDs for which there are detailed logs
      * @param list_outgoing_rate_megabit_per_s   Out: vector of UDP bursts' outgoing rates in megabit/s
      * @param list_incoming_rate_megabit_per_s   Out: vector of UDP bursts' incoming rates in megabit/s
      */
@@ -625,6 +630,7 @@ public:
             int64_t simulation_end_time_ns,
             std::string run_dir,
             std::vector<UdpBurstInfo> udp_burst_schedule,
+            std::set<int64_t> udp_burst_ids_with_logging,
             std::vector<double>& list_outgoing_rate_megabit_per_s,
             std::vector<double>& list_incoming_rate_megabit_per_s
     ) {
@@ -786,41 +792,44 @@ public:
 
         // Check the precise outgoing / incoming logs for each burst
         for (UdpBurstInfo entry : udp_burst_schedule) {
+            if (udp_burst_ids_with_logging.find(entry.GetUdpBurstId()) != udp_burst_ids_with_logging.end()) {
 
-            // Outgoing
-            std::vector<std::string> lines_precise_outgoing_csv = read_file_direct(run_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_outgoing.csv");
-            ASSERT_EQUAL(lines_precise_outgoing_csv.size(), (size_t) udp_burst_sent_amount.at(entry.GetUdpBurstId()));
-            int j = 0;
-            for (std::string line : lines_precise_outgoing_csv) {
-                std::vector <std::string> line_spl = split_string(line, ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetUdpBurstId());
-                ASSERT_EQUAL(parse_positive_int64(line_spl[1]), j);
-                ASSERT_EQUAL(parse_positive_int64(line_spl[2]), entry.GetStartTimeNs() + j * std::ceil(1500.0 / (entry.GetTargetRateMegabitPerSec() / 8000.0)));
-                j += 1;
-            }
+                // Outgoing
+                std::vector<std::string> lines_precise_outgoing_csv = read_file_direct(run_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_outgoing.csv");
+                ASSERT_EQUAL(lines_precise_outgoing_csv.size(), (size_t) udp_burst_sent_amount.at(entry.GetUdpBurstId()));
+                int j = 0;
+                for (std::string line : lines_precise_outgoing_csv) {
+                    std::vector <std::string> line_spl = split_string(line, ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetUdpBurstId());
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[1]), j);
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[2]), entry.GetStartTimeNs() + j * std::ceil(1500.0 / (entry.GetTargetRateMegabitPerSec() / 8000.0)));
+                    j += 1;
+                }
 
-            // Incoming
-            std::vector<std::string> lines_precise_incoming_csv = read_file_direct(run_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_incoming.csv");
-            ASSERT_EQUAL(lines_precise_incoming_csv.size(), (size_t) udp_burst_received_amount.at(entry.GetUdpBurstId()));
-            std::set<int64_t> already_seen_seqs;
-            int prev_timestamp_ns = 0;
-            for (std::string line : lines_precise_incoming_csv) {
-                std::vector <std::string> line_spl = split_string(line, ",");
-                ASSERT_EQUAL(line_spl.size(), 3);
+                // Incoming
+                std::vector<std::string> lines_precise_incoming_csv = read_file_direct(run_dir + "/logs_ns3/udp_burst_" + std::to_string(entry.GetUdpBurstId()) + "_incoming.csv");
+                ASSERT_EQUAL(lines_precise_incoming_csv.size(), (size_t) udp_burst_received_amount.at(entry.GetUdpBurstId()));
+                std::set<int64_t> already_seen_seqs;
+                int prev_timestamp_ns = 0;
+                for (std::string line : lines_precise_incoming_csv) {
+                    std::vector <std::string> line_spl = split_string(line, ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
 
-                // Must be correct UDP burst ID
-                ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetUdpBurstId());
+                    // Must be correct UDP burst ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetUdpBurstId());
 
-                // We can only check that the sequence number has not arrived before
-                int64_t seq = parse_positive_int64(line_spl[1]);
-                ASSERT_TRUE(already_seen_seqs.find(seq) == already_seen_seqs.end());
-                already_seen_seqs.insert(seq);
+                    // We can only check that the sequence number has not arrived before
+                    int64_t seq = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(already_seen_seqs.find(seq) == already_seen_seqs.end());
+                    already_seen_seqs.insert(seq);
 
-                // And that the timestamps are at least weakly ascending
-                int64_t timestamp = parse_positive_int64(line_spl[2]);
-                ASSERT_TRUE(timestamp >= prev_timestamp_ns);
-                prev_timestamp_ns = timestamp;
+                    // And that the timestamps are at least weakly ascending
+                    int64_t timestamp = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(timestamp >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp;
+                }
+
             }
 
         }

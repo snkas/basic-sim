@@ -35,6 +35,8 @@ public:
         AddTestCase(new TcpFlowEndToEndOneToOneApartStartTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndEcmpSimpleTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndEcmpRemainTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndLoggingSpecificTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndLoggingAllTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndNonExistentRunDirTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndOneDropOneNotTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndConnFailTestCase, TestCase::QUICK);
@@ -62,6 +64,8 @@ public:
         AddTestCase(new UdpBurstEndToEndLossTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndNotEnabledTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstEndToEndInvalidLoggingIdTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndLoggingSpecificTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstEndToEndLoggingAllTestCase, TestCase::QUICK);
 
     }
 };

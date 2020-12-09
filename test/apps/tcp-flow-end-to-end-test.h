@@ -98,11 +98,18 @@ public:
         tcpFlowScheduler.WriteResults();
         basicSimulation->Finalize();
 
+        // For which logging was enabled
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            tcp_flow_ids_with_logging.insert(i);
+        }
+
         // Validate TCP flow logs
         validate_tcp_flow_logs(
                 simulation_end_time_ns,
                 temp_dir,
                 write_schedule,
+                tcp_flow_ids_with_logging,
                 end_time_ns_list,
                 sent_byte_list,
                 finished_list
@@ -347,6 +354,242 @@ public:
         double rate_Mbps = byte_to_megabit(sent_byte_list[0]) / nanosec_to_sec(end_time_ns_list[0]);
         ASSERT_TRUE(rate_Mbps >= 25.0 && rate_Mbps <= 30.0); // Somewhere between 25 and 30
         ASSERT_EQUAL(finished_list[0], "NO_ONGOING");
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class TcpFlowEndToEndLoggingSpecificTestCase : public TcpFlowEndToEndTestCase
+{
+public:
+    TcpFlowEndToEndLoggingSpecificTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end logging-specific") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 100000000;
+        int64_t simulation_seed = 1839582950225;
+
+        // topology.properties
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=4" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file << "link_channel_delay_ns=100000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=20" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // config_ns3.properties
+        std::ofstream config_file;
+        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
+        config_file << "simulation_seed=" << simulation_seed << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+        config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=set(2, 4, 5)" << std::endl;
+        config_file.close();
+
+        // Couple of flows
+        std::vector<TcpFlowScheduleEntry> write_schedule;
+        write_schedule.push_back(TcpFlowScheduleEntry(0, 0, 3, 454848, 1024, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(1, 1, 2, 24373, 64848, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(2, 3, 2, 22644737, 64848, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(3, 3, 2, 235626, 64848, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(4, 1, 2, 5773377, 4632637, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(5, 0, 1, 23262622226, 36373733, "", ""));
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/tcp_flow_schedule.csv");
+        for (TcpFlowScheduleEntry entry : write_schedule) {
+            schedule_file
+                    << entry.GetTcpFlowId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetSizeByte() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
+        basicSimulation->Run();
+        tcpFlowScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // For which logging was enabled
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        tcp_flow_ids_with_logging.insert(2);
+        tcp_flow_ids_with_logging.insert(4);
+        tcp_flow_ids_with_logging.insert(5);
+
+        // For results (in this case, we don't check this, as we just care about logging)
+        std::vector<int64_t> end_time_ns_list;
+        std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
+
+        // Validate TCP flow logs
+        validate_tcp_flow_logs(
+                simulation_end_time_ns,
+                temp_dir,
+                write_schedule,
+                tcp_flow_ids_with_logging,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
+        for (int64_t i : tcp_flow_ids_with_logging) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+        }
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class TcpFlowEndToEndLoggingAllTestCase : public TcpFlowEndToEndTestCase
+{
+public:
+    TcpFlowEndToEndLoggingAllTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end logging-all") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 100000000;
+        int64_t simulation_seed = 1839582950225;
+
+        // topology.properties
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=4" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,0-2,1-3,2-3)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file << "link_channel_delay_ns=100000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=20" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // config_ns3.properties
+        std::ofstream config_file;
+        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
+        config_file << "simulation_seed=" << simulation_seed << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+        config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=all" << std::endl;
+        config_file.close();
+
+        // Couple of flows
+        std::vector<TcpFlowScheduleEntry> write_schedule;
+        write_schedule.push_back(TcpFlowScheduleEntry(0, 0, 3, 454848, 1024, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(1, 1, 2, 24373, 64848, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(2, 3, 2, 22644737, 64848, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(3, 3, 2, 235626, 64848, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(4, 1, 2, 5773377, 4632637, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(5, 0, 1, 23262622226, 36373733, "", ""));
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/tcp_flow_schedule.csv");
+        for (TcpFlowScheduleEntry entry : write_schedule) {
+            schedule_file
+                    << entry.GetTcpFlowId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetSizeByte() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
+        basicSimulation->Run();
+        tcpFlowScheduler.WriteResults();
+        basicSimulation->Finalize();
+
+        // For which logging was enabled (all)
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            tcp_flow_ids_with_logging.insert(i);
+        }
+
+        // For results (in this case, we don't check this, as we just care about logging)
+        std::vector<int64_t> end_time_ns_list;
+        std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
+
+        // Validate TCP flow logs
+        validate_tcp_flow_logs(
+                simulation_end_time_ns,
+                temp_dir,
+                write_schedule,
+                tcp_flow_ids_with_logging,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
+        for (int64_t i : tcp_flow_ids_with_logging) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+        }
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
 
     }
 };
@@ -655,11 +898,18 @@ public:
         tcpFlowScheduler.WriteResults();
         basicSimulation->Finalize();
 
+        // For which logging was enabled
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            tcp_flow_ids_with_logging.insert(i);
+        }
+
         // Validate TCP flow logs
         validate_tcp_flow_logs(
                 simulation_end_time_ns,
                 temp_dir,
                 write_schedule,
+                tcp_flow_ids_with_logging,
                 end_time_ns_list,
                 sent_byte_list,
                 finished_list
