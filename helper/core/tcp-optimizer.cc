@@ -36,6 +36,23 @@ void TcpOptimizer::Generic() {
     NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "InitialCwnd") != init_cwnd_pkt, "Default initial InitialCwnd was not updated.");
     printf("  > Initial CWND............... %" PRId64 " packets\n", init_cwnd_pkt);
 
+    // Buffer size puts an upper limit of the amount of data permitted to be in-flight.
+    // It the buffer size limit is reached the line "if (!m_txBuffer->Add (p))" in TcpSocketBase will be true,
+    // and as such limit how much an Application can put.
+    //
+    // This however does not upper limit the growth of the congestion window:
+    // upon the receipt of every ACK packet it is still increased as no loss occurs if the
+    // in-flight size <= BDP. If this goes on long enough (with slow-start), the CWND
+    // uint32 can even overflow.
+    //
+    // The TCP rate is limited to:
+    // tcp-rate = min(send-buffer-size / base RTT, line-rate)
+    //
+    // The below value of 32MiB is able to satisfy the line rate only when:
+    // For 10 Gbit/s at most with a base RTT of 25.6ms
+    // For 1 Gbit/s at most with a base RTT of 256ms
+    // For 100 Mbit/s at most with a base RTT of 2.56s
+
     // Send buffer size (ns-3 default: 131072 bytes = 128 KiB is default, we set to 32 MiB)
     NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "SndBufSize") != 131072, "Unexpected default initial default SndBufSize.");
     int64_t snd_buf_size_byte = 131072 * 256;
