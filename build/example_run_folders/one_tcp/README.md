@@ -29,21 +29,20 @@ single ACK packet is sent back. This means that the exponential factor
 at slow-start is 1.5x instead of 2x (as CWND is increased for each
 ACK packet).
 
+If the `in-flight size > BDP + Q` there will be a loss.
+
 The queue only grows once the bandwidth delay product has been fulfilled.
 At some point, the queue will be full, at which point losses will occur.
 It will take a full round-trip before this loss is detected via
-3 DupACKs. How much will arrive in that round-trip will be `BDP+Q`
-With the exponential factor of 1.5x, the results in the
-in-flight size point of loss being:
+3 DupACKs. How much will arrive in that round-trip will be `BDP+Q` packets.
+With the exponential factor of 1.5x, this results in the
+CWND point of loss detection being:
 
 ```
-In-flight loss point = (BDP + Q) * 1.5
+CWND when the loss is detected = (BDP + Q) * 1.5
 ```
 
 with: `BDP = link-rate * 2 * link-delay` (2x link-delay because it is RTT)
-
-If the send buffer size is sufficiently large and enough data available,
-the in-flight loss point will equate to the CWND loss point.
 
 ## What happens when the send (or receive) buffer size is lower than the BDP
 
