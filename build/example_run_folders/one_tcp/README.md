@@ -15,8 +15,8 @@ TCP rate = link-rate * min(1.0, in-flight (byte) / BDP (byte))
 ```
 
 with: `BDP = link-rate * 2 * link-delay` (2x link-delay because it is RTT) and 
-`in-flight = CWND` if there is enough data available and the send/receive buffer
-size is large enough.
+`in-flight = CWND` approximately if there is enough data available, the send/receive buffer
+size is large enough and there has not been recent large changes in CWND or the way it is filled.
 
 ## Expected outcome: moment of loss
 
