@@ -96,8 +96,12 @@ private:
     int64_t m_sim_start_time_ns_since_epoch;
     int64_t m_last_log_time_ns_since_epoch;
     int m_counter_progress_updates = 0;
-    double m_progress_interval_ns = 10000000000; // First one after 10s
-    double m_simulation_event_interval_s = 0.1; // Start at 100ms for a reasonable estimate
+    double m_progress_interval_ns = 10000000000; // First one after 10s (wallclock time)
+    double m_max_next_progress_check_interval_s = 0.001;  // First limit is 1ms, and then
+                                                          // limit increases * 1.2 each time
+                                                          // with a maximum of 100'000'000'000s = 3170 years
+                                                          // (maximum is there to prevent overflow)
+    double m_progress_check_interval_s = 0.001; // Start at 1ms
 
 };
 

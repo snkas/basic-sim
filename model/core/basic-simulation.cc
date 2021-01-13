@@ -238,9 +238,19 @@ void BasicSimulation::ShowSimulationProgress() {
         }
         m_counter_progress_updates++;
     }
+
+    // An estimation of when the next progress check needs to be done (based on past performance)
     double current_sim_speed_simulation_sec_per_wallclock_sec = Simulator::Now().GetSeconds() / ((now - m_sim_start_time_ns_since_epoch) / 1e9);
-    m_simulation_event_interval_s = current_sim_speed_simulation_sec_per_wallclock_sec * (m_progress_interval_ns / 1e9) / 5.0; // At most +20% expected difference to interval
-    Simulator::Schedule(Seconds(m_simulation_event_interval_s), &BasicSimulation::ShowSimulationProgress, this);
+    m_progress_check_interval_s = current_sim_speed_simulation_sec_per_wallclock_sec * (m_progress_interval_ns / 1e9) / 5.0; // At most +20% expected difference to interval
+
+    // Upper bound the next progress check as it might be that at the start it goes fast
+    // but then considerably slows down as the network gets more congested (potentially)
+    m_progress_check_interval_s = std::min(m_max_next_progress_check_interval_s, m_progress_check_interval_s);
+    m_max_next_progress_check_interval_s = std::min(100000000000.0, m_max_next_progress_check_interval_s * 1.2);
+
+    // Schedule next check whether to show progress
+    Simulator::Schedule(Seconds(m_progress_check_interval_s), &BasicSimulation::ShowSimulationProgress, this);
+
 }
 
 void BasicSimulation::ConfirmAllConfigParamKeysRequested() {
@@ -261,7 +271,7 @@ void BasicSimulation::Run() {
     // Schedule progress printing
     m_sim_start_time_ns_since_epoch = NowNsSinceEpoch();
     m_last_log_time_ns_since_epoch = m_sim_start_time_ns_since_epoch;
-    Simulator::Schedule(Seconds(m_simulation_event_interval_s), &BasicSimulation::ShowSimulationProgress, this);
+    Simulator::Schedule(Seconds(m_progress_check_interval_s), &BasicSimulation::ShowSimulationProgress, this);
 
     // Run
     printf("Running the simulation for %.2f simulation seconds...\n", (m_simulation_end_time_ns / 1e9));
