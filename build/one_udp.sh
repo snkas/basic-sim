@@ -25,7 +25,8 @@ python plot_link_net_device_queue.py ../../../build/example_run_folders/one_udp/
 python plot_link_net_device_queue.py ../../../build/example_run_folders/one_udp/logs_ns3 ../../../build/example_run_folders/one_udp/logs_ns3/data ../../../build/example_run_folders/one_udp/logs_ns3/pdf 1 0 || exit 1
 cd .. || exit 1
 
-# TCP flow plots
+# UDP burst plots
 cd plot_udp_burst || exit 1
 python plot_udp_burst.py ../../../build/example_run_folders/one_udp/logs_ns3 ../../../build/example_run_folders/one_udp/logs_ns3/data ../../../build/example_run_folders/one_udp/logs_ns3/pdf 0 100000000 || exit 1
+python plot_udp_burst.py ../../../build/example_run_folders/one_udp/logs_ns3 ../../../build/example_run_folders/one_udp/logs_ns3/data ../../../build/example_run_folders/one_udp/logs_ns3/pdf 1 100000000 || exit 1
 cd .. || exit 1
