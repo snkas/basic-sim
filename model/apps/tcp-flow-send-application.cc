@@ -183,10 +183,12 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
 
             // State
             m_log_update_helper_state = LogUpdateHelper<std::string>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_state.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            StateChange(TcpSocket::TcpStates_t::CLOSED, TcpSocket::TcpStates_t::CLOSED); // Default at start is CLOSED
             m_socket->TraceConnectWithoutContext("State", MakeCallback(&TcpFlowSendApplication::StateChange, this));
 
             // CongState
             m_log_update_helper_cong_state = LogUpdateHelper<std::string>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cong_state.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            CongStateChange(TcpSocketState::TcpCongState_t::CA_OPEN, TcpSocketState::TcpCongState_t::CA_OPEN); // Default at start is CA_OPEN
             m_socket->TraceConnectWithoutContext("CongState", MakeCallback(&TcpFlowSendApplication::CongStateChange, this));
 
         }
