@@ -48,21 +48,23 @@ void TcpOptimizer::Generic() {
     // The TCP rate is limited to:
     // tcp-rate = min(send-buffer-size / base RTT, line-rate)
     //
-    // The below value of 32MiB is able to satisfy the line rate only when:
-    // For 10 Gbit/s at most with a base RTT of 25.6ms
-    // For 1 Gbit/s at most with a base RTT of 256ms
-    // For 100 Mbit/s at most with a base RTT of 2.56s
+    // The below value of 1 GiB is able to satisfy the line rate (i.e., bandwidth-delay product)
+    // only when (excl. header overhead in calculation):
+    //
+    // For 10 Gbit/s at most with a base RTT of 859ms
+    // For 1 Gbit/s at most with a base RTT of 8.59s
+    // For 100 Mbit/s at most with a base RTT of 85.9s
 
-    // Send buffer size (ns-3 default: 131072 bytes = 128 KiB is default, we set to 32 MiB)
+    // Send buffer size (ns-3 default: 131072 bytes = 128 KiB, we set to 1 GiB)
     NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "SndBufSize") != 131072, "Unexpected default initial default SndBufSize.");
-    int64_t snd_buf_size_byte = 131072 * 256;
+    int64_t snd_buf_size_byte = 131072 * 8192;
     Config::SetDefault("ns3::TcpSocket::SndBufSize", UintegerValue(snd_buf_size_byte));
     NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "SndBufSize") != snd_buf_size_byte, "Default initial SndBufSize was not updated.");
     printf("  > Send buffer size........... %.3f MB\n", snd_buf_size_byte / 1e6);
 
-    // Receive buffer size (ns-3 default: 131072 bytes = 128 KiB, we set to 32 MiB)
+    // Receive buffer size (ns-3 default: 131072 bytes = 128 KiB, we set to 1 GiB)
     NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "RcvBufSize") != 131072, "Unexpected default initial default RcvBufSize.");
-    int64_t rcv_buf_size_byte = 131072 * 256;
+    int64_t rcv_buf_size_byte = 131072 * 8192;
     Config::SetDefault("ns3::TcpSocket::RcvBufSize", UintegerValue(rcv_buf_size_byte));
     NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "RcvBufSize") != rcv_buf_size_byte, "Default initial RcvBufSize was not updated.");
     printf("  > Receive buffer size........ %.3f MB\n", rcv_buf_size_byte / 1e6);
