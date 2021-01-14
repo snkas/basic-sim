@@ -30,6 +30,8 @@
 #include "ns3/string.h"
 #include "ns3/traced-callback.h"
 #include "ns3/log-update-helper.h"
+#include "ns3/tcp-socket.h"
+#include "ns3/tcp-socket-state.h"
 
 namespace ns3 {
 
@@ -86,6 +88,8 @@ private:
   LogUpdateHelper<int64_t> m_log_update_helper_cwnd_inflated_byte; //!< Congestion window inflated detailed logging
   LogUpdateHelper<int64_t> m_log_update_helper_ssthresh_byte; //!< Slow-start threshold detailed logging
   LogUpdateHelper<int64_t> m_log_update_helper_inflight_byte; //!< In-flight detailed logging
+  LogUpdateHelper<std::string> m_log_update_helper_state;      //!< State detailed logging
+  LogUpdateHelper<std::string> m_log_update_helper_cong_state; //!< Congestion state detailed logging
 
   // TCP flow logging
   bool m_enableDetailedLogging;            //!< True iff you want to write detailed logs
@@ -105,6 +109,8 @@ private:
   void CwndInflatedChange(uint32_t, uint32_t newCwndInflated);
   void SsthreshChange(uint32_t, uint32_t newSsthresh);
   void InflightChange(uint32_t, uint32_t newInflight);
+  void StateChange(TcpSocket::TcpStates_t, TcpSocket::TcpStates_t newState);
+  void CongStateChange(TcpSocketState::TcpCongState_t, TcpSocketState::TcpCongState_t newCongState);
 
 };
 

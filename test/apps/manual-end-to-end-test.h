@@ -162,6 +162,8 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_state.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cong_state.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_progress.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_rtt.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_rto.csv");
@@ -169,6 +171,8 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_cwnd_inflated.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_ssthresh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_inflight.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_state.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_cong_state.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_incoming.csv");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
@@ -250,6 +254,8 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_state.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cong_state.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_incoming.csv");
         remove_dir_if_exists(temp_dir + "/logs_ns3");

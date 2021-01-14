@@ -287,3 +287,22 @@ there will have also been generated for those flows:
    ```
    [tcp flow id],[now (ns since epoch)],[in-flight (byte)]
    ```
+
+#### `tcp_flow_[id]_state.csv`
+
+- **Description:** state (CLOSED, LISTEN, SYN_SENT, SYN_RCVD, 
+  ESTABLISHED, CLOSE_WAIT, LAST_ACK, FIN_WAIT_1, FIN_WAIT_2, 
+  CLOSING, TIME_WAIT, LAST_STATE)
+- **Format:** 
+   ```
+   [tcp flow id],[now (ns since epoch)],[state (string)]
+   ```
+  
+#### `tcp_flow_[id]_cong_state.csv`
+
+- **Description:** congestion state (CA_OPEN, CA_DISORDER, CA_CWR, 
+  CA_RECOVERY, CA_LOSS, CA_LAST_STATE)
+- **Format:** 
+   ```
+   [tcp flow id],[now (ns since epoch)],[congestion state (string)]
+   ```

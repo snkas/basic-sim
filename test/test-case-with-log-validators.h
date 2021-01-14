@@ -705,6 +705,74 @@ public:
                     prev_inflight_byte = inflight_byte;
                 }
 
+                // TCP state
+                // tcp_flow_[id]_state.csv
+                std::vector<std::string> lines_state_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_state.csv");
+                prev_timestamp_ns = 0;
+                std::string prev_state = "";
+                for (size_t i = 0; i < lines_state_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_state_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // State has to be one of the permitted states and different from the last
+                    std::string state = line_spl[2];
+                    ASSERT_TRUE(
+                            state == "CLOSED" ||
+                            state == "LISTEN" ||
+                            state == "SYN_SENT" ||
+                            state == "SYN_RCVD" ||
+                            state == "ESTABLISHED" ||
+                            state == "CLOSE_WAIT" ||
+                            state == "LAST_ACK" ||
+                            state == "FIN_WAIT_1" ||
+                            state == "FIN_WAIT_2" ||
+                            state == "CLOSING" ||
+                            state == "TIME_WAIT" ||
+                            state == "LAST_STATE"
+                    );
+                    ASSERT_TRUE(state != prev_state || (i == lines_state_csv.size() - 1 && state == prev_state));
+                    prev_state = state;
+                }
+
+                // TCP congestion state
+                // tcp_flow_[id]_cong_state.csv
+                std::vector<std::string> lines_cong_state_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cong_state.csv");
+                prev_timestamp_ns = 0;
+                std::string prev_cong_state = "";
+                for (size_t i = 0; i < lines_cong_state_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_cong_state_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // Congestion state has to be one of the permitted states and different from the last
+                    std::string cong_state = line_spl[2];
+                    ASSERT_TRUE(
+                            cong_state == "CA_OPEN" ||
+                            cong_state == "CA_DISORDER" ||
+                            cong_state == "CA_CWR" ||
+                            cong_state == "CA_RECOVERY" ||
+                            cong_state == "CA_LOSS" ||
+                            cong_state == "CA_LAST_STATE"
+                    );
+                    ASSERT_TRUE(cong_state != prev_cong_state || (i == lines_cong_state_csv.size() - 1 && cong_state == prev_cong_state));
+                    prev_cong_state = cong_state;
+                }
+
             }
         }
 

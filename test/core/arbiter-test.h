@@ -818,6 +818,8 @@ public:
         remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
         remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
         remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_state.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_cong_state.csv");
         remove_dir_if_exists(run_test_dir + "/logs_ns3");
         remove_dir_if_exists(run_test_dir);
 

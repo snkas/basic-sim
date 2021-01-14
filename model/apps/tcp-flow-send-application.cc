@@ -73,19 +73,21 @@ TcpFlowSendApplication::GetTypeId(void) {
                           MakeUintegerAccessor(&TcpFlowSendApplication::m_tcpFlowId),
                           MakeUintegerChecker<uint64_t>())
             .AddAttribute("EnableTcpFlowLoggingToFile",
-                          "True iff you want to track some aspects (progress, rtt, rto, cwnd, inflated cwnd, ssthresh, inflight) of the TCP flow over time.",
+                          "True iff you want to track some aspects (progress, rtt, rto, cwnd, inflated cwnd, "
+                          "ssthresh, inflight, state, congestion state) of the TCP flow over time.",
                           BooleanValue(true),
                           MakeBooleanAccessor(&TcpFlowSendApplication::m_enableDetailedLogging),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
                            "Base logging directory (logging will be placed here, "
-                           "i.e. logs_dir/tcp_flow_[flow id]_{progress, rtt, rto, cwnd, cwnd_inflated, ssthresh, inflight}.csv",
+                           "i.e. logs_dir/tcp_flow_[flow id]_{progress, rtt, rto, cwnd, cwnd_inflated, ssthresh, "
+                           "inflight, state, cong_state}.csv",
                            StringValue (""),
                            MakeStringAccessor (&TcpFlowSendApplication::m_baseLogsDir),
                            MakeStringChecker ())
             .AddAttribute ("AdditionalParameters",
-                           "Additional parameter string; this might be parsed in another version of this application to "
-                           "do slightly different behavior (e.g., set priority on TCP socket etc.)",
+                           "Additional parameter string; this might be parsed in another version of this application "
+                           "to do slightly different behavior (e.g., set priority on TCP socket etc.)",
                            StringValue (""),
                            MakeStringAccessor (&TcpFlowSendApplication::m_additionalParameters),
                            MakeStringChecker ())
@@ -178,6 +180,14 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
             // In-flight
             m_log_update_helper_inflight_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_inflight.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_socket->TraceConnectWithoutContext("BytesInFlight", MakeCallback(&TcpFlowSendApplication::InflightChange, this));
+
+            // State
+            m_log_update_helper_state = LogUpdateHelper<std::string>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_state.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_socket->TraceConnectWithoutContext("State", MakeCallback(&TcpFlowSendApplication::StateChange, this));
+
+            // CongState
+            m_log_update_helper_cong_state = LogUpdateHelper<std::string>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cong_state.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_socket->TraceConnectWithoutContext("CongState", MakeCallback(&TcpFlowSendApplication::CongStateChange, this));
 
         }
 
@@ -369,8 +379,83 @@ TcpFlowSendApplication::InflightChange(uint32_t, uint32_t newInflight)
 }
 
 void
+TcpFlowSendApplication::StateChange(TcpSocket::TcpStates_t, TcpSocket::TcpStates_t newState)
+{
+    std::string newStateString;
+    switch (newState) {
+        case TcpSocket::TcpStates_t::CLOSED:
+            newStateString = "CLOSED";
+            break;
+        case TcpSocket::TcpStates_t::LISTEN:
+            newStateString = "LISTEN";
+            break;
+        case TcpSocket::TcpStates_t::SYN_SENT:
+            newStateString = "SYN_SENT";
+            break;
+        case TcpSocket::TcpStates_t::SYN_RCVD:
+            newStateString = "SYN_RCVD";
+            break;
+        case TcpSocket::TcpStates_t::ESTABLISHED:
+            newStateString = "ESTABLISHED";
+            break;
+        case TcpSocket::TcpStates_t::CLOSE_WAIT:
+            newStateString = "CLOSE_WAIT";
+            break;
+        case TcpSocket::TcpStates_t::LAST_ACK:
+            newStateString = "LAST_ACK";
+            break;
+        case TcpSocket::TcpStates_t::FIN_WAIT_1:
+            newStateString = "FIN_WAIT_1";
+            break;
+        case TcpSocket::TcpStates_t::FIN_WAIT_2:
+            newStateString = "FIN_WAIT_2";
+            break;
+        case TcpSocket::TcpStates_t::CLOSING:
+            newStateString = "CLOSING";
+            break;
+        case TcpSocket::TcpStates_t::TIME_WAIT:
+            newStateString = "TIME_WAIT";
+            break;
+        case TcpSocket::TcpStates_t::LAST_STATE:
+            newStateString = "LAST_STATE";
+            break;
+    }
+    m_log_update_helper_state.Update(Simulator::Now().GetNanoSeconds(), newStateString);
+}
+
+void
+TcpFlowSendApplication::CongStateChange(TcpSocketState::TcpCongState_t, TcpSocketState::TcpCongState_t newCongState)
+{
+    std::string newCongStateString;
+    switch (newCongState) {
+        case TcpSocketState::TcpCongState_t::CA_OPEN:
+            newCongStateString = "CA_OPEN";
+            break;
+        case TcpSocketState::TcpCongState_t::CA_DISORDER:
+            newCongStateString = "CA_DISORDER";
+            break;
+        case TcpSocketState::TcpCongState_t::CA_CWR:
+            newCongStateString = "CA_CWR";
+            break;
+        case TcpSocketState::TcpCongState_t::CA_RECOVERY:
+            newCongStateString = "CA_RECOVERY";
+            break;
+        case TcpSocketState::TcpCongState_t::CA_LOSS:
+            newCongStateString = "CA_LOSS";
+            break;
+        case TcpSocketState::TcpCongState_t::CA_LAST_STATE:
+            newCongStateString = "CA_LAST_STATE";
+            break;
+    }
+    m_log_update_helper_cong_state.Update(Simulator::Now().GetNanoSeconds(), newCongStateString);
+}
+
+void
 TcpFlowSendApplication::FinalizeDetailedLogs() {
     if (m_enableDetailedLogging) {
+
+        // The following traced variables exist really
+        // only when the connection is alive
         int64_t timestamp;
         if (m_connFailed || m_closedByError || m_closedNormally) {
             timestamp = m_completionTimeNs;
@@ -384,6 +469,12 @@ TcpFlowSendApplication::FinalizeDetailedLogs() {
         m_log_update_helper_cwnd_inflated_byte.Finalize(timestamp);
         m_log_update_helper_ssthresh_byte.Finalize(timestamp);
         m_log_update_helper_inflight_byte.Finalize(timestamp);
+
+        // The state effectively is perpetual -- for example, after
+        // finishing successfully the state will always be CLOSED
+        m_log_update_helper_state.Finalize(Simulator::Now().GetNanoSeconds ());
+        m_log_update_helper_cong_state.Finalize(Simulator::Now().GetNanoSeconds ());
+
     }
 }
 
