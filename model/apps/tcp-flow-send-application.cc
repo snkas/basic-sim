@@ -73,12 +73,13 @@ TcpFlowSendApplication::GetTypeId(void) {
                           MakeUintegerAccessor(&TcpFlowSendApplication::m_tcpFlowId),
                           MakeUintegerChecker<uint64_t>())
             .AddAttribute("EnableTcpFlowLoggingToFile",
-                          "True iff you want to track some aspects (progress, CWND, RTT) of the TCP flow over time.",
+                          "True iff you want to track some aspects (progress, rtt, rto, cwnd, inflated cwnd, ssthresh, inflight) of the TCP flow over time.",
                           BooleanValue(true),
                           MakeBooleanAccessor(&TcpFlowSendApplication::m_enableDetailedLogging),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
-                           "Base logging directory (logging will be placed here, i.e. logs_dir/tcp_flow_[flow id]_{progress, cwnd, rtt}.csv",
+                           "Base logging directory (logging will be placed here, "
+                           "i.e. logs_dir/tcp_flow_[flow id]_{progress, rtt, rto, cwnd, cwnd_inflated, ssthresh, inflight}.csv",
                            StringValue (""),
                            MakeStringAccessor (&TcpFlowSendApplication::m_baseLogsDir),
                            MakeStringChecker ())
@@ -150,17 +151,33 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
             m_log_update_helper_progress_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_log_update_helper_progress_byte.Update(Simulator::Now().GetNanoSeconds(), GetAckedBytes());
 
+            // Measured RTT (ns)
+            m_log_update_helper_rtt_ns = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            // At the socket creation, there is no RTT measurement, so retrieving it early will just yield 0
+            // As such there "is" basically no RTT measurement till then, so we are not going to write 0
+            m_socket->TraceConnectWithoutContext("RTT", MakeCallback(&TcpFlowSendApplication::RttChange, this));
+
+            // Retransmission timeout (ns)
+            m_log_update_helper_rto_ns = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rto.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_socket->TraceConnectWithoutContext("RTO", MakeCallback(&TcpFlowSendApplication::RtoChange, this));
+
             // Congestion window
             m_log_update_helper_cwnd_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             // Congestion window is only set upon SYN reception, so retrieving it early will just yield 0
             // As such there "is" basically no congestion window till then, so we are not going to write 0
             m_socket->TraceConnectWithoutContext("CongestionWindow", MakeCallback(&TcpFlowSendApplication::CwndChange, this));
 
-            // Measured RTT (ns)
-            m_log_update_helper_rtt_ns = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
-            // At the socket creation, there is no RTT measurement, so retrieving it early will just yield 0
-            // As such there "is" basically no RTT measurement till then, so we are not going to write 0
-            m_socket->TraceConnectWithoutContext("RTT", MakeCallback(&TcpFlowSendApplication::RttChange, this));
+            // Congestion window inflated
+            m_log_update_helper_cwnd_inflated_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd_inflated.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_socket->TraceConnectWithoutContext("CongestionWindowInflated", MakeCallback(&TcpFlowSendApplication::CwndInflatedChange, this));
+
+            // Slow-start threshold
+            m_log_update_helper_ssthresh_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_ssthresh.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_socket->TraceConnectWithoutContext("SlowStartThreshold", MakeCallback(&TcpFlowSendApplication::SsthreshChange, this));
+
+            // In-flight
+            m_log_update_helper_inflight_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_inflight.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_socket->TraceConnectWithoutContext("BytesInFlight", MakeCallback(&TcpFlowSendApplication::InflightChange, this));
 
         }
 
@@ -316,15 +333,39 @@ bool TcpFlowSendApplication::IsClosedByError() {
 }
 
 void
-TcpFlowSendApplication::CwndChange(uint32_t oldCwnd, uint32_t newCwnd)
+TcpFlowSendApplication::RttChange (Time oldRtt, Time newRtt)
+{
+    m_log_update_helper_rtt_ns.Update(Simulator::Now().GetNanoSeconds(), newRtt.GetNanoSeconds());
+}
+
+void
+TcpFlowSendApplication::RtoChange (Time oldRto, Time newRto)
+{
+    m_log_update_helper_rto_ns.Update(Simulator::Now().GetNanoSeconds(), newRto.GetNanoSeconds());
+}
+
+void
+TcpFlowSendApplication::CwndChange(uint32_t, uint32_t newCwnd)
 {
     m_log_update_helper_cwnd_byte.Update(Simulator::Now().GetNanoSeconds(), newCwnd);
 }
 
 void
-TcpFlowSendApplication::RttChange (Time oldRtt, Time newRtt)
+TcpFlowSendApplication::CwndInflatedChange(uint32_t, uint32_t newCwndInflated)
 {
-    m_log_update_helper_rtt_ns.Update(Simulator::Now().GetNanoSeconds(), newRtt.GetNanoSeconds());
+    m_log_update_helper_cwnd_inflated_byte.Update(Simulator::Now().GetNanoSeconds(), newCwndInflated);
+}
+
+void
+TcpFlowSendApplication::SsthreshChange(uint32_t oldCwnd, uint32_t newSsthresh)
+{
+    m_log_update_helper_ssthresh_byte.Update(Simulator::Now().GetNanoSeconds(), newSsthresh);
+}
+
+void
+TcpFlowSendApplication::InflightChange(uint32_t, uint32_t newInflight)
+{
+    m_log_update_helper_inflight_byte.Update(Simulator::Now().GetNanoSeconds(), newInflight);
 }
 
 void
@@ -336,9 +377,13 @@ TcpFlowSendApplication::FinalizeDetailedLogs() {
         } else {
             timestamp = Simulator::Now().GetNanoSeconds ();
         }
-        m_log_update_helper_cwnd_byte.Finalize(timestamp);
-        m_log_update_helper_rtt_ns.Finalize(timestamp);
         m_log_update_helper_progress_byte.Finalize(timestamp);
+        m_log_update_helper_rtt_ns.Finalize(timestamp);
+        m_log_update_helper_rto_ns.Finalize(timestamp);
+        m_log_update_helper_cwnd_byte.Finalize(timestamp);
+        m_log_update_helper_cwnd_inflated_byte.Finalize(timestamp);
+        m_log_update_helper_ssthresh_byte.Finalize(timestamp);
+        m_log_update_helper_inflight_byte.Finalize(timestamp);
     }
 }
 

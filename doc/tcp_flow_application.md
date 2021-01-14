@@ -101,8 +101,8 @@ You can use the application(s) separately, or make use of the scheduler (which i
             InetSocketAddress(node_b->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             1000000000, // Flow size (byte)
             0, // Flow id (must be unique!)
-            true, // Enable tracking cwnd / rtt / progress
-            m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{cwnd, rtt, progress}.csv are written
+            true, // Enable detailed tracking of the TCP connection (e.g., progress, rtt, rto, cwnd, ...)
+            m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{progress, rtt, rto, cwnd, ...}.csv are written
     );
     ApplicationContainer app_flow_0 = source.Install(node_a);
     app_flow_0.Start(NanoSeconds(0)); // Flow start time (ns since epoch)
@@ -157,7 +157,7 @@ You MUST set the following keys in `config_ns3.properties`:
 The following are OPTIONAL in `config_ns3.properties`:
 
 * `tcp_flow_enable_logging_for_tcp_flow_ids` : 
-  - **Description:** for which flows to enable detailed logging (progress, cwnd, RTT)
+  - **Description:** for which flows to enable detailed logging (e.g., progress, rtt, rto, cwnd, ...)
   - **Value types:** 
     - `all` to enable for all flows
     - Set of flow identifiers, i.e., `set(a, b, ...)` (default: `set()`)
@@ -246,6 +246,15 @@ there will have also been generated for those flows:
   ```
   [tcp flow id],[now (ns since epoch)],[progress (byte)]
   ```
+  
+#### `tcp_flow_[id]_rto.csv`
+
+- **Description:** retransmission timeout (RTO) (in ns)
+- **Format:** 
+  ```
+  [tcp flow id],[now (ns since epoch)],[rto (ns)]
+  ```
+
    
 #### `tcp_flow_[id]_cwnd.csv`
 
@@ -254,10 +263,27 @@ there will have also been generated for those flows:
    ```
    [tcp flow id],[now (ns since epoch)],[cwnd (byte)]
    ```
-#### `tcp_flow_[id]_rtt.csv`
+  
+#### `tcp_flow_[id]_cwnd_inflated.csv`
 
-- **Description:** estimated round-trip time (RTT) (in ns)
+- **Description:** inflated congestion window (in byte)
 - **Format:** 
-  ```
-  [tcp flow id],[now (ns since epoch)],[rtt (ns)]
-  ```
+   ```
+   [tcp flow id],[now (ns since epoch)],[cwnd inflated (byte)]
+   ```
+  
+#### `tcp_flow_[id]_ssthresh.csv`
+
+- **Description:** slow-start threshold (in byte)
+- **Format:** 
+   ```
+   [tcp flow id],[now (ns since epoch)],[ssthresh (byte)]
+   ```
+  
+#### `tcp_flow_[id]_inflight.csv`
+
+- **Description:** in-flight (in byte)
+- **Format:** 
+   ```
+   [tcp flow id],[now (ns since epoch)],[in-flight (byte)]
+   ```

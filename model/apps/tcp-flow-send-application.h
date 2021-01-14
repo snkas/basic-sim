@@ -80,8 +80,12 @@ private:
   bool            m_isCompleted;      //!< True iff the flow is completed fully AND closed normally
   std::string     m_additionalParameters; //!< Not used in this version of the application
   LogUpdateHelper m_log_update_helper_progress_byte; //!< Progress detailed logging
-  LogUpdateHelper m_log_update_helper_cwnd_byte;     //!< Congestion window detailed logging
   LogUpdateHelper m_log_update_helper_rtt_ns;        //!< RTT estimate detailed logging
+  LogUpdateHelper m_log_update_helper_rto_ns;        //!< Retransmission time-out detailed logging
+  LogUpdateHelper m_log_update_helper_cwnd_byte;     //!< Congestion window detailed logging
+  LogUpdateHelper m_log_update_helper_cwnd_inflated_byte; //!< Congestion window inflated detailed logging
+  LogUpdateHelper m_log_update_helper_ssthresh_byte; //!< Slow-start threshold detailed logging
+  LogUpdateHelper m_log_update_helper_inflight_byte; //!< In-flight detailed logging
 
   // TCP flow logging
   bool m_enableDetailedLogging;            //!< True iff you want to write detailed logs
@@ -95,8 +99,12 @@ private:
   void DataSend (Ptr<Socket>, uint32_t);
   void SocketClosedNormal(Ptr<Socket> socket);
   void SocketClosedError(Ptr<Socket> socket);
-  void CwndChange(uint32_t, uint32_t newCwnd);
   void RttChange (Time, Time newRtt);
+  void RtoChange(Time, Time newRto);
+  void CwndChange(uint32_t, uint32_t newCwnd);
+  void CwndInflatedChange(uint32_t, uint32_t newCwndInflated);
+  void SsthreshChange(uint32_t, uint32_t newSsthresh);
+  void InflightChange(uint32_t, uint32_t newInflight);
 
 };
 

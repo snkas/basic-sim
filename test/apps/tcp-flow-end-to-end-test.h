@@ -125,9 +125,13 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         for (size_t i = 0; i < write_schedule.size(); i++) {
-            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
         }
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
@@ -466,9 +470,13 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         for (int64_t i : tcp_flow_ids_with_logging) {
-            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
         }
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
@@ -584,9 +592,13 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         for (int64_t i : tcp_flow_ids_with_logging) {
-            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
         }
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
@@ -925,9 +937,13 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         for (size_t i = 0; i < write_schedule.size(); i++) {
-            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
             remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
         }
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);

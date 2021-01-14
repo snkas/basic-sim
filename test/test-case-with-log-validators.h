@@ -539,29 +539,7 @@ public:
         // Now go over all the detailed logs
         for (TcpFlowScheduleEntry& entry : tcp_flow_schedule) {
             if (tcp_flow_ids_with_logging.find(entry.GetTcpFlowId()) != tcp_flow_ids_with_logging.end()) {
-
-                // TCP congestion window
-                // tcp_flow_[id]_cwnd.csv
-                std::vector<std::string> lines_cwnd_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd.csv");
                 int64_t prev_timestamp_ns = 0;
-                int64_t prev_cwnd_byte = -1;
-                for (size_t i = 0; i < lines_cwnd_csv.size(); i++) {
-                    std::vector<std::string> line_spl = split_string(lines_cwnd_csv.at(i), ",");
-                    ASSERT_EQUAL(line_spl.size(), 3);
-
-                    // Correct TCP flow ID
-                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
-
-                    // Weakly ascending timestamp
-                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
-                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
-                    prev_timestamp_ns = timestamp_ns;
-
-                    // Congestion window has to be positive and different
-                    int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
-                    ASSERT_TRUE(cwnd_byte != prev_cwnd_byte || (i == lines_cwnd_csv.size() - 1 && cwnd_byte == prev_cwnd_byte));
-                    prev_cwnd_byte = cwnd_byte;
-                }
 
                 // TCP connection progress
                 // tcp_flow_[id]_progress.csv
@@ -609,6 +587,122 @@ public:
                     ASSERT_TRUE(rtt_ns >= 0);
                     ASSERT_TRUE(rtt_ns != prev_rtt_ns || (i == lines_rtt_csv.size() - 1 && rtt_ns == prev_rtt_ns));
                     prev_rtt_ns = rtt_ns;
+                }
+
+                // TCP RTO
+                // tcp_flow_[id]_rto.csv
+                std::vector<std::string> lines_rto_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_rto.csv");
+                prev_timestamp_ns = 0;
+                int64_t prev_rto_ns = -1;
+                for (size_t i = 0; i < lines_rto_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_rto_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // RTO has to be positive and different
+                    int64_t rto_ns = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(rto_ns >= 0);
+                    ASSERT_TRUE(rto_ns != prev_rto_ns || (i == lines_rto_csv.size() - 1 && rto_ns == prev_rto_ns));
+                    prev_rto_ns = rto_ns;
+                }
+
+                // TCP congestion window
+                // tcp_flow_[id]_cwnd.csv
+                std::vector<std::string> lines_cwnd_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd.csv");
+                prev_timestamp_ns = 0;
+                int64_t prev_cwnd_byte = -1;
+                for (size_t i = 0; i < lines_cwnd_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_cwnd_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // Congestion window has to be positive and different
+                    int64_t cwnd_byte = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(cwnd_byte != prev_cwnd_byte || (i == lines_cwnd_csv.size() - 1 && cwnd_byte == prev_cwnd_byte));
+                    prev_cwnd_byte = cwnd_byte;
+                }
+
+                // TCP congestion window inflated
+                // tcp_flow_[id]_cwnd_inflated.csv
+                std::vector<std::string> lines_cwnd_inflated_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_cwnd_inflated.csv");
+                prev_timestamp_ns = 0;
+                int64_t prev_cwnd_inflated_byte = -1;
+                for (size_t i = 0; i < lines_cwnd_inflated_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_cwnd_inflated_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // Congestion window inflated has to be positive and different
+                    int64_t cwnd_inflated_byte = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(cwnd_inflated_byte != prev_cwnd_inflated_byte || (i == lines_cwnd_inflated_csv.size() - 1 && cwnd_inflated_byte == prev_cwnd_inflated_byte));
+                    prev_cwnd_inflated_byte = cwnd_inflated_byte;
+                }
+
+                // TCP slow-start threshold
+                // tcp_flow_[id]_ssthresh.csv
+                std::vector<std::string> lines_ssthresh_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_ssthresh.csv");
+                prev_timestamp_ns = 0;
+                int64_t prev_ssthresh_byte = -1;
+                for (size_t i = 0; i < lines_ssthresh_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_ssthresh_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // Slow-start threshold has to be positive and different
+                    int64_t ssthresh_byte = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(ssthresh_byte != prev_ssthresh_byte || (i == lines_ssthresh_csv.size() - 1 && ssthresh_byte == prev_ssthresh_byte));
+                    prev_ssthresh_byte = ssthresh_byte;
+                }
+
+                // TCP in-flight
+                // tcp_flow_[id]_inflight.csv
+                std::vector<std::string> lines_inflight_csv = read_file_direct(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(entry.GetTcpFlowId()) + "_inflight.csv");
+                prev_timestamp_ns = 0;
+                int64_t prev_inflight_byte = -1;
+                for (size_t i = 0; i < lines_inflight_csv.size(); i++) {
+                    std::vector<std::string> line_spl = split_string(lines_inflight_csv.at(i), ",");
+                    ASSERT_EQUAL(line_spl.size(), 3);
+
+                    // Correct TCP flow ID
+                    ASSERT_EQUAL(parse_positive_int64(line_spl[0]), entry.GetTcpFlowId());
+
+                    // Weakly ascending timestamp
+                    int64_t timestamp_ns = parse_positive_int64(line_spl[1]);
+                    ASSERT_TRUE(timestamp_ns >= prev_timestamp_ns);
+                    prev_timestamp_ns = timestamp_ns;
+
+                    // In-flight has to be positive and different
+                    int64_t inflight_byte = parse_positive_int64(line_spl[2]);
+                    ASSERT_TRUE(inflight_byte != prev_inflight_byte || (i == lines_inflight_csv.size() - 1 && inflight_byte == prev_inflight_byte));
+                    prev_inflight_byte = inflight_byte;
                 }
 
             }

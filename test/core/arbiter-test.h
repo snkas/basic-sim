@@ -811,9 +811,13 @@ public:
         remove_file_if_exists(run_test_dir + "/logs_ns3/timing_results.csv");
         remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flows.txt");
-        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
         remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_progress.csv");
         remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_rto.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
+        remove_file_if_exists(run_test_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
         remove_dir_if_exists(run_test_dir + "/logs_ns3");
         remove_dir_if_exists(run_test_dir);
 

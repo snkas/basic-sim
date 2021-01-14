@@ -263,7 +263,7 @@ We are going to install three different applications:
    |-- finished.txt
    |-- timing_results.{csv, txt}
    |-- tcp_flows.{csv, txt}
-   |-- tcp_flow_{0, 1, 2}_{cwnd, progress, rtt}.csv
+   |-- tcp_flow_{0, 1, 2}_{progress, rtt, rto, cwnd, cwnd_inflated, ssthresh, inflight}.csv
    |-- link_net_device_utilization.csv
    |-- utilization_compressed.{csv, txt}
    |-- link_net_device_utilization_summary.txt
