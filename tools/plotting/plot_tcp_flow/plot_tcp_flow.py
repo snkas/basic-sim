@@ -105,6 +105,8 @@ def plot_tcp_flow(logs_ns3_dir, data_out_dir, pdf_out_dir, tcp_flow_id, interval
     for ssthresh in ssthresh_values:
         if ssthresh > max_ssthresh and ssthresh != 4294967295:
             max_ssthresh = ssthresh
+    if max_ssthresh == 0:  # If it never got out of initial slow-start, we just set it to 1 for the plot
+        max_ssthresh = 1.0
 
     # Execute ssthresh plotting
     local_shell.copy_file(data_filename, data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_ssthresh.csv")
