@@ -148,35 +148,35 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
         if (m_enableDetailedLogging) {
 
             // Progress
-            m_log_update_helper_progress_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_log_update_helper_progress_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_log_update_helper_progress_byte.Update(Simulator::Now().GetNanoSeconds(), GetAckedBytes());
 
             // Measured RTT (ns)
-            m_log_update_helper_rtt_ns = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_log_update_helper_rtt_ns = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             // At the socket creation, there is no RTT measurement, so retrieving it early will just yield 0
             // As such there "is" basically no RTT measurement till then, so we are not going to write 0
             m_socket->TraceConnectWithoutContext("RTT", MakeCallback(&TcpFlowSendApplication::RttChange, this));
 
             // Retransmission timeout (ns)
-            m_log_update_helper_rto_ns = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rto.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_log_update_helper_rto_ns = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rto.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_socket->TraceConnectWithoutContext("RTO", MakeCallback(&TcpFlowSendApplication::RtoChange, this));
 
             // Congestion window
-            m_log_update_helper_cwnd_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_log_update_helper_cwnd_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             // Congestion window is only set upon SYN reception, so retrieving it early will just yield 0
             // As such there "is" basically no congestion window till then, so we are not going to write 0
             m_socket->TraceConnectWithoutContext("CongestionWindow", MakeCallback(&TcpFlowSendApplication::CwndChange, this));
 
             // Congestion window inflated
-            m_log_update_helper_cwnd_inflated_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd_inflated.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_log_update_helper_cwnd_inflated_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd_inflated.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_socket->TraceConnectWithoutContext("CongestionWindowInflated", MakeCallback(&TcpFlowSendApplication::CwndInflatedChange, this));
 
             // Slow-start threshold
-            m_log_update_helper_ssthresh_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_ssthresh.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_log_update_helper_ssthresh_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_ssthresh.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_socket->TraceConnectWithoutContext("SlowStartThreshold", MakeCallback(&TcpFlowSendApplication::SsthreshChange, this));
 
             // In-flight
-            m_log_update_helper_inflight_byte = LogUpdateHelper(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_inflight.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
+            m_log_update_helper_inflight_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_inflight.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_socket->TraceConnectWithoutContext("BytesInFlight", MakeCallback(&TcpFlowSendApplication::InflightChange, this));
 
         }

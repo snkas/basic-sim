@@ -46,8 +46,8 @@ namespace ns3 {
         Ptr<Queue<Packet>> m_queue;
 
         // State
-        LogUpdateHelper m_log_update_helper_queue_pkt;
-        LogUpdateHelper m_log_update_helper_queue_byte;
+        LogUpdateHelper<int64_t> m_log_update_helper_queue_pkt;
+        LogUpdateHelper<int64_t> m_log_update_helper_queue_byte;
 
     };
 

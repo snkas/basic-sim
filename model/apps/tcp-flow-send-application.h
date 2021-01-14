@@ -79,13 +79,13 @@ private:
   uint64_t        m_ackedBytes;       //!< Amount of acknowledged bytes cached after close of the socket
   bool            m_isCompleted;      //!< True iff the flow is completed fully AND closed normally
   std::string     m_additionalParameters; //!< Not used in this version of the application
-  LogUpdateHelper m_log_update_helper_progress_byte; //!< Progress detailed logging
-  LogUpdateHelper m_log_update_helper_rtt_ns;        //!< RTT estimate detailed logging
-  LogUpdateHelper m_log_update_helper_rto_ns;        //!< Retransmission time-out detailed logging
-  LogUpdateHelper m_log_update_helper_cwnd_byte;     //!< Congestion window detailed logging
-  LogUpdateHelper m_log_update_helper_cwnd_inflated_byte; //!< Congestion window inflated detailed logging
-  LogUpdateHelper m_log_update_helper_ssthresh_byte; //!< Slow-start threshold detailed logging
-  LogUpdateHelper m_log_update_helper_inflight_byte; //!< In-flight detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_progress_byte; //!< Progress detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_rtt_ns;        //!< RTT estimate detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_rto_ns;        //!< Retransmission time-out detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_cwnd_byte;     //!< Congestion window detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_cwnd_inflated_byte; //!< Congestion window inflated detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_ssthresh_byte; //!< Slow-start threshold detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_inflight_byte; //!< In-flight detailed logging
 
   // TCP flow logging
   bool m_enableDetailedLogging;            //!< True iff you want to write detailed logs

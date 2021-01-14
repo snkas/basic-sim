@@ -38,12 +38,12 @@ namespace ns3 {
         m_qdisc = qdisc;
 
         // Logging number of packets in the qdisc
-        m_log_update_helper_qdisc_pkt = LogUpdateHelper();
+        m_log_update_helper_qdisc_pkt = LogUpdateHelper<int64_t>();
         m_log_update_helper_qdisc_pkt.Update(0, 0);
         m_qdisc->TraceConnectWithoutContext("PacketsInQueue", MakeCallback(&QdiscQueueTracker::QueueDiscPacketsInQueueCallback, this));
         
         // Logging bytes in the qdisc
-        m_log_update_helper_qdisc_byte = LogUpdateHelper();
+        m_log_update_helper_qdisc_byte = LogUpdateHelper<int64_t>();
         m_log_update_helper_qdisc_byte.Update(0, 0);
         m_qdisc->TraceConnectWithoutContext("BytesInQueue", MakeCallback(&QdiscQueueTracker::QueueDiscBytesInQueueCallback, this));
 

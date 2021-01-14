@@ -49,8 +49,8 @@ namespace ns3 {
         Ptr<QueueDisc> m_qdisc;
 
         // State
-        LogUpdateHelper m_log_update_helper_qdisc_pkt;
-        LogUpdateHelper m_log_update_helper_qdisc_byte;
+        LogUpdateHelper<int64_t> m_log_update_helper_qdisc_pkt;
+        LogUpdateHelper<int64_t> m_log_update_helper_qdisc_byte;
 
     };
 

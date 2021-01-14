@@ -39,12 +39,12 @@ namespace ns3 {
         m_queue = queue;
 
         // Logging number of packets in the queue
-        m_log_update_helper_queue_pkt = LogUpdateHelper();
+        m_log_update_helper_queue_pkt = LogUpdateHelper<int64_t>();
         m_log_update_helper_queue_pkt.Update(0, 0);
         m_queue->TraceConnectWithoutContext("PacketsInQueue", MakeCallback(&QueueTracker::PacketsInQueueCallback, this));
         
         // Logging bytes in the queue
-        m_log_update_helper_queue_byte = LogUpdateHelper();
+        m_log_update_helper_queue_byte = LogUpdateHelper<int64_t>();
         m_log_update_helper_queue_byte.Update(0, 0);
         m_queue->TraceConnectWithoutContext("BytesInQueue", MakeCallback(&QueueTracker::BytesInQueueCallback, this));
 

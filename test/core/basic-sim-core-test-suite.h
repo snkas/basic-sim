@@ -36,6 +36,8 @@ public:
         AddTestCase(new LogUpdateHelperValidTestCase, TestCase::QUICK);
         AddTestCase(new LogUpdateHelperValidWithFileTestCase, TestCase::QUICK);
         AddTestCase(new LogUpdateHelperInvalidTestCase, TestCase::QUICK);
+        AddTestCase(new LogUpdateHelperValidStringTestCase, TestCase::QUICK);
+        AddTestCase(new LogUpdateHelperValidStringWithFileTestCase, TestCase::QUICK);
 
         // TCP optimizer
         AddTestCase(new TcpOptimizerBasicTestCase, TestCase::QUICK);
