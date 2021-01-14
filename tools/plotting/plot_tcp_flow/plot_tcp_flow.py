@@ -1,5 +1,7 @@
 import sys
 import exputil
+import math
+import numpy as np
 
 from generate_tcp_flow_rate_csv import generate_tcp_flow_rate_csv
 
@@ -22,12 +24,11 @@ def plot_tcp_flow(logs_ns3_dir, data_out_dir, pdf_out_dir, tcp_flow_id, interval
     
     # Create rate file
     generate_tcp_flow_rate_csv(logs_ns3_dir, data_out_dir, tcp_flow_id, interval_ns)
-    
-    # Plot time vs. cwnd
-    data_filename = logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd.csv"
-    local_shell.copy_file(data_filename, data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd.csv")
-    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_cwnd_" + str(tcp_flow_id) + ".pdf"
-    plt_filename = "plot_tcp_flow_time_vs_cwnd.plt"
+
+    # Plot time vs. rate
+    data_filename = data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rate_in_intervals.csv"
+    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_rate_" + str(tcp_flow_id) + ".pdf"
+    plt_filename = "plot_tcp_flow_time_vs_rate.plt"
     local_shell.copy_file(plt_filename, "temp.plt")
     local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
     local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
@@ -59,13 +60,107 @@ def plot_tcp_flow(logs_ns3_dir, data_out_dir, pdf_out_dir, tcp_flow_id, interval
     print("Produced plot: " + pdf_filename)
     local_shell.remove("temp.plt")
 
-    # Plot time vs. rate
-    data_filename = data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rate_in_intervals.csv"
-    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_rate_" + str(tcp_flow_id) + ".pdf"
-    plt_filename = "plot_tcp_flow_time_vs_rate.plt"
+    # Plot time vs. rto
+    data_filename = logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rto.csv"
+    local_shell.copy_file(data_filename, data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_rto.csv")
+    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_rto_" + str(tcp_flow_id) + ".pdf"
+    plt_filename = "plot_tcp_flow_time_vs_rto.plt"
     local_shell.copy_file(plt_filename, "temp.plt")
     local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
     local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
+    local_shell.perfect_exec("gnuplot temp.plt")
+    print("Produced plot: " + pdf_filename)
+    local_shell.remove("temp.plt")
+
+    # Plot time vs. cwnd
+    data_filename = logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd.csv"
+    local_shell.copy_file(data_filename, data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd.csv")
+    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_cwnd_" + str(tcp_flow_id) + ".pdf"
+    plt_filename = "plot_tcp_flow_time_vs_cwnd.plt"
+    local_shell.copy_file(plt_filename, "temp.plt")
+    local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
+    local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
+    local_shell.perfect_exec("gnuplot temp.plt")
+    print("Produced plot: " + pdf_filename)
+    local_shell.remove("temp.plt")
+
+    # Plot time vs. cwnd_inflated
+    data_filename = logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd_inflated.csv"
+    local_shell.copy_file(data_filename, data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd_inflated.csv")
+    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_cwnd_inflated_" + str(tcp_flow_id) + ".pdf"
+    plt_filename = "plot_tcp_flow_time_vs_cwnd_inflated.plt"
+    local_shell.copy_file(plt_filename, "temp.plt")
+    local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
+    local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
+    local_shell.perfect_exec("gnuplot temp.plt")
+    print("Produced plot: " + pdf_filename)
+    local_shell.remove("temp.plt")
+
+    # Plot time vs. ssthresh
+    data_filename = logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_ssthresh.csv"
+
+    # Retrieve the highest ssthresh which is not a max. integer
+    ssthresh_values = exputil.read_csv_direct_in_columns(data_filename, "pos_int,pos_int,pos_int")[2]
+    max_ssthresh = 0
+    for ssthresh in ssthresh_values:
+        if ssthresh > max_ssthresh and ssthresh != 4294967295:
+            max_ssthresh = ssthresh
+
+    # Execute ssthresh plotting
+    local_shell.copy_file(data_filename, data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_ssthresh.csv")
+    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_ssthresh_" + str(tcp_flow_id) + ".pdf"
+    plt_filename = "plot_tcp_flow_time_vs_ssthresh.plt"
+    local_shell.copy_file(plt_filename, "temp.plt")
+    local_shell.sed_replace_in_file_plain("temp.plt", "[MAX-Y]", str(math.ceil(max_ssthresh / 1380.0)))
+    local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
+    local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
+    local_shell.perfect_exec("gnuplot temp.plt")
+    print("Produced plot: " + pdf_filename)
+    local_shell.remove("temp.plt")
+
+    # Plot time vs. inflight
+    data_filename = logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_inflight.csv"
+    local_shell.copy_file(data_filename, data_out_dir + "/tcp_flow_" + str(tcp_flow_id) + "_inflight.csv")
+    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_inflight_" + str(tcp_flow_id) + ".pdf"
+    plt_filename = "plot_tcp_flow_time_vs_inflight.plt"
+    local_shell.copy_file(plt_filename, "temp.plt")
+    local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
+    local_shell.sed_replace_in_file_plain("temp.plt", "[DATA-FILE]", data_filename)
+    local_shell.perfect_exec("gnuplot temp.plt")
+    print("Produced plot: " + pdf_filename)
+    local_shell.remove("temp.plt")
+
+    # Plot time vs. together (cwnd, cwnd_inflated, ssthresh, inflight)
+    cwnd_values = exputil.read_csv_direct_in_columns(
+        logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd.csv", "pos_int,pos_int,pos_int")[2]
+    cwnd_inflated_values = exputil.read_csv_direct_in_columns(
+        logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd_inflated.csv", "pos_int,pos_int,pos_int")[2]
+    inflight_values = exputil.read_csv_direct_in_columns(
+        logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_inflight.csv", "pos_int,pos_int,pos_int")[2]
+    pdf_filename = pdf_out_dir + "/plot_tcp_flow_time_vs_together_" + str(tcp_flow_id) + ".pdf"
+    plt_filename = "plot_tcp_flow_time_vs_together.plt"
+    local_shell.copy_file(plt_filename, "temp.plt")
+    local_shell.sed_replace_in_file_plain("temp.plt", "[MAX-Y]", str(
+        max(
+            math.ceil(max_ssthresh / 1380.0),
+            math.ceil(np.max(cwnd_values) / 1380.0),
+            math.ceil(np.max(cwnd_inflated_values) / 1380.0),
+            math.ceil(np.max(inflight_values) / 1380.0)
+        )
+    ))
+    local_shell.sed_replace_in_file_plain("temp.plt", "[OUTPUT-FILE]", pdf_filename)
+    local_shell.sed_replace_in_file_plain(
+        "temp.plt", "[DATA-FILE-CWND]", logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd.csv"
+    )
+    local_shell.sed_replace_in_file_plain(
+        "temp.plt", "[DATA-FILE-CWND-INFLATED]", logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_cwnd_inflated.csv"
+    )
+    local_shell.sed_replace_in_file_plain(
+        "temp.plt", "[DATA-FILE-SSTHRESH]", logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_ssthresh.csv"
+    )
+    local_shell.sed_replace_in_file_plain(
+        "temp.plt", "[DATA-FILE-INFLIGHT]", logs_ns3_dir + "/tcp_flow_" + str(tcp_flow_id) + "_inflight.csv"
+    )
     local_shell.perfect_exec("gnuplot temp.plt")
     print("Produced plot: " + pdf_filename)
     local_shell.remove("temp.plt")
