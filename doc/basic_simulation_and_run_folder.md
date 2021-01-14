@@ -34,7 +34,7 @@ applications to run -- either inside or outside of this framework. One can simpl
 the apps and use them somewhere else without even having to deal with the framework.
 
 
-# Run folder
+## Run folder
 
 The run folder must contain the input of a simulation. The basic simulation is centered around it.
 
