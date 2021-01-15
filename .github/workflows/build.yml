@@ -1,0 +1,55 @@
+name: build
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+
+    steps:
+
+      - name: "Checkout repository"
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install mpic++
+          sudo apt-get -y install libopenmpi-dev
+          sudo apt-get -y install lcov
+          sudo apt-get -y install gnuplot
+
+      - name: Install Python module dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy
+          pip install statsmodels
+          pip install git+https://github.com/snkas/exputilpy.git
+
+      - name: Build
+        run: |
+          cd build
+          bash build.sh
+          cd ..
+
+      - name: Run tests and examples
+        run: |
+          cd build
+          bash test.sh
+          bash tutorial.sh
+          bash example.sh
+          cd ..
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./build/coverage_report/coverage.info

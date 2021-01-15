@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Usage help
 if [ "$1" == "--help" ]; then
   echo "Usage: bash tutorial.sh [--help]"
@@ -6,6 +8,9 @@ fi
 
 # Rebuild
 bash rebuild.sh || exit 1
+
+# Notify what is going to be run
+echo "Performing tutorial run"
 
 # Tutorial
 bash run_assist.sh "example_run_folders/tutorial" 0 || exit 1

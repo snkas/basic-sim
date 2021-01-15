@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Usage help
 if [ "$1" == "--help" ]; then
   echo "Usage: bash one_udp.sh [--help]"

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Usage help
 if [ "$1" == "--help" ]; then
   echo "Usage: bash example.sh [--help]"
@@ -6,6 +8,9 @@ fi
 
 # Rebuild
 bash rebuild.sh || exit 1
+
+# Notify what is going to be run
+echo "Performing example runs"
 
 ########################################################################################
 

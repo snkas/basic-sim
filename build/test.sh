@@ -1,3 +1,5 @@
+#!/bin/bash
+
 NS3_VERSION="ns-3.31"
 
 # Usage help

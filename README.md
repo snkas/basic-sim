@@ -1,6 +1,6 @@
 # Basic simulation ns-3 module
 
-[![Build Status](https://travis-ci.com/snkas/basic-sim.svg?branch=master)](https://travis-ci.com/snkas/basic-sim) [![codecov](https://codecov.io/gh/snkas/basic-sim/branch/master/graph/badge.svg)](https://codecov.io/gh/snkas/basic-sim)
+[![build](https://github.com/snkas/basic-sim/workflows/build/badge.svg)](https://github.com/snkas/basic-sim/actions?query=workflow%3Abuild+branch%3Amaster) [![codecov](https://codecov.io/gh/snkas/basic-sim/branch/master/graph/badge.svg)](https://codecov.io/gh/snkas/basic-sim)
 
 This ns-3 module is intended to make experimental simulation of networks a bit easier.
 It has a wrapper to take care of loading in run folder configurations (e.g., runtime, random seed),
