@@ -19,5 +19,7 @@ The following commands are defined (in order in which they can be executed):
 * `example.sh` : Runs a variety of example run folders (located in `example_run_folders/`).
 
 * `one_tcp.sh` : Run the most simple example run folder of one TCP flow over a two node with one link topology.
- 
+
+* `one_udp.sh` : Run the most simple example run folder of two UDP bursts either way over a two node with one link topology.
+
 * `clean.sh` : Removes test results, coverage report, builds and tutorial/example log files.
