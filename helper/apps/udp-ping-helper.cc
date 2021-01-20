@@ -20,18 +20,18 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#include "udp-rtt-helper.h"
+#include "udp-ping-helper.h"
 
 namespace ns3 {
 
-UdpRttServerHelper::UdpRttServerHelper (uint16_t port)
+UdpPingServerHelper::UdpPingServerHelper (uint16_t port)
 {
-  m_factory.SetTypeId (UdpRttServer::GetTypeId ());
+  m_factory.SetTypeId (UdpPingServer::GetTypeId ());
   SetAttribute ("Port", UintegerValue (port));
 }
 
 void 
-UdpRttServerHelper::SetAttribute (
+UdpPingServerHelper::SetAttribute (
   std::string name, 
   const AttributeValue &value)
 {
@@ -39,13 +39,13 @@ UdpRttServerHelper::SetAttribute (
 }
 
 ApplicationContainer
-UdpRttServerHelper::Install (Ptr<Node> node) const
+UdpPingServerHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-UdpRttServerHelper::Install (NodeContainer c) const
+UdpPingServerHelper::Install (NodeContainer c) const
 {
   ApplicationContainer apps;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i) {
@@ -55,23 +55,26 @@ UdpRttServerHelper::Install (NodeContainer c) const
 }
 
 Ptr<Application>
-UdpRttServerHelper::InstallPriv (Ptr<Node> node) const
+UdpPingServerHelper::InstallPriv (Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<UdpRttServer> ();
+  Ptr<Application> app = m_factory.Create<UdpPingServer> ();
   node->AddApplication (app);
   return app;
 }
 
-UdpRttClientHelper::UdpRttClientHelper (Address address, uint32_t from_node_id, uint32_t to_node_id)
+UdpPingClientHelper::UdpPingClientHelper (Address address, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters)
 {
-  m_factory.SetTypeId (UdpRttClient::GetTypeId ());
+  m_factory.SetTypeId (UdpPingClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (address));
-  SetAttribute ("FromNodeId", UintegerValue (from_node_id));
-  SetAttribute ("ToNodeId", UintegerValue (to_node_id));
+  SetAttribute ("UdpPingId", UintegerValue (udp_ping_id));
+  SetAttribute ("Interval", TimeValue (interval));
+  SetAttribute ("Duration", TimeValue (duration));
+  SetAttribute ("WaitAfterwards", TimeValue (wait_afterwards));
+  SetAttribute ("AdditionalParameters", StringValue (additional_parameters));
 }
 
 void 
-UdpRttClientHelper::SetAttribute (
+UdpPingClientHelper::SetAttribute (
   std::string name, 
   const AttributeValue &value)
 {
@@ -79,15 +82,15 @@ UdpRttClientHelper::SetAttribute (
 }
 
 ApplicationContainer
-UdpRttClientHelper::Install (Ptr<Node> node) const
+UdpPingClientHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 Ptr<Application>
-UdpRttClientHelper::InstallPriv (Ptr<Node> node) const
+UdpPingClientHelper::InstallPriv (Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<UdpRttClient> ();
+  Ptr<Application> app = m_factory.Create<UdpPingClient> ();
   node->AddApplication (app);
 
   return app;

@@ -999,19 +999,19 @@ public:
     }
 
     /**
-     * Validation of pingmesh logs.
+     * Validation of UDP ping logs.
      *
      * @param simulation_end_time_ns    In:  duration of simulation
      * @param run_dir                   In:  run directory
-     * @param ping_pairs                In:  vector of ping pairs
+     * @param udp_ping_schedule         In:  vector of UDP ping schedule
      * @param list_latency_there_ns     Out: vector of pings' latency there (ns)
      * @param list_latency_back_ns      Out: vector of pings' latency back (ns)
      * @param list_rtt_ns               Out: vector of pings' RTT (ns)
      */
-    void validate_pingmesh_logs(
+    void validate_udp_pings_logs(
             int64_t simulation_end_time_ns,
             std::string run_dir,
-            std::vector<std::pair<int64_t, int64_t>> ping_pairs,
+            std::vector<UdpPingInfo> udp_ping_schedule,
             std::vector<std::vector<int64_t>>& list_latency_there_ns,
             std::vector<std::vector<int64_t>>& list_latency_back_ns,
             std::vector<std::vector<int64_t>>& list_rtt_ns
@@ -1020,25 +1020,24 @@ public:
         // Logs are only valid if the run is finished
         validate_finished(run_dir);
 
-        // Check pingmesh.csv
-        std::vector<std::string> lines_csv = read_file_direct(run_dir + "/logs_ns3/pingmesh.csv");
+        // Check udp_pings.csv
+        std::vector<std::string> lines_csv = read_file_direct(run_dir + "/logs_ns3/udp_pings.csv");
         size_t i = 0;
         int64_t counter = 0;
-        std::pair<int64_t, int64_t> current = std::make_pair(-1, -1);
+        int64_t current_udp_ping_id = -1;
         std::vector<std::vector<int64_t>> list_latency_there_ns_valid;
         std::vector<std::vector<int64_t>> list_latency_back_ns_valid;
         std::vector<std::vector<int64_t>> list_rtt_ns_valid;
         for (std::string line : lines_csv) {
-            std::vector<std::string> spl = split_string(line, ",", 10);
+            std::vector<std::string> spl = split_string(line, ",", 9);
 
             // From-to and sequence number must match
-            int64_t from = parse_positive_int64(spl[0]);
-            int64_t to = parse_positive_int64(spl[1]);
-            int64_t seq_no = parse_positive_int64(spl[2]);
-            if (std::make_pair(from, to) != current) {
+            int64_t udp_ping_id = parse_positive_int64(spl[0]);
+            int64_t seq_no = parse_positive_int64(spl[1]);
+            if (udp_ping_id != current_udp_ping_id) {
                 counter = 0;
-                current = std::make_pair(from, to);
-                ASSERT_PAIR_EQUAL(current, ping_pairs[i]);
+                current_udp_ping_id = udp_ping_id;
+                ASSERT_EQUAL(current_udp_ping_id, udp_ping_schedule.at(i).GetUdpPingId());
                 list_latency_there_ns.push_back(std::vector<int64_t>());
                 list_latency_back_ns.push_back(std::vector<int64_t>());
                 list_rtt_ns.push_back(std::vector<int64_t>());
@@ -1051,16 +1050,16 @@ public:
             counter++;
 
             // Timestamps
-            int64_t sent_ns = parse_positive_int64(spl[3]);
-            int64_t reply_ns = parse_int64(spl[4]);
-            int64_t got_reply_ns = parse_int64(spl[5]);
-            int64_t way_there_ns = parse_int64(spl[6]);
-            int64_t way_back_ns = parse_int64(spl[7]);
-            int64_t rtt_ns = parse_int64(spl[8]);
+            int64_t sent_ns = parse_positive_int64(spl[2]);
+            int64_t reply_ns = parse_int64(spl[3]);
+            int64_t got_reply_ns = parse_int64(spl[4]);
+            int64_t way_there_ns = parse_int64(spl[5]);
+            int64_t way_back_ns = parse_int64(spl[6]);
+            int64_t rtt_ns = parse_int64(spl[7]);
             bool arrived = true;
-            if (trim(spl[9]) == "YES") {
+            if (trim(spl[8]) == "YES") {
                 arrived = true;
-            } else if (trim(spl[9]) == "LOST") {
+            } else if (trim(spl[8]) == "LOST") {
                 arrived = false;
             } else {
                 ASSERT_TRUE(false);
@@ -1085,13 +1084,13 @@ public:
             list_latency_back_ns.at(i - 1).push_back(way_back_ns);
             list_rtt_ns.at(i - 1).push_back(rtt_ns);
         }
-        ASSERT_EQUAL(i, ping_pairs.size());
+        ASSERT_EQUAL(i, udp_ping_schedule.size());
 
-        // Check pingmesh.txt
-        std::vector<std::string> lines_txt = read_file_direct(run_dir + "/logs_ns3/pingmesh.txt");
+        // Check udp_pings.txt
+        std::vector<std::string> lines_txt = read_file_direct(run_dir + "/logs_ns3/udp_pings.txt");
         ASSERT_EQUAL(
                 lines_txt[0],
-                "Source    Target    Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival"
+                "UDP Ping ID     Source    Target    Start time (ns)   End time (ns)     Interval (ns)     Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival"
         );
         i = 0;
         for (i = 1; i < lines_txt.size(); i++) {
@@ -1101,12 +1100,42 @@ public:
             for (std::string s; iss >> s;) {
                 line_spl.push_back(s);
             }
-            ASSERT_EQUAL(line_spl.size(), 16);
+            ASSERT_EQUAL(line_spl.size(), 20);
 
-            // From-to
+            // ID
             ASSERT_PAIR_EQUAL(
-                    std::make_pair(parse_positive_int64(line_spl[0]), parse_positive_int64(line_spl[1])),
-                    ping_pairs.at(j)
+                    parse_positive_int64(line_spl[0]),
+                    udp_ping_schedule.at(j).GetUdpPingId()
+            );
+
+            // From
+            ASSERT_EQUAL(
+                    parse_positive_int64(line_spl[1]),
+                    udp_ping_schedule.at(j).GetFromNodeId()
+            );
+
+            // To
+            ASSERT_EQUAL(
+                    parse_positive_int64(line_spl[2]),
+                    udp_ping_schedule.at(j).GetToNodeId()
+            );
+
+            // Start time
+            ASSERT_EQUAL(
+                    parse_positive_int64(line_spl[3]),
+                    udp_ping_schedule.at(j).GetStartTimeNs()
+            );
+
+            // End time
+            ASSERT_EQUAL(
+                    parse_positive_int64(line_spl[4]),
+                    udp_ping_schedule.at(j).GetStartTimeNs() + udp_ping_schedule.at(j).GetDurationNs()
+            );
+
+            // Interval
+            ASSERT_EQUAL(
+                    parse_positive_int64(line_spl[5]),
+                    udp_ping_schedule.at(j).GetIntervalNs()
             );
 
             // Check
@@ -1146,23 +1175,23 @@ public:
             double sample_std_rtt_ns = any_valid ? (list_rtt_ns_valid.at(j).size() > 1 ? std::sqrt(sum_rtt_min_mean_sq_ns / (list_rtt_ns_valid.at(j).size() - 1)) : 0) : -1;
 
             // Match log with the above calculated RTTs
-            ASSERT_EQUAL_APPROX(parse_double(line_spl[2]), (expected_mean_latency_there == -1 ? -1 : expected_mean_latency_there / 1e6), 0.01);
-            ASSERT_EQUAL(line_spl[3], "ms");
-            ASSERT_EQUAL_APPROX(parse_double(line_spl[4]), (expected_mean_latency_back == -1 ? -1 : expected_mean_latency_back / 1e6), 0.01);
-            ASSERT_EQUAL(line_spl[5], "ms");
-            ASSERT_EQUAL_APPROX(parse_double(line_spl[6]), (min_rtt_ns == -1 ? -1 : min_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[6]), (expected_mean_latency_there == -1 ? -1 : expected_mean_latency_there / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[7], "ms");
-            ASSERT_EQUAL_APPROX(parse_double(line_spl[8]), (mean_rtt_ns == -1 ? -1 : mean_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[8]), (expected_mean_latency_back == -1 ? -1 : expected_mean_latency_back / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[9], "ms");
-            ASSERT_EQUAL_APPROX(parse_double(line_spl[10]), (max_rtt_ns == -1 ? -1 : max_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[10]), (min_rtt_ns == -1 ? -1 : min_rtt_ns / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[11], "ms");
-            ASSERT_EQUAL_APPROX(parse_double(line_spl[12]), (sample_std_rtt_ns == -1 ? -1 : sample_std_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[12]), (mean_rtt_ns == -1 ? -1 : mean_rtt_ns / 1e6), 0.01);
             ASSERT_EQUAL(line_spl[13], "ms");
-            ASSERT_EQUAL(line_spl[14], std::to_string(list_rtt_ns_valid.at(j).size()) + "/" + std::to_string(list_rtt_ns.at(j).size()));
-            ASSERT_EQUAL(line_spl[15], "(" + std::to_string((int) std::round(((double) list_rtt_ns_valid.at(j).size() / (double) list_rtt_ns.at(j).size()) * 100.0)) + "%)");
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[14]), (max_rtt_ns == -1 ? -1 : max_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[15], "ms");
+            ASSERT_EQUAL_APPROX(parse_double(line_spl[16]), (sample_std_rtt_ns == -1 ? -1 : sample_std_rtt_ns / 1e6), 0.01);
+            ASSERT_EQUAL(line_spl[17], "ms");
+            ASSERT_EQUAL(line_spl[18], std::to_string(list_rtt_ns_valid.at(j).size()) + "/" + std::to_string(list_rtt_ns.at(j).size()));
+            ASSERT_EQUAL(line_spl[19], "(" + std::to_string((int) std::round(((double) list_rtt_ns_valid.at(j).size() / (double) list_rtt_ns.at(j).size()) * 100.0)) + "%)");
 
         }
-        ASSERT_EQUAL(i - 1, ping_pairs.size());
+        ASSERT_EQUAL(i - 1, udp_ping_schedule.size());
 
     }
     

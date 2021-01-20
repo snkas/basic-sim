@@ -10,18 +10,66 @@ public:
     void prepare_test_dir() {
         mkdir_if_not_exists(temp_dir);
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/topology.properties");
     }
 
-    void write_basic_config(int64_t simulation_end_time_ns, int64_t pingmesh_interval_ns, std::string pingmesh_endpoint_pairs) {
+    std::vector<UdpPingInfo> write_pingmesh_to_udp_ping_schedule(int64_t pingmesh_interval_ns, std::string pingmesh_endpoints_pair_str, std::vector<int64_t> endpoints) {
+        std::vector<UdpPingInfo> result;
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/udp_ping_schedule.csv");
+        if (pingmesh_endpoints_pair_str == "all") {
+            int n = 0;
+            for (int64_t i : endpoints) {
+                for (int64_t j : endpoints) {
+                    if (i != j) {
+                        schedule_file << n << "," << i << "," << j << "," << pingmesh_interval_ns << ",0,100000000000,0,," << std::endl;
+                        result.push_back(UdpPingInfo(
+                                n,
+                                i,
+                                j,
+                                pingmesh_interval_ns,
+                                0,
+                                100000000000,
+                                0,
+                                "",
+                                ""
+                        ));
+                        n += 1;
+                    }
+                }
+            }
+        } else {
+            std::set<std::pair<int64_t, int64_t>> directed_pair_set = parse_set_directed_pair_positive_int64(pingmesh_endpoints_pair_str);
+            int n = 0;
+            for (std::pair<int64_t, int64_t> ab : directed_pair_set) {
+                schedule_file << n << "," << ab.first << "," << ab.second << "," << pingmesh_interval_ns << ",0,100000000000,0,," << std::endl;
+                result.push_back(UdpPingInfo(
+                        n,
+                        ab.first,
+                        ab.second,
+                        pingmesh_interval_ns,
+                        0,
+                        100000000000,
+                        0,
+                        "",
+                        ""
+                ));
+                n += 1;
+            }
+        }
+        schedule_file.close();
+        return result;
+    }
+
+    void write_basic_config(int64_t simulation_end_time_ns) {
         std::ofstream config_file;
         config_file.open (temp_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
-        config_file << "enable_pingmesh_scheduler=true" << std::endl;
-        config_file << "pingmesh_interval_ns=" << pingmesh_interval_ns << std::endl;
-        config_file << "pingmesh_endpoint_pairs=" << pingmesh_endpoint_pairs << std::endl;
+        config_file << "enable_udp_ping_scheduler=true" << std::endl;
+        config_file << "udp_ping_schedule_filename=udp_ping_schedule.csv" << std::endl;
         config_file.close();
     }
 
@@ -60,7 +108,14 @@ public:
         prepare_test_dir();
 
         // 5 seconds, every 100ms a ping
-        write_basic_config(5000000000, 100000000, "all");
+        write_basic_config(5000000000);
+        std::vector<int64_t> endpoints;
+        endpoints.push_back(0);
+        endpoints.push_back(1);
+        endpoints.push_back(2);
+        endpoints.push_back(3);
+        endpoints.push_back(5);
+        std::vector<UdpPingInfo> udp_ping_schedule = write_pingmesh_to_udp_ping_schedule(100000000, "all", endpoints);
         write_six_topology();
 
         std::map<std::pair<int64_t, int64_t>, int64_t> pair_to_expected_latency;
@@ -103,16 +158,16 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        PingmeshScheduler pingmeshScheduler(basicSimulation, topology);
+        UdpPingScheduler udpPingScheduler(basicSimulation, topology);
         basicSimulation->Run();
-        pingmeshScheduler.WriteResults();
+        udpPingScheduler.WriteResults();
         basicSimulation->Finalize();
 
         // Perform the run and get results
-        validate_pingmesh_logs(
+        validate_udp_pings_logs(
                 5000000000,
                 temp_dir,
-                ping_pairs,
+                udp_ping_schedule,
                 list_latency_there_ns,
                 list_latency_back_ns,
                 list_rtt_ns
@@ -147,11 +202,12 @@ public:
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
@@ -169,7 +225,14 @@ public:
         prepare_test_dir();
 
         // 5 seconds, every 100ms a ping
-        write_basic_config(5000000000, 100000000, "set(2->1, 1->2, 0->5, 5->2, 3->1)");
+        write_basic_config(5000000000);
+        std::vector<int64_t> endpoints;
+        endpoints.push_back(0);
+        endpoints.push_back(1);
+        endpoints.push_back(2);
+        endpoints.push_back(3);
+        endpoints.push_back(5);
+        std::vector<UdpPingInfo> udp_ping_schedule = write_pingmesh_to_udp_ping_schedule(100000000, "set(2->1, 1->2, 0->5, 5->2, 3->1)", endpoints);
         write_six_topology();
         std::map<std::pair<int64_t, int64_t>, int64_t> pair_to_expected_latency;
         pair_to_expected_latency.insert(std::make_pair(std::make_pair(0, 5), 150000000));
@@ -194,16 +257,16 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        PingmeshScheduler pingmeshScheduler(basicSimulation, topology);
+        UdpPingScheduler udpPingScheduler(basicSimulation, topology);
         basicSimulation->Run();
-        pingmeshScheduler.WriteResults();
+        udpPingScheduler.WriteResults();
         basicSimulation->Finalize();
 
         // Perform the run and get results
-        validate_pingmesh_logs(
+        validate_udp_pings_logs(
                 5000000000,
                 temp_dir,
-                ping_pairs,
+                udp_ping_schedule,
                 list_latency_there_ns,
                 list_latency_back_ns,
                 list_rtt_ns
@@ -238,11 +301,12 @@ public:
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
@@ -265,9 +329,8 @@ public:
         config_file << "simulation_end_time_ns=5000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
-        config_file << "enable_pingmesh_scheduler=true" << std::endl;
-        config_file << "pingmesh_interval_ns=100000000" << std::endl;
-        config_file << "pingmesh_endpoint_pairs=all" << std::endl;
+        config_file << "enable_udp_ping_scheduler=true" << std::endl;
+        config_file << "udp_ping_schedule_filename=udp_ping_schedule.csv" << std::endl;
         config_file << "enable_tcp_flow_scheduler=true" << std::endl;
         config_file << "tcp_flow_schedule_filename=tcp_flow_schedule.csv" << std::endl;
         config_file.close();
@@ -296,6 +359,11 @@ public:
         ping_pairs.push_back(std::make_pair(0, 1));
         ping_pairs.push_back(std::make_pair(1, 0));
 
+        std::vector<int64_t> endpoints;
+        endpoints.push_back(0);
+        endpoints.push_back(1);
+        std::vector<UdpPingInfo> result = write_pingmesh_to_udp_ping_schedule(100000000, "all", endpoints);
+
         // To store the results
         std::vector<std::vector<int64_t>> list_latency_there_ns;
         std::vector<std::vector<int64_t>> list_latency_back_ns;
@@ -305,18 +373,18 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        PingmeshScheduler pingmeshScheduler(basicSimulation, topology);
+        UdpPingScheduler udpPingScheduler(basicSimulation, topology);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         basicSimulation->Run();
-        pingmeshScheduler.WriteResults();
+        udpPingScheduler.WriteResults();
         tcpFlowScheduler.WriteResults();
         basicSimulation->Finalize();
 
         // Perform the run and get results
-        validate_pingmesh_logs(
+        validate_udp_pings_logs(
                 5000000000,
                 temp_dir,
-                ping_pairs,
+                result,
                 list_latency_there_ns,
                 list_latency_back_ns,
                 list_rtt_ns
@@ -350,12 +418,13 @@ public:
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
@@ -375,7 +444,14 @@ public:
         prepare_test_dir();
 
         // 0.049999999 seconds, every 10ms a ping, but takes 50ms to return back
-        write_basic_config(49999999, 10000000, "set(2->1)");
+        write_basic_config(49999999);
+        std::vector<int64_t> endpoints;
+        endpoints.push_back(0);
+        endpoints.push_back(1);
+        endpoints.push_back(2);
+        endpoints.push_back(3);
+        endpoints.push_back(5);
+        std::vector<UdpPingInfo> udp_ping_schedule = write_pingmesh_to_udp_ping_schedule(10000000, "set(2->1)", endpoints);
         write_six_topology();
 
         // Ping pairs
@@ -386,9 +462,9 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        PingmeshScheduler pingmeshScheduler(basicSimulation, topology);
+        UdpPingScheduler udpPingScheduler(basicSimulation, topology);
         basicSimulation->Run();
-        pingmeshScheduler.WriteResults();
+        udpPingScheduler.WriteResults();
         basicSimulation->Finalize();
 
         // To store the results
@@ -397,10 +473,10 @@ public:
         std::vector<std::vector<int64_t>> list_rtt_ns;
 
         // Perform the run and get results
-        validate_pingmesh_logs(
+        validate_udp_pings_logs(
                 49999999,
                 temp_dir,
-                ping_pairs,
+                udp_ping_schedule,
                 list_latency_there_ns,
                 list_latency_back_ns,
                 list_rtt_ns
@@ -425,46 +501,12 @@ public:
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
-
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-class PingmeshEndToEndInvalidPairEqualTestCase : public PingmeshEndToEndTestCase
-{
-public:
-    PingmeshEndToEndInvalidPairEqualTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-pair-equal") {};
-
-    void DoRun () {
-        prepare_test_dir();
-
-        // 5 seconds, every 100ms a ping
-        write_basic_config(5000000000, 100000000, "set(2->2)");
-        write_six_topology();
-
-        // Initialize basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
-        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-
-        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
-
-        basicSimulation->Finalize();
-
-        // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
@@ -482,7 +524,14 @@ public:
         prepare_test_dir();
 
         // 5 seconds, every 100ms a ping
-        write_basic_config(5000000000, 100000000, "set(6->3)");
+        write_basic_config(5000000000);
+        std::vector<int64_t> endpoints;
+        endpoints.push_back(0);
+        endpoints.push_back(1);
+        endpoints.push_back(2);
+        endpoints.push_back(3);
+        endpoints.push_back(5);
+        write_pingmesh_to_udp_ping_schedule(100000000, "set(6->3)", endpoints);
         write_six_topology();
 
         // Initialize basic simulation
@@ -490,13 +539,14 @@ public:
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
-        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
+        ASSERT_EXCEPTION(UdpPingScheduler(basicSimulation, topology));
 
         basicSimulation->Finalize();
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
@@ -517,7 +567,14 @@ public:
         prepare_test_dir();
 
         // 5 seconds, every 100ms a ping
-        write_basic_config(5000000000, 100000000, "set(2->6)");
+        write_basic_config(5000000000);
+        std::vector<int64_t> endpoints;
+        endpoints.push_back(0);
+        endpoints.push_back(1);
+        endpoints.push_back(2);
+        endpoints.push_back(3);
+        endpoints.push_back(5);
+        write_pingmesh_to_udp_ping_schedule(100000000, "set(2->6)", endpoints);
         write_six_topology();
 
         // Initialize basic simulation
@@ -525,48 +582,14 @@ public:
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
-        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
+        ASSERT_EXCEPTION(UdpPingScheduler(basicSimulation, topology));
 
         basicSimulation->Finalize();
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
-
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-class PingmeshEndToEndInvalidDuplicatePairTestCase : public PingmeshEndToEndTestCase
-{
-public:
-    PingmeshEndToEndInvalidDuplicatePairTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-duplicate-pair") {};
-
-    void DoRun () {
-        prepare_test_dir();
-
-        // 5 seconds, every 100ms a ping
-        write_basic_config(5000000000, 100000000, "set(2->3,3-> 5,3->1,3->5,1->0)");
-        write_six_topology();
-
-        // Initialize basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
-        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-
-        ASSERT_EXCEPTION(PingmeshScheduler(basicSimulation, topology));
-
-        basicSimulation->Finalize();
-
-        // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
@@ -594,7 +617,7 @@ public:
         config_file << "simulation_end_time_ns=" << 1000000000 << std::endl;
         config_file << "simulation_seed=" << 1111111111 << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
-        config_file << "enable_pingmesh_scheduler=false" << std::endl;
+        config_file << "enable_udp_ping_scheduler=false" << std::endl;
         config_file.close();
 
         // Topology
@@ -616,14 +639,15 @@ public:
         // Perform basic simulation
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        PingmeshScheduler pingmeshScheduler(basicSimulation, topology);
+        UdpPingScheduler udpPingScheduler(basicSimulation, topology);
         basicSimulation->Run();
-        pingmeshScheduler.WriteResults();
+        udpPingScheduler.WriteResults();
         basicSimulation->Finalize();
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");
         remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");

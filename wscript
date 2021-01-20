@@ -33,21 +33,24 @@ def build(bld):
 
         'model/apps/tcp-flow-send-application.cc',
         'model/apps/tcp-flow-sink.cc',
-        'model/apps/udp-rtt-client.cc',
-        'model/apps/udp-burst-application.cc',
-        'model/apps/udp-rtt-server.cc',
-        'model/apps/udp-burst-info.cc',
         'model/apps/id-seq-header.cc',
+        'model/apps/udp-burst-info.cc',
+        'model/apps/udp-burst-application.cc',
+        'model/apps/udp-ping-header.cc',
+        'model/apps/udp-ping-server.cc',
+        'model/apps/udp-ping-client.cc',
 
         'helper/apps/tcp-flow-send-helper.cc',
         'helper/apps/tcp-flow-sink-helper.cc',
         'helper/apps/tcp-flow-schedule-reader.cc',
         'helper/apps/tcp-flow-scheduler.cc',
-        'helper/apps/udp-rtt-helper.cc',
         'helper/apps/udp-burst-helper.cc',
         'helper/apps/udp-burst-schedule-reader.cc',
         'helper/apps/udp-burst-scheduler.cc',
-        'helper/apps/pingmesh-scheduler.cc',
+        'helper/apps/udp-ping-helper.cc',
+        'helper/apps/udp-ping-schedule-reader.cc',
+        'helper/apps/udp-ping-scheduler.cc',
+
         ]
 
     # Header files
@@ -82,21 +85,23 @@ def build(bld):
 
         'model/apps/tcp-flow-send-application.h',
         'model/apps/tcp-flow-sink.h',
-        'model/apps/udp-rtt-client.h',
-        'model/apps/udp-burst-application.h',
-        'model/apps/udp-rtt-server.h',
-        'model/apps/udp-burst-info.h',
         'model/apps/id-seq-header.h',
+        'model/apps/udp-burst-info.h',
+        'model/apps/udp-burst-application.h',
+        'model/apps/udp-ping-header.h',
+        'model/apps/udp-ping-server.h',
+        'model/apps/udp-ping-client.h',
 
         'helper/apps/tcp-flow-send-helper.h',
         'helper/apps/tcp-flow-sink-helper.h',
         'helper/apps/tcp-flow-schedule-reader.h',
         'helper/apps/tcp-flow-scheduler.h',
-        'helper/apps/udp-rtt-helper.h',
         'helper/apps/udp-burst-helper.h',
         'helper/apps/udp-burst-schedule-reader.h',
         'helper/apps/udp-burst-scheduler.h',
-        'helper/apps/pingmesh-scheduler.h',
+        'helper/apps/udp-ping-helper.h',
+        'helper/apps/udp-ping-schedule-reader.h',
+        'helper/apps/udp-ping-scheduler.h',
 
         ]
 

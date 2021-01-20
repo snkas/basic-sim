@@ -10,7 +10,7 @@ You can either immediately start with the tutorial below, or read more documenta
 * `link_interface_tc_qdisc_queue_tracking.md` -- Link interface traffic-control queueing discipline (qdisc) internal queue tracking
 * `tcp_flow_application.md` -- Flow application ("send from A to B a flow of size X at time T")
 * `udp_burst_application.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
-* `pingmesh_application.md` -- Ping application ("send from A to B a ping at an interval I")
+* `udp_ping_application.md` -- Ping application ("send from A to B pings at an interval I starting at time T for duration D")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
 * `future_work.md` -- To find out what can be extended / improved
 * `general_coding_notes.md` -- A collection of general notes about how ns-3 is modeled and how one uses that model
@@ -87,10 +87,6 @@ We are going to install three different applications:
    enable_link_net_device_utilization_tracking=true
    link_net_device_utilization_tracking_interval_ns=100000000
     
-   enable_pingmesh_scheduler=true
-   pingmesh_interval_ns=10000000
-   pingmesh_endpoint_pairs=all
-    
    enable_tcp_flow_scheduler=true
    tcp_flow_schedule_filename="tcp_flow_schedule.csv"
    tcp_flow_enable_logging_for_tcp_flow_ids=set(0,1,2)
@@ -98,6 +94,9 @@ We are going to install three different applications:
    enable_udp_burst_scheduler=true
    udp_burst_schedule_filename="udp_burst_schedule.csv"
    udp_burst_enable_logging_for_udp_burst_ids=set(0,1)
+   
+   enable_udp_ping_scheduler=true
+   udp_ping_schedule_filename="udp_ping_schedule.csv"
    ```
    
    **topology.properties**
@@ -139,6 +138,17 @@ We are going to install three different applications:
    1,2,1,50,0,5000000000,,
    ```
    
+   **udp_ping_schedule.csv**
+   
+   ```
+   0,1,2,10000000,0,4000000000,0,,
+   1,1,3,10000000,0,4000000000,0,,
+   2,2,1,10000000,0,4000000000,0,,
+   3,2,3,10000000,0,4000000000,0,,
+   4,3,1,10000000,0,4000000000,0,,
+   5,3,2,10000000,0,4000000000,0,,
+   ```
+   
 2. Your folder structure should as such be:
 
    ```
@@ -147,6 +157,7 @@ We are going to install three different applications:
    |-- topology.properties
    |-- tcp_flow_schedule.csv
    |-- udp_burst_schedule.csv
+   |-- udp_ping_schedule.csv
    ```
 
 3. Into your ns-3 `scratch/` folder create a file named `my-main.cc`
@@ -166,7 +177,7 @@ We are going to install three different applications:
     
     #include "ns3/tcp-flow-scheduler.h"
     #include "ns3/udp-burst-scheduler.h"
-    #include "ns3/pingmesh-scheduler.h"
+    #include "ns3/udp-ping-scheduler.h"
     
     using namespace ns3;
     
@@ -211,8 +222,8 @@ We are going to install three different applications:
         // Schedule UDP bursts
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true
     
-        // Schedule pings
-        PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
+        // Schedule UDP pings
+        UdpPingScheduler udpPingScheduler(basicSimulation, topology); // Requires enable_udp_ping_scheduler=true
     
         // Run simulation
         basicSimulation->Run();
@@ -223,8 +234,8 @@ We are going to install three different applications:
         // Write UDP burst results
         udpBurstScheduler.WriteResults();
     
-        // Write pingmesh results
-        pingmeshScheduler.WriteResults();
+        // Write UDP ping results
+        udpPingScheduler.WriteResults();
     
         // Write link net-device utilization results
         netDeviceUtilizationTracking.WriteResults();
@@ -269,7 +280,7 @@ We are going to install three different applications:
    |-- link_net_device_utilization_summary.txt
    |-- udp_bursts_{incoming, outgoing}.{csv, txt}
    |-- udp_burst_{0, 1}_{incoming, outgoing}.csv
-   |-- pingmesh.{csv, txt}
+   |-- udp_pings.{csv, txt}
    ```
    
 7. For example, `tcp_flows.txt` will contain:
@@ -289,16 +300,16 @@ We are going to install three different applications:
    1               2         1         50.00 Mbit/s        0.00 ms         5000.00 ms      49.83 Mbit/s                48.90 Mbit/s                16611              199.33 Mbit                 195.61 Mbit                 
    ```
    
-9. For example, `pingmesh.txt` will contain:
+9. For example, `udp_pings.txt` will contain:
 
-   ```
-   Source    Target    Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival
-   1         2         4.35 ms               7.76 ms               0.50 ms         12.11 ms        21.70 ms        4.90 ms         399/400 (100%)
-   1         3         5.83 ms               0.07 ms               0.05 ms         5.90 ms         16.41 ms        5.97 ms         398/400 (100%)
-   2         1         7.73 ms               4.33 ms               0.50 ms         12.05 ms        21.76 ms        4.89 ms         397/400 (99%)
-   2         3         9.15 ms               0.06 ms               0.07 ms         9.20 ms         16.74 ms        4.31 ms         398/400 (100%)
-   3         1         0.06 ms               5.83 ms               0.05 ms         5.89 ms         16.25 ms        6.00 ms         397/400 (99%)
-   3         2         0.07 ms               9.14 ms               0.05 ms         9.20 ms         17.05 ms        4.33 ms         396/400 (99%)                    
+   ```                
+   UDP Ping ID     Source    Target    Start time (ns)   End time (ns)     Interval (ns)     Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival
+   0               1         2         0                 4000000000        10000000          4.43 ms               7.80 ms               0.42 ms         12.23 ms        20.95 ms        4.51 ms         392/400 (98%)
+   1               1         3         0                 4000000000        10000000          5.42 ms               0.07 ms               0.06 ms         5.49 ms         15.54 ms        5.58 ms         398/400 (100%)
+   2               2         1         0                 4000000000        10000000          7.83 ms               4.35 ms               0.42 ms         12.18 ms        21.09 ms        4.47 ms         398/400 (100%)
+   3               2         3         0                 4000000000        10000000          8.87 ms               0.07 ms               0.06 ms         8.94 ms         16.72 ms        3.94 ms         398/400 (100%)
+   4               3         1         0                 4000000000        10000000          0.06 ms               5.42 ms               0.06 ms         5.48 ms         15.42 ms        5.57 ms         396/400 (99%)
+   5               3         2         0                 4000000000        10000000          0.06 ms               8.78 ms               0.06 ms         8.84 ms         15.78 ms        3.93 ms         387/400 (97%)
    ```
 
 10. For example, `link_net_device_utilization_summary.txt` will contain:
@@ -336,10 +347,10 @@ A few example plots you could make:
    python plot_udp_burst.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 0 100000000
    ```
    
-3. Plot the ping from 2 to 1:
+3. Plot the UDP ping with ID 2 (node 2 to 1):
    ```
-   cd /path/to/basic-sim/tools/plotting/plot_ping
-   python plot_ping.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 2 1 10000000
+   cd /path/to/basic-sim/tools/plotting/plot_udp_ping
+   python plot_udp_ping.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 2 10000000
    ```
    
 4. Plot the net-device queue of the link from node 1 to node 0:

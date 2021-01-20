@@ -6,7 +6,7 @@ local_shell = exputil.LocalShell()
 def test_distributed_exactly_equal(base_run_folder, multi_core_run_folder, num_cores):
 
     for f in [
-        "pingmesh.csv",
+        "udp_pings.csv",
         "tcp_flows.csv",
         "udp_bursts_incoming.csv",
         "udp_bursts_outgoing.csv",

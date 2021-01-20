@@ -20,8 +20,8 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#ifndef UDP_RTT_HELPER_H
-#define UDP_RTT_HELPER_H
+#ifndef UDP_PING_HELPER_H
+#define UDP_PING_HELPER_H
 
 #include <stdint.h>
 #include "ns3/application-container.h"
@@ -29,17 +29,17 @@
 #include "ns3/object-factory.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
-#include "ns3/udp-rtt-server.h"
-#include "ns3/udp-rtt-client.h"
+#include "ns3/udp-ping-server.h"
+#include "ns3/udp-ping-client.h"
 #include "ns3/uinteger.h"
 #include "ns3/names.h"
 
 namespace ns3 {
 
-class UdpRttServerHelper
+class UdpPingServerHelper
 {
 public:
-  UdpRttServerHelper (uint16_t port);
+  UdpPingServerHelper (uint16_t port);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
   ApplicationContainer Install (NodeContainer c) const;
@@ -49,10 +49,10 @@ private:
   ObjectFactory m_factory;
 };
 
-class UdpRttClientHelper
+class UdpPingClientHelper
 {
 public:
-  UdpRttClientHelper (Address ip, uint32_t from_node_id, uint32_t to_node_id);
+  UdpPingClientHelper (Address address, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
 
@@ -63,4 +63,4 @@ private:
 
 } // namespace ns3
 
-#endif /* UDP_RTT_HELPER_H */
+#endif /* UDP_PING_HELPER_H */

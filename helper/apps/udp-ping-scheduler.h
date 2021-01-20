@@ -18,8 +18,8 @@
  * Author: Simon
  */
 
-#ifndef PINGMESH_SCHEDULER_H
-#define PINGMESH_SCHEDULER_H
+#ifndef UDP_PING_SCHEDULER_H
+#define UDP_PING_SCHEDULER_H
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -27,15 +27,17 @@
 #include "ns3/basic-simulation.h"
 #include "ns3/exp-util.h"
 #include "ns3/topology.h"
-#include "ns3/udp-rtt-helper.h"
+#include "ns3/udp-ping-helper.h"
+#include "ns3/udp-ping-schedule-reader.h"
 
 namespace ns3 {
 
-class PingmeshScheduler
+class UdpPingScheduler
 {
 
 public:
-    PingmeshScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
+    UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
+    void StartNextUdpPing(int i);
     void WriteResults();
 
 protected:
@@ -45,14 +47,13 @@ protected:
     bool m_enabled;
 
     NodeContainer m_nodes;
+    std::vector<UdpPingInfo> m_schedule;
     std::vector<ApplicationContainer> m_apps;
-    int64_t m_interval_ns;
-    std::vector<std::pair<int64_t, int64_t>> m_pingmesh_endpoint_pairs;
     bool m_enable_distributed;
-    std::string m_pingmesh_csv_filename;
-    std::string m_pingmesh_txt_filename;
+    std::string m_udp_pings_csv_filename;
+    std::string m_udp_pings_txt_filename;
 };
 
 }
 
-#endif /* PINGMESH_SCHEDULER_H */
+#endif /* UDP_PING_SCHEDULER_H */

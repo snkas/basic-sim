@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "ns3/basic-simulation.h"
-#include "ns3/pingmesh-scheduler.h"
+#include "ns3/tcp-flow-scheduler.h"
 #include "ns3/topology-ptop.h"
 #include "ns3/tcp-optimizer.h"
 #include "ns3/arbiter-ecmp-helper.h"
@@ -31,8 +31,8 @@ int main(int argc, char *argv[]) {
     config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
     config_file << "enable_link_net_device_utilization_tracking=true" << std::endl;
     config_file << "link_net_device_utilization_tracking_interval_ns=100000000" << std::endl;
-    config_file << "enable_pingmesh_scheduler=true" << std::endl;
-    config_file << "pingmesh_interval_ns=100000000" << std::endl;
+    config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+    config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
     config_file.close();
 
     // Write topology file (0 - 1)
@@ -51,6 +51,12 @@ int main(int argc, char *argv[]) {
     topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
     topology_file.close();
 
+     // Write TCP flow schedule file
+    std::ofstream schedule_file;
+    schedule_file.open (example_dir + "/tcp_flow_schedule.csv");
+    schedule_file << "0,0,1,100000,0,," << std::endl; // Flow 0 from node 0 to node 1 of size 100000 bytes starting at t=0
+    schedule_file.close();
+
     // Load basic simulation environment
     Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(example_dir);
 
@@ -64,14 +70,17 @@ int main(int argc, char *argv[]) {
     // Install link net-device queue trackers
     PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology); // Requires enable_link_net_device_queue_tracking=true
 
-    // Schedule pings
-    PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires pingmesh_interval_ns to be present in the configuration
+    // Optimize TCP
+    TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+
+    // Schedule flows
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires tcp_flow_schedule_filename to be present in the configuration
 
     // Run simulation
     basicSimulation->Run();
 
-    // Write results
-    pingmeshScheduler.WriteResults();
+    // Write result
+    tcpFlowScheduler.WriteResults();
 
     // Write link net-device utilization results
     netDeviceUtilizationTracking.WriteResults();

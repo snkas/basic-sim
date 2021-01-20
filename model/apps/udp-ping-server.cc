@@ -28,44 +28,44 @@
 #include "ns3/packet.h"
 #include "ns3/uinteger.h"
 
-#include "udp-rtt-server.h"
+#include "udp-ping-server.h"
 
 namespace ns3 {
 
-    NS_LOG_COMPONENT_DEFINE ("UdpRttServer");
+    NS_LOG_COMPONENT_DEFINE ("UdpPingServer");
 
-    NS_OBJECT_ENSURE_REGISTERED (UdpRttServer);
+    NS_OBJECT_ENSURE_REGISTERED (UdpPingServer);
 
     TypeId
-    UdpRttServer::GetTypeId(void) {
-        static TypeId tid = TypeId("ns3::UdpRttServer")
+    UdpPingServer::GetTypeId(void) {
+        static TypeId tid = TypeId("ns3::UdpPingServer")
                 .SetParent<Application>()
                 .SetGroupName("Applications")
-                .AddConstructor<UdpRttServer>()
-                .AddAttribute("Port", "Port on which we listen for incoming packets.",
+                .AddConstructor<UdpPingServer>()
+                .AddAttribute("Port", "Port on which we listen for incoming ping packets.",
                               UintegerValue(9),
-                              MakeUintegerAccessor(&UdpRttServer::m_port),
+                              MakeUintegerAccessor(&UdpPingServer::m_port),
                               MakeUintegerChecker<uint16_t>());
         return tid;
     }
 
-    UdpRttServer::UdpRttServer() {
+    UdpPingServer::UdpPingServer() {
         NS_LOG_FUNCTION(this);
     }
 
-    UdpRttServer::~UdpRttServer() {
+    UdpPingServer::~UdpPingServer() {
         NS_LOG_FUNCTION(this);
         m_socket = 0;
     }
 
     void
-    UdpRttServer::DoDispose(void) {
+    UdpPingServer::DoDispose(void) {
         NS_LOG_FUNCTION(this);
         Application::DoDispose();
     }
 
     void
-    UdpRttServer::StartApplication(void) {
+    UdpPingServer::StartApplication(void) {
         NS_LOG_FUNCTION(this);
 
         if (m_socket == 0) {
@@ -82,44 +82,37 @@ namespace ns3 {
 
         }
 
-        m_socket->SetRecvCallback(MakeCallback(&UdpRttServer::HandleRead, this));
+        m_socket->SetRecvCallback(MakeCallback(&UdpPingServer::HandleRead, this));
     }
 
     void
-    UdpRttServer::StopApplication() {
-        throw std::runtime_error("UDP RTT server is not intended to be stopped after being started.");
-        /*
-         * Deprecated stop code:
-         *
-         * NS_LOG_FUNCTION(this);
-         * if (m_socket != 0) {
-         *     m_socket->Close();
-         *     m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
-         * }
-         */
+    UdpPingServer::StopApplication() {
+        throw std::runtime_error("UDP RTT server is not permitted to be stopped.");
     }
 
     void
-    UdpRttServer::HandleRead(Ptr <Socket> socket) {
+    UdpPingServer::HandleRead(Ptr <Socket> socket) {
         NS_LOG_FUNCTION(this << socket);
         Ptr <Packet> packet;
         Address from;
         while ((packet = socket->RecvFrom(from))) {
 
             // What we receive
-            SeqTsHeader incomingSeqTs;
-            packet->RemoveHeader (incomingSeqTs);
+            UdpPingHeader incomingPingHeader;
+            packet->RemoveHeader (incomingPingHeader);
 
             // Add header
-            SeqTsHeader outgoingSeqTs; // Creates one with the current timestamp
-            outgoingSeqTs.SetSeq(incomingSeqTs.GetSeq());
-            packet->AddHeader(outgoingSeqTs);
+            UdpPingHeader outgoingPingHeader;
+            outgoingPingHeader.SetId(incomingPingHeader.GetId());
+            outgoingPingHeader.SetSeq(incomingPingHeader.GetSeq());
+            outgoingPingHeader.SetTs(Simulator::Now().GetNanoSeconds());
+            packet->AddHeader(outgoingPingHeader);
 
             // Remove any tags
             packet->RemoveAllPacketTags();
             packet->RemoveAllByteTags();
 
-            // Send back with the new timestamp on it
+            // Send back with the reply header as payload
             socket->SendTo(packet, 0, from);
 
         }

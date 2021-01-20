@@ -3,6 +3,7 @@
 #include "initial-helpers-test.h"
 #include "tcp-flow-schedule-reader-test.h"
 #include "udp-burst-schedule-reader-test.h"
+#include "udp-ping-schedule-reader-test.h"
 #include "tcp-flow-end-to-end-test.h"
 #include "pingmesh-end-to-end-test.h"
 #include "manual-end-to-end-test.h"
@@ -23,6 +24,10 @@ public:
         // UDP burst schedule reader
         AddTestCase(new UdpBurstScheduleReaderNormalTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstScheduleReaderInvalidTestCase, TestCase::QUICK);
+
+        // UDP ping schedule reader
+        AddTestCase(new UdpPingScheduleReaderNormalTestCase, TestCase::QUICK);
+        AddTestCase(new UdpPingScheduleReaderInvalidTestCase, TestCase::QUICK);
 
         // Manual end-to-end, which means the application helpers are used
         // directly instead of the schedulers reading from files
@@ -50,10 +55,8 @@ public:
         AddTestCase(new PingmeshEndToEndFivePairsTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndCompetitionTcpTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndOnePairNoRecTestCase, TestCase::QUICK);
-        AddTestCase(new PingmeshEndToEndInvalidPairEqualTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndInvalidPairATestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndInvalidPairBTestCase, TestCase::QUICK);
-        AddTestCase(new PingmeshEndToEndInvalidDuplicatePairTestCase, TestCase::QUICK);
         AddTestCase(new PingmeshEndToEndNotEnabledTestCase, TestCase::QUICK);
 
         // UDP burst end-to-end

@@ -2,11 +2,12 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Investigate adding some type of 'UDP pings' (in addition to or besides 'pingmesh'),
-  and permit something similar to UDP bursts in which you need to define a ping schedule
-  with instead of Mbit/s you have a ping interval in ns
-* Re-evaluate the `additional parameters` field for TCP flows and UDP bursts as
-  it is unused at the moment
+* UDP burst convert to a socket each (add wait-afterwards)
+* Re-evaluate the `additional parameters` field
+* TCP/UDP socket generator
+* UDP burst / ping multi-routing test
+* Upgrade to latest ns-3
+* Add test for UDP ping scheduler
 * Add test for ECN marking for the simple_red queueing discipline
 * Make all variable and function naming consistent, along with whitespace conventions,
   in accordance with the ns-3 code style guide

@@ -31,6 +31,7 @@ mkdir "../${run_folder}/logs_ns3" || exit 1
 if [ "${mpi_np}" == "0" ]; then
 
   # Single logical process
+  rm -f "../${run_folder}/logs_ns3/finished.txt"
   set -eu -o pipefail
   ./waf --run="basic-sim-main-full --run_dir='../${run_folder}'" 2>&1 | tee "../${run_folder}/logs_ns3/console.txt" || exit 1
   if [[ $(< "../${run_folder}/logs_ns3/finished.txt") != "Yes" ]] ; then
@@ -38,6 +39,12 @@ if [ "${mpi_np}" == "0" ]; then
   fi
 
 else
+
+  # Delete all finished
+  for (( s=1; s<$((mpi_np)); s++ ))
+  do
+    rm -f "../${run_folder}/logs_ns3/system_${s}_finished.txt"
+  done
 
   # Multiple logical processes
 

@@ -59,7 +59,7 @@ scheduler (which is recommended).
    1,2,1,50,0,5000000000,,
    ```
 
-3. In your code, import the pingmesh scheduler:
+3. In your code, import the UDP burst scheduler:
 
    ```c++
    #include "ns3/udp-burst-scheduler.h"

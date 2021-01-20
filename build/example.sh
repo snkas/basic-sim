@@ -62,12 +62,6 @@ cd plot_link_interface_tc_qdisc_queue || exit 1
 python plot_link_interface_tc_qdisc_queue.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 || exit 1
 cd .. || exit 1
 
-# Ping plots
-cd plot_ping || exit 1
-python plot_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 100000000 || exit 1
-python plot_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 0 100000000 || exit 1
-cd .. || exit 1
-
 # TCP flow plots
 cd plot_tcp_flow || exit 1
 python plot_tcp_flow.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
@@ -77,4 +71,10 @@ cd .. || exit 1
 cd plot_udp_burst || exit 1
 python plot_udp_burst.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
 python plot_udp_burst.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 100000000 || exit 1
+cd .. || exit 1
+
+# UDP ping plots
+cd plot_udp_ping || exit 1
+python plot_udp_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
+python plot_udp_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 100000000 || exit 1
 cd .. || exit 1

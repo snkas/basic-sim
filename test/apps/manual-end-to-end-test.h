@@ -102,27 +102,31 @@ public:
         app.Start(NanoSeconds(7000));
 
         // Install echo server on all nodes
-        UdpRttServerHelper echoServerHelper(1025);
-        app = echoServerHelper.Install(topology->GetNodes());
+        UdpPingServerHelper pingServerHelper(1025);
+        app = pingServerHelper.Install(topology->GetNodes());
         app.Start(NanoSeconds(0));
 
         // Pinging 0 --> 1
-        UdpRttClientHelper source_ping0(
+        UdpPingClientHelper source_ping0(
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
                 0,
-                1
+                NanoSeconds(100000000),
+                NanoSeconds(1000000000),
+                NanoSeconds(0),
+                ""
         );
-        source_ping0.SetAttribute("Interval", TimeValue(NanoSeconds(100000000)));
         app = source_ping0.Install(topology->GetNodes().Get(0));
         app.Start(NanoSeconds(100));
 
         // Pinging 1 --> 0
-        UdpRttClientHelper source_ping1(
+        UdpPingClientHelper source_ping1(
                 InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
                 1,
-                0
+                NanoSeconds(100000000),
+                NanoSeconds(1000000000),
+                NanoSeconds(0),
+                ""
         );
-        source_ping1.SetAttribute("Interval", TimeValue(NanoSeconds(100000000)));
         app = source_ping1.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
 
@@ -245,8 +249,8 @@ public:
         remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/pingmesh.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_progress.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
         remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rto.csv");
@@ -343,41 +347,43 @@ public:
         finish_basic();
 
         ////////////////////////////////////////////////////////////////////
-        // UDP RTT echo server
+        // UDP ping server
 
         setup_basic();
 
-        // Install echo server on node 1
-        UdpRttServerHelper echoServerHelper(1025);
-        app = echoServerHelper.Install(topology->GetNodes().Get(1));
+        // Install ping server on node 1
+        UdpPingServerHelper pingServerHelper(1025);
+        app = pingServerHelper.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
         app.Stop(Seconds(0.1));
 
-        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP RTT server is not intended to be stopped after being started.");
+        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP RTT server is not permitted to be stopped.");
         finish_basic();
 
         ////////////////////////////////////////////////////////////////////
-        // UDP RTT client
+        // UDP ping client
 
         setup_basic();
 
-        // Install echo server on node 1
-        UdpRttServerHelper echoServerHelper2(1025);
-        app = echoServerHelper2.Install(topology->GetNodes().Get(1));
+        // Install ping server on node 1
+        UdpPingServerHelper pingServerHelper2(1025);
+        app = pingServerHelper2.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
 
         // Pinging 0 --> 1
-        UdpRttClientHelper source_ping0(
+        UdpPingClientHelper source_ping0(
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
                 0,
-                1
+                NanoSeconds(100000000),
+                NanoSeconds(1000000000),
+                NanoSeconds(0),
+                ""
         );
-        source_ping0.SetAttribute("Interval", TimeValue(NanoSeconds(100000000)));
         app = source_ping0.Install(topology->GetNodes().Get(0));
         app.Start(NanoSeconds(100));
         app.Stop(Seconds(0.1));
 
-        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP RTT client is not intended to be stopped after being started.");
+        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP ping client cannot be stopped like a regular application, only of its own volition.");
         finish_basic();
 
     }

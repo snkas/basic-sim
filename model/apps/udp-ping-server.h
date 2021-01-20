@@ -16,27 +16,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef UDP_RTT_SERVER_H
-#define UDP_RTT_SERVER_H
+#ifndef UDP_PING_SERVER_H
+#define UDP_PING_SERVER_H
 
 #include "ns3/application.h"
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
 #include "ns3/address.h"
 #include "ns3/traced-callback.h"
-#include "ns3/seq-ts-header.h"
+#include "ns3/udp-ping-header.h"
 
 namespace ns3 {
 
 class Socket;
 class Packet;
 
-class UdpRttServer : public Application 
+class UdpPingServer : public Application 
 {
 public:
   static TypeId GetTypeId (void);
-  UdpRttServer ();
-  virtual ~UdpRttServer ();
+  UdpPingServer ();
+  virtual ~UdpPingServer ();
 
 protected:
   virtual void DoDispose (void);
@@ -54,4 +54,4 @@ private:
 
 } // namespace ns3
 
-#endif /* UDP_RTT_SERVER_H */
+#endif /* UDP_PING_SERVER_H */

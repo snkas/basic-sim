@@ -29,7 +29,7 @@
 
 #include "ns3/tcp-flow-scheduler.h"
 #include "ns3/udp-burst-scheduler.h"
-#include "ns3/pingmesh-scheduler.h"
+#include "ns3/udp-ping-scheduler.h"
 
 using namespace ns3;
 
@@ -74,8 +74,8 @@ int main(int argc, char *argv[]) {
     // Schedule UDP bursts
     UdpBurstScheduler udpBurstScheduler(basicSimulation, topology); // Requires enable_udp_burst_scheduler=true
 
-    // Schedule pings
-    PingmeshScheduler pingmeshScheduler(basicSimulation, topology); // Requires enable_pingmesh_scheduler=true
+    // Schedule UDP pings
+    UdpPingScheduler udpPingScheduler(basicSimulation, topology); // Requires enable_udp_ping_scheduler=true
 
     // Run simulation
     basicSimulation->Run();
@@ -86,8 +86,8 @@ int main(int argc, char *argv[]) {
     // Write UDP burst results
     udpBurstScheduler.WriteResults();
 
-    // Write pingmesh results
-    pingmeshScheduler.WriteResults();
+    // Write UDP ping results
+    udpPingScheduler.WriteResults();
 
     // Write link net-device utilization results
     netDeviceUtilizationTracking.WriteResults();
