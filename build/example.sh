@@ -25,8 +25,9 @@ bash run_assist.sh "example_run_folders/single_everything" 0 || exit 1
 bash run_assist.sh "example_run_folders/fat_tree_k4_servers_poisson" 0 || exit 1
 
 # Most simple examples
-bash one_tcp.sh || exit 1
-bash one_udp.sh || exit 1
+bash one_tcp_flow.sh || exit 1
+bash one_udp_burst.sh || exit 1
+bash one_udp_ping.sh || exit 1
 
 # Distributed
 bash run_assist.sh "example_run_folders/leaf_spine_2_core" 2 || exit 1
