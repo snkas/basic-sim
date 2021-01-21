@@ -1090,3 +1090,191 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
+
+class TcpFlowEndToEndMultiPathTestCase : public TcpFlowEndToEndTestCase
+{
+public:
+    TcpFlowEndToEndMultiPathTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end multi-path") {};
+
+    void DoRun () {
+        prepare_test_dir();
+
+        int64_t simulation_end_time_ns = 200000000;
+        int64_t simulation_seed = 1839582950225;
+
+        /* topology.properties
+
+                          8
+                        /    \
+                     0 -- 6
+                   /         \
+          3 --- 4 -- 1 -- 7 -- 9
+                   \         /
+                     2 -- 5
+
+        */
+        std::ofstream topology_file;
+        topology_file.open (temp_dir + "/topology.properties");
+        topology_file << "num_nodes=10" << std::endl;
+        topology_file << "num_undirected_edges=12" << std::endl;
+        topology_file << "switches=set(0,1,2,3,4,5,6,7,8,9)" << std::endl;
+        topology_file << "switches_which_are_tors=set(3,9)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(3-4,0-4,1-4,2-4,0-8,0-6,1-7,2-5,8-9,6-9,7-9,5-9)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=false" << std::endl;
+        topology_file << "link_channel_delay_ns=100000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=map(3->4:80,0->4:20,1->4:20,2->4:20,0->8:20,0->6:20,1->7:20,2->5:20,8->9:20,6->9:20,7->9:20,5->9:20,4->3:80,4->0:20,4->1:20,4->2:20,8->0:20,6->0:20,7->1:20,5->2:20,9->8:20,9->6:20,9->7:20,9->5:20)" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
+        topology_file.close();
+
+        // config_ns3.properties
+        std::ofstream config_file;
+        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
+        config_file << "simulation_seed=" << simulation_seed << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+        config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=all" << std::endl;
+        config_file << "enable_link_net_device_utilization_tracking=true" << std::endl;
+        config_file << "link_net_device_utilization_tracking_interval_ns=100000000" << std::endl;
+        config_file << "link_net_device_utilization_tracking_enable_for_links=all" << std::endl;
+        config_file.close();
+
+        // Many TCP flows
+        std::vector <TcpFlowScheduleEntry> write_schedule;
+        int num_flows = 12;
+        for (int i = 0; i < num_flows; i++) {
+            write_schedule.push_back(TcpFlowScheduleEntry(i, 3, 9, 1000000000, 0, "", ""));
+        }
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (temp_dir + "/tcp_flow_schedule.csv");
+        for (TcpFlowScheduleEntry entry : write_schedule) {
+            schedule_file
+                    << entry.GetTcpFlowId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetSizeByte() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
+        PtopLinkNetDeviceUtilizationTracking utilTrackerHelper = PtopLinkNetDeviceUtilizationTracking(basicSimulation, topology);
+        basicSimulation->Run();
+        tcpFlowScheduler.WriteResults();
+        utilTrackerHelper.WriteResults();
+        basicSimulation->Finalize();
+
+        // For which logging was enabled
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        for (int i = 0; i < num_flows; i++) {
+            tcp_flow_ids_with_logging.insert(i);
+        }
+
+        // For results
+        std::vector<int64_t> end_time_ns_list;
+        std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
+
+        // Validate TCP flow logs
+        validate_tcp_flow_logs(
+                simulation_end_time_ns,
+                temp_dir,
+                write_schedule,
+                tcp_flow_ids_with_logging,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
+
+        // Directed edge list
+        // 3-4,0-4,1-4,2-4,0-8,0-6,1-7,2-5,8-9,6-9,7-9,5-9
+        std::vector <std::pair<int64_t, int64_t>> dir_a_b_list;
+        dir_a_b_list.push_back(std::make_pair(3, 4));
+        dir_a_b_list.push_back(std::make_pair(0, 4));
+        dir_a_b_list.push_back(std::make_pair(1, 4));
+        dir_a_b_list.push_back(std::make_pair(2, 4));
+        dir_a_b_list.push_back(std::make_pair(0, 8));
+        dir_a_b_list.push_back(std::make_pair(0, 6));
+        dir_a_b_list.push_back(std::make_pair(1, 7));
+        dir_a_b_list.push_back(std::make_pair(2, 5));
+        dir_a_b_list.push_back(std::make_pair(8, 9));
+        dir_a_b_list.push_back(std::make_pair(6, 9));
+        dir_a_b_list.push_back(std::make_pair(7, 9));
+        dir_a_b_list.push_back(std::make_pair(5, 9));
+        dir_a_b_list.push_back(std::make_pair(4, 3));
+        dir_a_b_list.push_back(std::make_pair(4, 0));
+        dir_a_b_list.push_back(std::make_pair(4, 1));
+        dir_a_b_list.push_back(std::make_pair(4, 2));
+        dir_a_b_list.push_back(std::make_pair(8, 0));
+        dir_a_b_list.push_back(std::make_pair(6, 0));
+        dir_a_b_list.push_back(std::make_pair(7, 1));
+        dir_a_b_list.push_back(std::make_pair(5, 2));
+        dir_a_b_list.push_back(std::make_pair(9, 8));
+        dir_a_b_list.push_back(std::make_pair(9, 6));
+        dir_a_b_list.push_back(std::make_pair(9, 7));
+        dir_a_b_list.push_back(std::make_pair(9, 5));
+
+        // Validate link utilization logs
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_utilization;
+        std::map<std::pair<int64_t, int64_t>, double> link_overall_utilization_as_fraction;
+        validate_link_net_device_utilization_logs(temp_dir, dir_a_b_list, simulation_end_time_ns, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
+
+        // Make sure they are spread
+
+        // Data packets
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(5, 9)) >= 0.8);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(6, 9)) >= 0.25);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(7, 9)) >= 0.8);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(8, 9)) >= 0.25);
+
+        // Acknowledgement packets
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 5)) >= 0.0001);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 6)) >= 0.0001);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 7)) >= 0.0001);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 8)) >= 0.0001);
+
+        // Make sure these are removed
+        remove_file_if_exists(temp_dir + "/config_ns3.properties");
+        remove_file_if_exists(temp_dir + "/topology.properties");
+        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/link_net_device_utilization.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
+        for (int64_t i : tcp_flow_ids_with_logging) {
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_state.csv");
+            remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cong_state.csv");
+        }
+        remove_dir_if_exists(temp_dir + "/logs_ns3");
+        remove_dir_if_exists(temp_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////

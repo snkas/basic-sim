@@ -1008,7 +1008,7 @@ public:
      * @param list_latency_back_ns      Out: vector of pings' latency back (ns)
      * @param list_rtt_ns               Out: vector of pings' RTT (ns)
      */
-    void validate_udp_pings_logs(
+    void validate_udp_ping_logs(
             int64_t simulation_end_time_ns,
             std::string run_dir,
             std::vector<UdpPingInfo> udp_ping_schedule,

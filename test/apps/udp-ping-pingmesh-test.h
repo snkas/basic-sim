@@ -2,10 +2,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndTestCase : public TestCaseWithLogValidators {
+class UdpPingPingmeshTestCase : public TestCaseWithLogValidators {
 public:
-    PingmeshEndToEndTestCase(std::string s) : TestCaseWithLogValidators(s) {};
-    const std::string temp_dir = ".tmp-pingmesh-end-to-end-test";
+    UdpPingPingmeshTestCase(std::string s) : TestCaseWithLogValidators(s) {};
+    const std::string temp_dir = ".tmp-udp-ping-pingmesh-test";
 
     void prepare_test_dir() {
         mkdir_if_not_exists(temp_dir);
@@ -99,10 +99,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndNineAllTestCase : public PingmeshEndToEndTestCase
+class UdpPingPingmeshNineAllTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    PingmeshEndToEndNineAllTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end nine-all") {};
+    UdpPingPingmeshNineAllTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh nine-all") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -164,7 +164,7 @@ public:
         basicSimulation->Finalize();
 
         // Perform the run and get results
-        validate_udp_pings_logs(
+        validate_udp_ping_logs(
                 5000000000,
                 temp_dir,
                 udp_ping_schedule,
@@ -216,10 +216,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndFivePairsTestCase : public PingmeshEndToEndTestCase
+class UdpPingPingmeshFivePairsTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    PingmeshEndToEndFivePairsTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end five-pairs") {};
+    UdpPingPingmeshFivePairsTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh five-pairs") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -263,7 +263,7 @@ public:
         basicSimulation->Finalize();
 
         // Perform the run and get results
-        validate_udp_pings_logs(
+        validate_udp_ping_logs(
                 5000000000,
                 temp_dir,
                 udp_ping_schedule,
@@ -315,10 +315,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndCompetitionTcpTestCase : public PingmeshEndToEndTestCase
+class UdpPingPingmeshCompetitionTcpTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    PingmeshEndToEndCompetitionTcpTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end competition-tcp") {};
+    UdpPingPingmeshCompetitionTcpTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh competition-tcp") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -381,7 +381,7 @@ public:
         basicSimulation->Finalize();
 
         // Perform the run and get results
-        validate_udp_pings_logs(
+        validate_udp_ping_logs(
                 5000000000,
                 temp_dir,
                 result,
@@ -435,10 +435,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndOnePairNoRecTestCase : public PingmeshEndToEndTestCase
+class UdpPingPingmeshOnePairNoRecTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    PingmeshEndToEndOnePairNoRecTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end one-pair-no-rec") {};
+    UdpPingPingmeshOnePairNoRecTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh one-pair-no-rec") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -473,7 +473,7 @@ public:
         std::vector<std::vector<int64_t>> list_rtt_ns;
 
         // Perform the run and get results
-        validate_udp_pings_logs(
+        validate_udp_ping_logs(
                 49999999,
                 temp_dir,
                 udp_ping_schedule,
@@ -515,10 +515,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndInvalidPairATestCase : public PingmeshEndToEndTestCase
+class UdpPingPingmeshInvalidPairATestCase : public UdpPingPingmeshTestCase
 {
 public:
-    PingmeshEndToEndInvalidPairATestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-pair-a") {};
+    UdpPingPingmeshInvalidPairATestCase () : UdpPingPingmeshTestCase ("udp-pingmesh invalid-pair-a") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -558,10 +558,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndInvalidPairBTestCase : public PingmeshEndToEndTestCase
+class UdpPingPingmeshInvalidPairBTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    PingmeshEndToEndInvalidPairBTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end invalid-pair-b") {};
+    UdpPingPingmeshInvalidPairBTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh invalid-pair-b") {};
 
     void DoRun () {
         prepare_test_dir();
@@ -601,10 +601,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PingmeshEndToEndNotEnabledTestCase : public PingmeshEndToEndTestCase
+class UdpPingPingmeshNotEnabledTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    PingmeshEndToEndNotEnabledTestCase () : PingmeshEndToEndTestCase ("pingmesh-end-to-end not-enabled") {};
+    UdpPingPingmeshNotEnabledTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh not-enabled") {};
 
     void DoRun () {
 
