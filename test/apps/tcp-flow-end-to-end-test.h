@@ -1108,22 +1108,22 @@ public:
                         /    \
                      0 -- 6
                    /         \
-          3 --- 4 -- 1 -- 7 -- 9
+                  4 -- 1 -- 7 -- 3
                    \         /
                      2 -- 5
 
         */
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
-        topology_file << "num_nodes=10" << std::endl;
-        topology_file << "num_undirected_edges=12" << std::endl;
-        topology_file << "switches=set(0,1,2,3,4,5,6,7,8,9)" << std::endl;
-        topology_file << "switches_which_are_tors=set(3,9)" << std::endl;
+        topology_file << "num_nodes=9" << std::endl;
+        topology_file << "num_undirected_edges=11" << std::endl;
+        topology_file << "switches=set(0,1,2,3,4,5,6,7,8)" << std::endl;
+        topology_file << "switches_which_are_tors=set(3,4)" << std::endl;
         topology_file << "servers=set()" << std::endl;
-        topology_file << "undirected_edges=set(3-4,0-4,1-4,2-4,0-8,0-6,1-7,2-5,8-9,6-9,7-9,5-9)" << std::endl;
+        topology_file << "undirected_edges=set(0-4,1-4,2-4,0-8,0-6,1-7,2-5,3-8,3-6,3-7,3-5)" << std::endl;
         topology_file << "all_nodes_are_endpoints=false" << std::endl;
         topology_file << "link_channel_delay_ns=100000" << std::endl;
-        topology_file << "link_net_device_data_rate_megabit_per_s=map(3->4:80,0->4:20,1->4:20,2->4:20,0->8:20,0->6:20,1->7:20,2->5:20,8->9:20,6->9:20,7->9:20,5->9:20,4->3:80,4->0:20,4->1:20,4->2:20,8->0:20,6->0:20,7->1:20,5->2:20,9->8:20,9->6:20,9->7:20,9->5:20)" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=map(0->4:20,1->4:20,2->4:20,0->8:20,0->6:20,1->7:20,2->5:20,8->3:20,6->3:20,7->3:20,5->3:20,4->0:20,4->1:20,4->2:20,8->0:20,6->0:20,7->1:20,5->2:20,3->8:20,3->6:20,3->7:20,3->5:20)" << std::endl;
         topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
@@ -1147,7 +1147,7 @@ public:
         std::vector <TcpFlowScheduleEntry> write_schedule;
         int num_flows = 12;
         for (int i = 0; i < num_flows; i++) {
-            write_schedule.push_back(TcpFlowScheduleEntry(i, 3, 9, 1000000000, 0, "", ""));
+            write_schedule.push_back(TcpFlowScheduleEntry(i, 4, 3, 1000000000, 0, "", ""));
         }
 
         // Write schedule file
@@ -1201,9 +1201,8 @@ public:
         );
 
         // Directed edge list
-        // 3-4,0-4,1-4,2-4,0-8,0-6,1-7,2-5,8-9,6-9,7-9,5-9
+        // 0-4,1-4,2-4,0-8,0-6,1-7,2-5,3-8,3-6,3-7,3-5
         std::vector <std::pair<int64_t, int64_t>> dir_a_b_list;
-        dir_a_b_list.push_back(std::make_pair(3, 4));
         dir_a_b_list.push_back(std::make_pair(0, 4));
         dir_a_b_list.push_back(std::make_pair(1, 4));
         dir_a_b_list.push_back(std::make_pair(2, 4));
@@ -1211,11 +1210,10 @@ public:
         dir_a_b_list.push_back(std::make_pair(0, 6));
         dir_a_b_list.push_back(std::make_pair(1, 7));
         dir_a_b_list.push_back(std::make_pair(2, 5));
-        dir_a_b_list.push_back(std::make_pair(8, 9));
-        dir_a_b_list.push_back(std::make_pair(6, 9));
-        dir_a_b_list.push_back(std::make_pair(7, 9));
-        dir_a_b_list.push_back(std::make_pair(5, 9));
-        dir_a_b_list.push_back(std::make_pair(4, 3));
+        dir_a_b_list.push_back(std::make_pair(8, 3));
+        dir_a_b_list.push_back(std::make_pair(6, 3));
+        dir_a_b_list.push_back(std::make_pair(7, 3));
+        dir_a_b_list.push_back(std::make_pair(5, 3));
         dir_a_b_list.push_back(std::make_pair(4, 0));
         dir_a_b_list.push_back(std::make_pair(4, 1));
         dir_a_b_list.push_back(std::make_pair(4, 2));
@@ -1223,10 +1221,10 @@ public:
         dir_a_b_list.push_back(std::make_pair(6, 0));
         dir_a_b_list.push_back(std::make_pair(7, 1));
         dir_a_b_list.push_back(std::make_pair(5, 2));
-        dir_a_b_list.push_back(std::make_pair(9, 8));
-        dir_a_b_list.push_back(std::make_pair(9, 6));
-        dir_a_b_list.push_back(std::make_pair(9, 7));
-        dir_a_b_list.push_back(std::make_pair(9, 5));
+        dir_a_b_list.push_back(std::make_pair(3, 8));
+        dir_a_b_list.push_back(std::make_pair(3, 6));
+        dir_a_b_list.push_back(std::make_pair(3, 7));
+        dir_a_b_list.push_back(std::make_pair(3, 5));
 
         // Validate link utilization logs
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_utilization;
@@ -1236,16 +1234,16 @@ public:
         // Make sure they are spread
 
         // Data packets
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(5, 9)) >= 0.8);
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(6, 9)) >= 0.25);
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(7, 9)) >= 0.8);
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(8, 9)) >= 0.25);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(5, 3)) >= 0.8);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(6, 3)) >= 0.25);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(7, 3)) >= 0.8);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(8, 3)) >= 0.25);
 
         // Acknowledgement packets
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 5)) >= 0.0001);
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 6)) >= 0.0001);
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 7)) >= 0.0001);
-        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(9, 8)) >= 0.0001);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(3, 5)) >= 0.0001);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(3, 6)) >= 0.0001);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(3, 7)) >= 0.0001);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(3, 8)) >= 0.0001);
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");

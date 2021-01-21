@@ -63,7 +63,8 @@ private:
   Time m_wait_afterwards; //!< How long to wait after the duration is over before closing socket
   std::string m_additionalParameters; //!< Additional parameters
   Ptr<Socket> m_socket; //!< Socket
-  Address m_peerAddress; //!< Remote peer address (IP, port)
+  Address m_localAddress; //!< Local address (IP, port)
+  Address m_peerAddress;  //!< Remote peer address (IP, port)
   EventId m_sendEvent; //!< Event to send the next packet
   EventId m_waitForFinishEvent; //!< Event to wait to finish the client
 

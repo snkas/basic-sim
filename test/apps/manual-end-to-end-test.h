@@ -102,12 +102,20 @@ public:
         app.Start(NanoSeconds(7000));
 
         // Install echo server on all nodes
-        UdpPingServerHelper pingServerHelper(1025);
-        app = pingServerHelper.Install(topology->GetNodes());
+        UdpPingServerHelper pingServerHelper(
+            InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1025)
+        );
+        app = pingServerHelper.Install(topology->GetNodes().Get(0));
+        app.Start(NanoSeconds(0));
+        UdpPingServerHelper pingServerHelper2(
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1025)
+        );
+        app = pingServerHelper2.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
 
         // Pinging 0 --> 1
         UdpPingClientHelper source_ping0(
+                InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 0),
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
                 0,
                 NanoSeconds(100000000),
@@ -120,6 +128,7 @@ public:
 
         // Pinging 1 --> 0
         UdpPingClientHelper source_ping1(
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 0),
                 InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
                 1,
                 NanoSeconds(100000000),
@@ -352,7 +361,9 @@ public:
         setup_basic();
 
         // Install ping server on node 1
-        UdpPingServerHelper pingServerHelper(1025);
+        UdpPingServerHelper pingServerHelper(
+            InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025)
+        );
         app = pingServerHelper.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
         app.Stop(Seconds(0.1));
@@ -366,12 +377,16 @@ public:
         setup_basic();
 
         // Install ping server on node 1
-        UdpPingServerHelper pingServerHelper2(1025);
+        UdpPingServerHelper pingServerHelper2(
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025)
+        );
         app = pingServerHelper2.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
+        app.Stop(Seconds(0.1));
 
         // Pinging 0 --> 1
         UdpPingClientHelper source_ping0(
+                InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 0),
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
                 0,
                 NanoSeconds(100000000),

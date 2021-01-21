@@ -24,10 +24,10 @@
 
 namespace ns3 {
 
-UdpPingServerHelper::UdpPingServerHelper (uint16_t port)
+UdpPingServerHelper::UdpPingServerHelper (Address localAddress)
 {
   m_factory.SetTypeId (UdpPingServer::GetTypeId ());
-  SetAttribute ("Port", UintegerValue (port));
+  SetAttribute ("LocalAddress", AddressValue (localAddress));
 }
 
 void 
@@ -62,10 +62,11 @@ UdpPingServerHelper::InstallPriv (Ptr<Node> node) const
   return app;
 }
 
-UdpPingClientHelper::UdpPingClientHelper (Address address, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters)
+UdpPingClientHelper::UdpPingClientHelper (Address localAddress, Address remoteAddress, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters)
 {
   m_factory.SetTypeId (UdpPingClient::GetTypeId ());
-  SetAttribute ("RemoteAddress", AddressValue (address));
+  SetAttribute ("LocalAddress", AddressValue (localAddress));
+  SetAttribute ("RemoteAddress", AddressValue (remoteAddress));
   SetAttribute ("UdpPingId", UintegerValue (udp_ping_id));
   SetAttribute ("Interval", TimeValue (interval));
   SetAttribute ("Duration", TimeValue (duration));

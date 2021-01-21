@@ -47,8 +47,8 @@ private:
   virtual void StopApplication (void);
   void HandleRead (Ptr<Socket> socket);
 
-  uint16_t m_port;      //!< Port on which we listen for incoming packets.
-  Ptr<Socket> m_socket; //!< IPv4 Socket
+  Address m_localAddress; //!< Local address (IPv4, port) the server operates out of
+  Ptr<Socket> m_socket;   //!< IPv4 Socket
 
 };
 

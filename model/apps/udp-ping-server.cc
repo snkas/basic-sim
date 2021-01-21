@@ -42,10 +42,13 @@ namespace ns3 {
                 .SetParent<Application>()
                 .SetGroupName("Applications")
                 .AddConstructor<UdpPingServer>()
-                .AddAttribute("Port", "Port on which we listen for incoming ping packets.",
-                              UintegerValue(9),
-                              MakeUintegerAccessor(&UdpPingServer::m_port),
-                              MakeUintegerChecker<uint16_t>());
+                .AddAttribute("LocalAddress",
+                              "The local address (IPv4 address, port). Setting the IPv4 address will enable"
+                              "proper ECMP routing (as else it forces an early lookup with only destination IP). "
+                              "Setting the port is handy as it is a server, so it's good to be reachable.",
+                              AddressValue(),
+                              MakeAddressAccessor(&UdpPingServer::m_localAddress),
+                              MakeAddressChecker());
         return tid;
     }
 
@@ -74,9 +77,8 @@ namespace ns3 {
             TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
             m_socket = Socket::CreateSocket(GetNode(), tid);
 
-            // Bind to local port (and any local IP address)
-            InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
-            if (m_socket->Bind(local) == -1) {
+            // Bind to local address
+            if (m_socket->Bind(m_localAddress) == -1) {
                 throw std::runtime_error("Failed to bind socket");
             }
 

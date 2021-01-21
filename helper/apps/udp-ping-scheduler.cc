@@ -30,6 +30,7 @@ void UdpPingScheduler::StartNextUdpPing(int i) {
 
     // Helper to install the source application
     UdpPingClientHelper client(
+            InetSocketAddress(m_nodes.Get(entry.GetFromNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0), // 0 port means ANY port
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1025),
             entry.GetUdpPingId(),
             NanoSeconds(entry.GetIntervalNs()),
@@ -122,7 +123,9 @@ UdpPingScheduler::UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         std::cout << "  > Setting up " << endpoints.size() << " UDP ping servers" << std::endl;
         for (int64_t i : endpoints) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(i)) {
-                UdpPingServerHelper pingServerHelper(1025);
+                UdpPingServerHelper pingServerHelper(
+                    InetSocketAddress(m_nodes.Get(i)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1025)
+                );
                 ApplicationContainer app = pingServerHelper.Install(m_nodes.Get(i));
                 app.Start(Seconds(0.0));
             }

@@ -39,7 +39,7 @@ namespace ns3 {
 class UdpPingServerHelper
 {
 public:
-  UdpPingServerHelper (uint16_t port);
+  UdpPingServerHelper (Address localAddress);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
   ApplicationContainer Install (NodeContainer c) const;
@@ -52,7 +52,7 @@ private:
 class UdpPingClientHelper
 {
 public:
-  UdpPingClientHelper (Address address, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters);
+  UdpPingClientHelper (Address localAddress, Address remoteAddress, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
 

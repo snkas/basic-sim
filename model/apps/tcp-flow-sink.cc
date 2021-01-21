@@ -86,9 +86,25 @@ void TcpFlowSink::StartApplication() { // Called at time specified by Start
     if (!m_socket) {
         m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
 
-        // Bind socket
+        // Socket constraints
         NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_local), "No support for multicast");
         NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_local), "Only IPv4 is supported.");
+
+        // Bind socket
+        //
+        // This is a listening socket. Once it gets a SYN request, it does a CompleteFork. This means it
+        // creates a new socket and registers its own 5-tuple endpoint based on the exact received IP/TCP header
+        // IP addresses / TCP ports.
+        //
+        // WHEN DOES IT RECEIVE?
+        // (1) m_local(0, ANY) -- An ephemeral port is assigned. A SYN towards any IP address on this node + the ephemeral port will match it.
+        // (2) m_local(> 0, ANY) -- Same as (1) except you know which port you get
+        // (3) m_local(0, IP) -- Same as (1) except that the IP address must match exactly (together with the ephemeral port)
+        // (4) m_local(> 0, IP) -- Exactly this port and IP will match, all else will not (like (3) except you know what is the port)
+        //
+        // Note: it might be possible that another TCP socket becomes more specific (particular IP as in (4)).
+        // The more specificity (see Ipv4EndPointDemux) the more absolute it will get matched to.
+        //
         if (m_socket->Bind(m_local) == -1) {
             throw std::runtime_error("Failed to bind socket");
         }

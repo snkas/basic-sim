@@ -134,21 +134,21 @@ public:
                         /    \
                      0 -- 6
                    /         \
-          3 --- 4 -- 1 -- 7 -- 9 -- 10
+                  4 -- 1 -- 7 -- 3
                    \         /
                      2 -- 5
 
         */
         std::ofstream topology_file;
         topology_file.open (temp_dir + "/topology.properties");
-        topology_file << "num_nodes=11" << std::endl;
-        topology_file << "num_undirected_edges=13" << std::endl;
-        topology_file << "switches=set(0,1,2,3,4,5,6,7,8,9,10)" << std::endl;
-        topology_file << "switches_which_are_tors=set(3,10)" << std::endl;
+        topology_file << "num_nodes=9" << std::endl;
+        topology_file << "num_undirected_edges=11" << std::endl;
+        topology_file << "switches=set(0,1,2,3,4,5,6,7,8)" << std::endl;
+        topology_file << "switches_which_are_tors=set(3,4)" << std::endl;
         topology_file << "servers=set()" << std::endl;
-        topology_file << "undirected_edges=set(3-4,0-4,1-4,2-4,0-8,0-6,1-7,2-5,8-9,6-9,7-9,5-9,9-10)" << std::endl;
+        topology_file << "undirected_edges=set(0-4,1-4,2-4,0-8,0-6,1-7,2-5,3-8,3-6,3-7,3-5)" << std::endl;
         topology_file << "all_nodes_are_endpoints=false" << std::endl;
-        topology_file << "link_channel_delay_ns=map(3-4:1000,0-4:1000,1-4:1000,2-4:1000,0-8:1000,0-6:1000,1-7:1000,2-5:1000,8-9:110000,6-9:220000,7-9:330000,5-9:440000,9-10: 1000)" << std::endl;
+        topology_file << "link_channel_delay_ns=map(0-4:1000,1-4:1000,2-4:1000,0-8:1000,0-6:1000,1-7:1000,2-5:1000,3-8:110000,3-6:220000,3-7:330000,3-5:440000)" << std::endl;
         topology_file << "link_net_device_data_rate_megabit_per_s=10000" << std::endl;
         topology_file << "link_net_device_queue=drop_tail(1000p)" << std::endl;
         topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
@@ -169,7 +169,7 @@ public:
         std::vector<UdpPingInfo> write_schedule;
         int num_pings = 400;
         for (int i = 0; i < num_pings; i++) {
-            write_schedule.push_back(UdpPingInfo(i, 3, 10, 10000000, 0, simulation_end_time_ns, 0, "", ""));
+            write_schedule.push_back(UdpPingInfo(i, 4, 3, 10000000, 0, simulation_end_time_ns, 0, "", ""));
         }
 
         // Write schedule file
@@ -216,52 +216,52 @@ public:
         );
 
         // Count the paths taken
-        int64_t count_8_9 = 0;
-        int64_t count_6_9 = 0;
-        int64_t count_7_9 = 0;
-        int64_t count_5_9 = 0;
-        int64_t count_9_8 = 0;
-        int64_t count_9_6 = 0;
-        int64_t count_9_7 = 0;
-        int64_t count_9_5 = 0;
+        int64_t count_8_3 = 0;
+        int64_t count_6_3 = 0;
+        int64_t count_7_3 = 0;
+        int64_t count_5_3 = 0;
+        int64_t count_3_8 = 0;
+        int64_t count_3_6 = 0;
+        int64_t count_3_7 = 0;
+        int64_t count_3_5 = 0;
         for (size_t i = 0; i < list_latency_there_ns.size(); i++) {
             if (list_latency_there_ns.at(i).at(0) < 220000) {
-                count_8_9++;
+                count_8_3++;
             } else if (list_latency_there_ns.at(i).at(0) >= 220000 && list_latency_there_ns.at(i).at(0) < 330000) {
-                count_6_9++;
+                count_6_3++;
             } else if (list_latency_there_ns.at(i).at(0) >= 330000 && list_latency_there_ns.at(i).at(0) < 440000) {
-                count_7_9++;
+                count_7_3++;
             } else if (list_latency_there_ns.at(i).at(0) >= 440000) {
-                count_5_9++;
+                count_5_3++;
             }
             if (list_latency_back_ns.at(i).at(0) < 220000) {
-                count_9_8++;
+                count_3_8++;
             } else if (list_latency_back_ns.at(i).at(0) >= 220000 && list_latency_back_ns.at(i).at(0) < 330000) {
-                count_9_6++;
+                count_3_6++;
             } else if (list_latency_back_ns.at(i).at(0) >= 330000 && list_latency_back_ns.at(i).at(0) < 440000) {
-                count_9_7++;
+                count_3_7++;
             } else if (list_latency_back_ns.at(i).at(0) >= 440000) {
-                count_9_5++;
+                count_3_5++;
             }
         }
         // std::cout << "Count there" << std::endl;
-        // std::cout << count_8_9 << std::endl;
-        // std::cout << count_6_9 << std::endl;
-        // std::cout << count_7_9 << std::endl;
-        // std::cout << count_5_9 << std::endl;
+        // std::cout << count_8_3 << std::endl;
+        // std::cout << count_6_3 << std::endl;
+        // std::cout << count_7_3 << std::endl;
+        // std::cout << count_5_3 << std::endl;
         // std::cout << "Count back" << std::endl;
-        // std::cout << count_9_8 << std::endl;
-        // std::cout << count_9_6 << std::endl;
-        // std::cout << count_9_7 << std::endl;
-        // std::cout << count_9_5 << std::endl;
-        ASSERT_TRUE(count_8_9 >= 50);
-        ASSERT_TRUE(count_6_9 >= 50);
-        ASSERT_TRUE(count_7_9 >= 100);
-        ASSERT_TRUE(count_5_9 >= 100);
-        ASSERT_TRUE(count_9_8 >= 75);
-        ASSERT_TRUE(count_9_6 >= 75);
-        ASSERT_TRUE(count_9_7 >= 75);
-        ASSERT_TRUE(count_9_5 >= 75);
+        // std::cout << count_3_8 << std::endl;
+        // std::cout << count_3_6 << std::endl;
+        // std::cout << count_3_7 << std::endl;
+        // std::cout << count_3_5 << std::endl;
+        ASSERT_TRUE(count_8_3 >= 50);
+        ASSERT_TRUE(count_6_3 >= 50);
+        ASSERT_TRUE(count_7_3 >= 100);
+        ASSERT_TRUE(count_5_3 >= 100);
+        ASSERT_TRUE(count_3_8 >= 75);
+        ASSERT_TRUE(count_3_6 >= 75);
+        ASSERT_TRUE(count_3_7 >= 75);
+        ASSERT_TRUE(count_3_5 >= 75);
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");

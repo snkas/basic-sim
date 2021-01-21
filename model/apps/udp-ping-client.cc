@@ -42,6 +42,13 @@ UdpPingClient::GetTypeId(void) {
             .SetParent<Application>()
             .SetGroupName("Applications")
             .AddConstructor<UdpPingClient>()
+            .AddAttribute("LocalAddress",
+                          "The local address (IPv4 address, port). Setting the IPv4 address will enable"
+                          "proper ECMP routing (as else it forces an early lookup with only destination IP). "
+                          "Setting the port is not necessary, as it will be assigned an ephemeral one.",
+                          AddressValue(),
+                          MakeAddressAccessor(&UdpPingClient::m_localAddress),
+                          MakeAddressChecker())
             .AddAttribute("RemoteAddress",
                           "The destination address of the outbound packets (IPv4 address, port)",
                           AddressValue(),
@@ -104,11 +111,12 @@ UdpPingClient::StartApplication(void) {
 
         // Bind socket
         NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
-        if (m_socket->Bind() == -1) {
+        if (m_socket->Bind(m_localAddress) == -1) {
             throw std::runtime_error("Failed to bind socket");
         }
 
         // Connect
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
         m_socket->Connect(m_peerAddress);
 
     }
