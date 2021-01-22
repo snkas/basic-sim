@@ -5,15 +5,16 @@ You can either immediately start with the tutorial below, or read more documenta
 * `basic_simulation_and_run_folder.md` -- Basic concepts of the framework
 * `ptop_topology.md` -- Point-to-point topology
 * `arbiter_routing.md` -- A new type of routing with more flexibility
-* `link_net_device_utilization_tracking.md` -- Link net-device utilization tracking
-* `link_net_device_queue_tracking.md` -- Link net-device queue tracking
-* `link_interface_tc_qdisc_queue_tracking.md` -- Link interface traffic-control queueing discipline (qdisc) internal queue tracking
-* `tcp_flow_application.md` -- Flow application ("send from A to B a flow of size X at time T")
-* `udp_burst_application.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
-* `udp_ping_application.md` -- Ping application ("send from A to B pings at an interval I starting at time T for duration D")
+* `tracking_link_net_device_utilization.md` -- Link net-device utilization tracking
+* `tracking_link_net_device_queue.md` -- Link net-device queue tracking
+* `tracking_link_interface_tc_qdisc_queue.md` -- Link interface traffic-control queueing discipline (qdisc) internal queue tracking
+* `application_tcp_flow.md` -- Flow application ("send from A to B a flow of size X at time T")
+* `application_udp_burst.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
+* `application_udp_ping.md` -- Ping application ("send from A to B pings at an interval I starting at time T for duration D")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
 * `future_work.md` -- To find out what can be extended / improved
 * `general_coding_notes.md` -- A collection of general notes about how ns-3 is modeled and how one uses that model
+* `peculiarities.md` -- A collection of notes about peculiar behavior in ns-3
 
 
 ## Tutorial
@@ -287,41 +288,41 @@ We are going to install three different applications:
 
    ```
    TCP Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
-   0               1         3         100.00 Mbit     0                 2096381122        2096.38 ms      100.00 Mbit     100.0%       47.7 Mbit/s     YES           
-   1               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      96.08 Mbit      96.1%        27.5 Mbit/s     NO_ONGOING    
-   2               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      71.41 Mbit      71.4%        20.4 Mbit/s     NO_ONGOING              
+   0               1         3         100.00 Mbit     0                 2114688479        2114.69 ms      100.00 Mbit     100.0%       47.3 Mbit/s     YES           
+   1               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      72.18 Mbit      72.2%        20.6 Mbit/s     NO_ONGOING    
+   2               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      95.20 Mbit      95.2%        27.2 Mbit/s     NO_ONGOING    
    ```
 
 8. For example, `udp_bursts_incoming.txt` will contain:
 
    ```
    UDP burst ID    From      To        Target rate         Start time      Duration        Incoming rate (w/ headers)  Incoming rate (payload)     Packets received   Data received (w/headers)   Data received (payload)     Metadata
-   0               1         2         50.00 Mbit/s        0.00 ms         5000.00 ms      49.99 Mbit/s                49.06 Mbit/s                16665              199.98 Mbit                 196.25 Mbit                 
-   1               2         1         50.00 Mbit/s        0.00 ms         5000.00 ms      49.83 Mbit/s                48.90 Mbit/s                16611              199.33 Mbit                 195.61 Mbit                 
+   0               1         2         50.00 Mbit/s        0.00 ms         5000.00 ms      49.97 Mbit/s                49.04 Mbit/s                16657              199.88 Mbit                 196.15 Mbit                 
+   1               2         1         50.00 Mbit/s        0.00 ms         5000.00 ms      49.85 Mbit/s                48.92 Mbit/s                16616              199.39 Mbit                 195.67 Mbit                 
    ```
    
 9. For example, `udp_pings.txt` will contain:
 
    ```                
    UDP Ping ID     Source    Target    Start time (ns)   End time (ns)     Interval (ns)     Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival
-   0               1         2         0                 4000000000        10000000          4.43 ms               7.80 ms               0.42 ms         12.23 ms        20.95 ms        4.51 ms         392/400 (98%)
-   1               1         3         0                 4000000000        10000000          5.42 ms               0.07 ms               0.06 ms         5.49 ms         15.54 ms        5.58 ms         398/400 (100%)
-   2               2         1         0                 4000000000        10000000          7.83 ms               4.35 ms               0.42 ms         12.18 ms        21.09 ms        4.47 ms         398/400 (100%)
-   3               2         3         0                 4000000000        10000000          8.87 ms               0.07 ms               0.06 ms         8.94 ms         16.72 ms        3.94 ms         398/400 (100%)
-   4               3         1         0                 4000000000        10000000          0.06 ms               5.42 ms               0.06 ms         5.48 ms         15.42 ms        5.57 ms         396/400 (99%)
-   5               3         2         0                 4000000000        10000000          0.06 ms               8.78 ms               0.06 ms         8.84 ms         15.78 ms        3.93 ms         387/400 (97%)
+   0               1         2         0                 4000000000        10000000          4.69 ms               7.98 ms               0.50 ms         12.67 ms        21.94 ms        4.50 ms         392/400 (98%)
+   1               1         3         0                 4000000000        10000000          5.87 ms               0.07 ms               0.06 ms         5.94 ms         16.43 ms        5.98 ms         397/400 (99%)
+   2               2         1         0                 4000000000        10000000          7.99 ms               4.59 ms               1.55 ms         12.58 ms        22.08 ms        4.47 ms         398/400 (100%)
+   3               2         3         0                 4000000000        10000000          9.25 ms               0.06 ms               0.06 ms         9.31 ms         16.84 ms        4.16 ms         398/400 (100%)
+   4               3         1         0                 4000000000        10000000          0.06 ms               5.87 ms               0.06 ms         5.93 ms         16.47 ms        5.97 ms         396/400 (99%)
+   5               3         2         0                 4000000000        10000000          0.06 ms               9.22 ms               0.06 ms         9.29 ms         16.83 ms        4.16 ms         392/400 (98%)
    ```
 
 10. For example, `link_net_device_utilization_summary.txt` will contain:
 
     ```
     From     To       Utilization
-    0        1        50.56%
-    0        2        51.08%
+    0        1        50.64%
+    0        2        51.10%
     0        3        70.05%
-    1        0        76.38%
-    2        0        93.77%
-    3        0        1.54%                     
+    1        0        76.41%
+    2        0        93.78%
+    3        0        1.61%
     ```
 
 
