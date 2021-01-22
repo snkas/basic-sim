@@ -123,10 +123,16 @@ namespace ns3 {
      *     AND TCP header.
      *
      * UDP:
+     * If the UDP Bind() is not called before with an IP address, the following happens:
      * (1) RouteOutput gets called once by UDP (udp-socket-impl.cc) with an header of which only the destination
      *     IP address is set in order to determine the source IP address for the socket (function: DoSendTo).
      * (2) It is **NOT** called subsequently in udp-l4-protocol.cc, as such the first decision which did not take
-     *     into account the UDP header is final. This means ECMP load balancing does not work at a UDP source.
+     *     into account the UDP header is final. This means ECMP load balancing does not work properly in this case.
+     * Else, if it did get called with an IP address, the following happens:
+     * (1) It will send it to udp-l4-protocol.cc without a route
+     * (2) Subsequently, udp-l4-protocol will just pass it onto ipv4-l3-protocol.cc, which will make the proper
+     *     RouteOutput call with the entire IP and UDP header available. In this case ECMP load balancing will work
+     *     as expected.
      *
      * @param p         Packet
      * @param header    Header
