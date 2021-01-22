@@ -20,8 +20,8 @@
  * Author: George F. Riley <riley@ece.gatech.edu>
  */
 
-#ifndef TCP_FLOW_SEND_APPLICATION_H
-#define TCP_FLOW_SEND_APPLICATION_H
+#ifndef TCP_FLOW_CLIENT_H
+#define TCP_FLOW_CLIENT_H
 
 #include "ns3/address.h"
 #include "ns3/application.h"
@@ -38,14 +38,14 @@ namespace ns3 {
 class Address;
 class Socket;
 
-class TcpFlowSendApplication : public Application
+class TcpFlowClient : public Application
 {
 public:
   static TypeId GetTypeId (void);
 
-  TcpFlowSendApplication ();
+  TcpFlowClient ();
 
-  virtual ~TcpFlowSendApplication ();
+  virtual ~TcpFlowClient ();
 
   int64_t GetAckedBytes();
   Ptr<Socket> GetSocket();
@@ -116,4 +116,4 @@ private:
 
 } // namespace ns3
 
-#endif /* TCP_FLOW_SEND_APPLICATION_H */
+#endif /* TCP_FLOW_CLIENT_H */

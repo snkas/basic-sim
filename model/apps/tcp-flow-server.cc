@@ -33,40 +33,40 @@
 #include "ns3/packet.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/tcp-socket-factory.h"
-#include "tcp-flow-sink.h"
+#include "tcp-flow-server.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("TcpFlowSink");
+NS_LOG_COMPONENT_DEFINE ("TcpFlowServer");
 
-NS_OBJECT_ENSURE_REGISTERED (TcpFlowSink);
+NS_OBJECT_ENSURE_REGISTERED (TcpFlowServer);
 
 TypeId
-TcpFlowSink::GetTypeId(void) {
-    static TypeId tid = TypeId("ns3::TcpFlowSink")
+TcpFlowServer::GetTypeId(void) {
+    static TypeId tid = TypeId("ns3::TcpFlowServer")
             .SetParent<Application>()
             .SetGroupName("Applications")
-            .AddConstructor<TcpFlowSink>()
+            .AddConstructor<TcpFlowServer>()
             .AddAttribute("Local",
                           "The Address on which to Bind the rx socket.",
                           AddressValue(),
-                          MakeAddressAccessor(&TcpFlowSink::m_local),
+                          MakeAddressAccessor(&TcpFlowServer::m_local),
                           MakeAddressChecker())
             ;
     return tid;
 }
 
-TcpFlowSink::TcpFlowSink() {
+TcpFlowServer::TcpFlowServer() {
     NS_LOG_FUNCTION(this);
     m_socket = 0;
     m_totalRx = 0;
 }
 
-TcpFlowSink::~TcpFlowSink() {
+TcpFlowServer::~TcpFlowServer() {
     NS_LOG_FUNCTION(this);
 }
 
-void TcpFlowSink::DoDispose(void) {
+void TcpFlowServer::DoDispose(void) {
     NS_LOG_FUNCTION(this);
     m_socket = 0;
     m_socketList.clear();
@@ -76,7 +76,7 @@ void TcpFlowSink::DoDispose(void) {
 }
 
 
-void TcpFlowSink::StartApplication() { // Called at time specified by Start
+void TcpFlowServer::StartApplication() { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
 
     // Create a socket which is always in LISTEN state
@@ -113,15 +113,15 @@ void TcpFlowSink::StartApplication() { // Called at time specified by Start
     }
 
     // Callbacks
-    m_socket->SetRecvCallback(MakeCallback(&TcpFlowSink::HandleRead, this));
+    m_socket->SetRecvCallback(MakeCallback(&TcpFlowServer::HandleRead, this));
     m_socket->SetAcceptCallback(
             MakeNullCallback<bool, Ptr<Socket>,const Address &>(),
-            MakeCallback(&TcpFlowSink::HandleAccept, this)
+            MakeCallback(&TcpFlowServer::HandleAccept, this)
     );
 
 }
 
-void TcpFlowSink::StopApplication() {  // Called at time specified by Stop
+void TcpFlowServer::StopApplication() {  // Called at time specified by Stop
     throw std::runtime_error("TCP flow sink is not intended to be stopped after being started.");
     /*
      * Deprecated stop code:
@@ -138,17 +138,17 @@ void TcpFlowSink::StopApplication() {  // Called at time specified by Stop
     */
 }
 
-void TcpFlowSink::HandleAccept(Ptr<Socket> socket, const Address &from) {
+void TcpFlowServer::HandleAccept(Ptr<Socket> socket, const Address &from) {
     NS_LOG_FUNCTION(this << socket << from);
-    socket->SetRecvCallback (MakeCallback (&TcpFlowSink::HandleRead, this));
+    socket->SetRecvCallback (MakeCallback (&TcpFlowServer::HandleRead, this));
     socket->SetCloseCallbacks(
-            MakeCallback(&TcpFlowSink::HandlePeerClose, this),
-            MakeCallback(&TcpFlowSink::HandlePeerError, this)
+            MakeCallback(&TcpFlowServer::HandlePeerClose, this),
+            MakeCallback(&TcpFlowServer::HandlePeerError, this)
     );
     m_socketList.push_back(socket);
 }
 
-void TcpFlowSink::HandleRead(Ptr<Socket> socket) {
+void TcpFlowServer::HandleRead(Ptr<Socket> socket) {
     NS_LOG_FUNCTION (this << socket);
 
     // Immediately from the socket drain all the packets it has received
@@ -162,17 +162,17 @@ void TcpFlowSink::HandleRead(Ptr<Socket> socket) {
     }
 }
 
-void TcpFlowSink::HandlePeerClose(Ptr<Socket> socket) {
+void TcpFlowServer::HandlePeerClose(Ptr<Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
     CleanUp(socket);
 }
 
-void TcpFlowSink::HandlePeerError(Ptr<Socket> socket) {
+void TcpFlowServer::HandlePeerError(Ptr<Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
     CleanUp(socket);
 }
 
-void TcpFlowSink::CleanUp(Ptr<Socket> socket) {
+void TcpFlowServer::CleanUp(Ptr<Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
     // This function can be called 2x if the LAST_ACK retries fail.
     // That would result in first a normal close, and then an error close.

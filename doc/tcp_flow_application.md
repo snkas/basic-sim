@@ -7,26 +7,26 @@ useful file formats.
 
 It encompasses the following files:
 
-* **TcpFlowSendApplication:** `model/apps/tcp-flow-send-application.cc/h` 
+* **TcpFlowClient:** `model/apps/tcp-flow-client.cc/h` 
 
   Application which opens a TCP connection and uni-directionally sends data over it.
 
-* **TcpFlowSink:** `model/apps/tcp-flow-sink.cc/h`
+* **TcpFlowServer:** `model/apps/tcp-flow-server.cc/h`
 
   Accepts incoming flows and acknowledges incoming data, does not send data back.
 
-* **TcpFlowSendHelper:** `helper/apps/tcp-flow-send-helper.cc/h`
+* **TcpFlowClientHelper:** `helper/apps/tcp-flow-helper.cc/h`
 
-  Helper to install flow send applications.
+  Helper to install flow client ("send") applications.
   
-* **TcpFlowSinkHelper:** `helper/apps/tcp-flow-sink-helper.cc/h`
+* **TcpFlowServerHelper:** `helper/apps/tcp-flow-helper.cc/h`
 
-  Helper to install flow sink applications.
+  Helper to install flow server ("sink") applications.
   
 * **TcpFlowScheduler:** `helper/apps/tcp-flow-scheduler.cc/h`
 
   Reads in a schedule of flows and inserts events for them to start over time. 
-  Installs flow sinks on all nodes. Once the run is over, it can write the results to file.
+  Installs flow servers on all endpoints. Once the run is over, it can write the results to file.
 
 * **TcpFlowScheduleReader:** `helper/apps/tcp-flow-schedule-reader.cc/h`
 
@@ -80,23 +80,22 @@ You can use the application(s) separately, or make use of the scheduler (which i
 
 ## Getting started: directly installing applications
 
-1. In your code, import the TCP flow send and sink helper:
+1. In your code, import the TCP flow client and server helper:
 
    ```c++
-   #include "ns3/tcp-flow-send-helper.h"
-   #include "ns3/tcp-flow-sink-helper.h"
+   #include "ns3/tcp-flow-helper.h"
    ```
    
 2. Before the start of the simulation run, in your code add:
 
    ```c++
-   // Install a flow sink server on node B: Ptr<Node> node_b
-   TcpFlowSinkHelper sink("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
-   ApplicationContainer app = sink.Install(node_b);
+   // Install a flow server on node B: Ptr<Node> node_b
+   TcpFlowServerHelper flowServerHelper("ns3::TcpSocketFactory", InetSocketAddress(Ipv4Address::GetAny(), 1024));
+   ApplicationContainer app = flowServerHelper.Install(node_b);
    app.Start(Seconds(0.0));
    
    // Install the client on node A: Ptr<Node> node_a
-    TcpFlowSendHelper source(
+    TcpFlowClientHelper flowClientHelper(
             "ns3::TcpSocketFactory",
             InetSocketAddress(node_b->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             1000000000, // Flow size (byte)
@@ -104,7 +103,7 @@ You can use the application(s) separately, or make use of the scheduler (which i
             true, // Enable detailed tracking of the TCP connection (e.g., progress, rtt, rto, cwnd, ...)
             m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{progress, rtt, rto, cwnd, ...}.csv are written
     );
-    ApplicationContainer app_flow_0 = source.Install(node_a);
+    ApplicationContainer app_flow_0 = flowClientHelper.Install(node_a);
     app_flow_0.Start(NanoSeconds(0)); // Flow start time (ns since epoch)
    ```
 
@@ -112,17 +111,17 @@ You can use the application(s) separately, or make use of the scheduler (which i
 
    ```c++
    // Retrieve client
-   Ptr<TcpFlowSendApplication> tcpFlowSendApp = app_flow_0->GetObject<TcpFlowSendApplication>();
+   Ptr<TcpFlowClient> tcpFlowClient = app_flow_0->GetObject<TcpFlowClient>();
 
    // Data about this flow
-   bool is_completed = tcpFlowSendApp->IsCompleted();
-   bool is_conn_failed = tcpFlowSendApp->IsConnFailed();
-   bool is_closed_err = tcpFlowSendApp->IsClosedByError();
-   bool is_closed_normal = tcpFlowSendApp->IsClosedNormally();
-   int64_t sent_byte = tcpFlowSendApp->GetAckedBytes();
+   bool is_completed = tcpFlowClient->IsCompleted();
+   bool is_conn_failed = tcpFlowClient->IsConnFailed();
+   bool is_closed_err = tcpFlowClient->IsClosedByError();
+   bool is_closed_normal = tcpFlowClient->IsClosedNormally();
+   int64_t sent_byte = tcpFlowClient->GetAckedBytes();
    int64_t fct_ns;
    if (is_completed) {
-       fct_ns = tcpFlowSendApp->GetCompletionTimeNs() - entry.start_time_ns;
+       fct_ns = tcpFlowClient->GetCompletionTimeNs() - entry.start_time_ns;
    } else {
        fct_ns = m_simulation_end_time_ns - entry.start_time_ns;
    }

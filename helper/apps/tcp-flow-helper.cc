@@ -22,13 +22,52 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#include "tcp-flow-send-helper.h"
+#include "tcp-flow-helper.h"
 
 namespace ns3 {
 
-TcpFlowSendHelper::TcpFlowSendHelper (Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters)
+TcpFlowServerHelper::TcpFlowServerHelper (Address address)
 {
-  m_factory.SetTypeId ("ns3::TcpFlowSendApplication");
+    m_factory.SetTypeId ("ns3::TcpFlowServer");
+    SetAttribute ("Local", AddressValue (address));
+}
+
+void
+TcpFlowServerHelper::SetAttribute (std::string name, const AttributeValue &value)
+{
+    m_factory.Set (name, value);
+}
+
+ApplicationContainer
+TcpFlowServerHelper::Install (Ptr<Node> node) const
+{
+    return ApplicationContainer (InstallPriv (node));
+}
+
+ApplicationContainer
+TcpFlowServerHelper::Install (NodeContainer c) const
+{
+    ApplicationContainer apps;
+    for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    {
+        apps.Add (InstallPriv (*i));
+    }
+
+    return apps;
+}
+
+Ptr<Application>
+TcpFlowServerHelper::InstallPriv (Ptr<Node> node) const
+{
+    Ptr<Application> app = m_factory.Create<Application> ();
+    node->AddApplication (app);
+
+    return app;
+}
+
+TcpFlowClientHelper::TcpFlowClientHelper (Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters)
+{
+  m_factory.SetTypeId ("ns3::TcpFlowClient");
   m_factory.Set ("Remote", AddressValue (address));
   m_factory.Set ("MaxBytes", UintegerValue (maxBytes));
   m_factory.Set ("TcpFlowId", UintegerValue (flowId));
@@ -38,13 +77,13 @@ TcpFlowSendHelper::TcpFlowSendHelper (Address address, uint64_t maxBytes, int64_
 }
 
 ApplicationContainer
-TcpFlowSendHelper::Install (Ptr<Node> node) const
+TcpFlowClientHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 Ptr<Application>
-TcpFlowSendHelper::InstallPriv (Ptr<Node> node) const
+TcpFlowClientHelper::InstallPriv (Ptr<Node> node) const
 {
   Ptr<Application> app = m_factory.Create<Application> ();
   node->AddApplication (app);

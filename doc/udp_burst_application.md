@@ -26,7 +26,7 @@ It encompasses the following files:
   
 * **UdpBurstHelper:** `helper/apps/udp-burst-helper.cc/h`
 
-  Helper to install UDP burst applications.
+  Helper to install UDP burst clients and servers.
   
 * **UdpBurstScheduler:** `helper/apps/udp-burst-scheduler.cc/h`
   

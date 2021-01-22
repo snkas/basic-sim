@@ -2,12 +2,11 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Rename TCP flow send application / sink to client / server
-* Canary tests (comparing output to see if anything changed)
 * Extra tests for UDP ping scheduler
 * Re-evaluate the `additional parameters` field
 * TCP/UDP socket generator
 * Add test for ECN marking for the simple_red queueing discipline
+* Canary tests (comparing output to see if anything changed)
 * Upgrade to latest ns-3
 * Make all variable and function naming consistent, along with whitespace conventions,
   in accordance with the ns-3 code style guide

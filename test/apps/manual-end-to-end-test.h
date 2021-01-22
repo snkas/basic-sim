@@ -68,12 +68,12 @@ public:
         udpClientApp.Start(NanoSeconds(1000));
 
         // Install flow sink on all
-        TcpFlowSinkHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        TcpFlowServerHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
         ApplicationContainer app = sink.Install(topology->GetNodes());
         app.Start(NanoSeconds(0));
 
         // 0 --> 1
-        TcpFlowSendHelper source0(
+        TcpFlowClientHelper source0(
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 1000000,
                 0,
@@ -85,7 +85,7 @@ public:
         app.Start(NanoSeconds(0));
 
         // 1 --> 0
-        TcpFlowSendHelper source1(
+        TcpFlowClientHelper source1(
                 InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 89999,
                 1,
@@ -273,7 +273,7 @@ public:
         setup_basic();
 
         // Install flow sink on node 1
-        TcpFlowSinkHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        TcpFlowServerHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
         ApplicationContainer app = sink.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
         app.Stop(Seconds(0.1));
@@ -287,12 +287,12 @@ public:
         setup_basic();
 
         // Install flow sink on node 1
-        TcpFlowSinkHelper sink2(InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        TcpFlowServerHelper sink2(InetSocketAddress(Ipv4Address::GetAny(), 1024));
         app = sink2.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
 
         // Flow 0 --> 1
-        TcpFlowSendHelper source0(
+        TcpFlowClientHelper source0(
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 1000000,
                 0,

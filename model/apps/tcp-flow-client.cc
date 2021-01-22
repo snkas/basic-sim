@@ -36,28 +36,28 @@
 #include "ns3/tcp-socket-base.h"
 #include "ns3/tcp-tx-buffer.h"
 #include "ns3/exp-util.h"
-#include "tcp-flow-send-application.h"
+#include "tcp-flow-client.h"
 #include <fstream>
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("TcpFlowSendApplication");
+NS_LOG_COMPONENT_DEFINE ("TcpFlowClient");
 
-NS_OBJECT_ENSURE_REGISTERED (TcpFlowSendApplication);
+NS_OBJECT_ENSURE_REGISTERED (TcpFlowClient);
 
 TypeId
-TcpFlowSendApplication::GetTypeId(void) {
-    static TypeId tid = TypeId("ns3::TcpFlowSendApplication")
+TcpFlowClient::GetTypeId(void) {
+    static TypeId tid = TypeId("ns3::TcpFlowClient")
             .SetParent<Application>()
             .SetGroupName("Applications")
-            .AddConstructor<TcpFlowSendApplication>()
+            .AddConstructor<TcpFlowClient>()
             .AddAttribute("SendSize", "The amount of data to send each time.",
                           UintegerValue(100000),
-                          MakeUintegerAccessor(&TcpFlowSendApplication::m_sendSize),
+                          MakeUintegerAccessor(&TcpFlowClient::m_sendSize),
                           MakeUintegerChecker<uint32_t>(1))
             .AddAttribute("Remote", "The address of the destination (IPv4 address, port)",
                           AddressValue(),
-                          MakeAddressAccessor(&TcpFlowSendApplication::m_peer),
+                          MakeAddressAccessor(&TcpFlowClient::m_peer),
                           MakeAddressChecker())
             .AddAttribute("MaxBytes",
                           "The total number of bytes to send. "
@@ -65,40 +65,40 @@ TcpFlowSendApplication::GetTypeId(void) {
                           "no data  is sent again. The value zero means "
                           "that there is no limit.",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&TcpFlowSendApplication::m_maxBytes),
+                          MakeUintegerAccessor(&TcpFlowClient::m_maxBytes),
                           MakeUintegerChecker<uint64_t>())
             .AddAttribute("TcpFlowId",
                           "TCP flow identifier",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&TcpFlowSendApplication::m_tcpFlowId),
+                          MakeUintegerAccessor(&TcpFlowClient::m_tcpFlowId),
                           MakeUintegerChecker<uint64_t>())
             .AddAttribute("EnableTcpFlowLoggingToFile",
                           "True iff you want to track some aspects (progress, rtt, rto, cwnd, inflated cwnd, "
                           "ssthresh, inflight, state, congestion state) of the TCP flow over time.",
                           BooleanValue(false),
-                          MakeBooleanAccessor(&TcpFlowSendApplication::m_enableDetailedLogging),
+                          MakeBooleanAccessor(&TcpFlowClient::m_enableDetailedLogging),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
                            "Base logging directory (logging will be placed here, "
                            "i.e. logs_dir/tcp_flow_[flow id]_{progress, rtt, rto, cwnd, cwnd_inflated, ssthresh, "
                            "inflight, state, cong_state}.csv",
                            StringValue (""),
-                           MakeStringAccessor (&TcpFlowSendApplication::m_baseLogsDir),
+                           MakeStringAccessor (&TcpFlowClient::m_baseLogsDir),
                            MakeStringChecker ())
             .AddAttribute ("AdditionalParameters",
                            "Additional parameter string; this might be parsed in another version of this application "
                            "to do slightly different behavior (e.g., set priority on TCP socket etc.)",
                            StringValue (""),
-                           MakeStringAccessor (&TcpFlowSendApplication::m_additionalParameters),
+                           MakeStringAccessor (&TcpFlowClient::m_additionalParameters),
                            MakeStringChecker ())
             .AddTraceSource("Tx", "A new packet is created and is sent",
-                            MakeTraceSourceAccessor(&TcpFlowSendApplication::m_txTrace),
+                            MakeTraceSourceAccessor(&TcpFlowClient::m_txTrace),
                             "ns3::Packet::TracedCallback");
     return tid;
 }
 
 
-TcpFlowSendApplication::TcpFlowSendApplication()
+TcpFlowClient::TcpFlowClient()
         : m_socket(0),
           m_connected(false),
           m_totBytes(0),
@@ -111,12 +111,12 @@ TcpFlowSendApplication::TcpFlowSendApplication()
     NS_LOG_FUNCTION(this);
 }
 
-TcpFlowSendApplication::~TcpFlowSendApplication() {
+TcpFlowClient::~TcpFlowClient() {
     NS_LOG_FUNCTION(this);
 }
 
 void
-TcpFlowSendApplication::DoDispose(void) {
+TcpFlowClient::DoDispose(void) {
     NS_LOG_FUNCTION(this);
 
     m_socket = 0;
@@ -124,7 +124,7 @@ TcpFlowSendApplication::DoDispose(void) {
     Application::DoDispose();
 }
 
-void TcpFlowSendApplication::StartApplication(void) { // Called at time specified by Start
+void TcpFlowClient::StartApplication(void) { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
 
     // Create the socket if not already
@@ -139,13 +139,13 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
 
         // Callbacks
         m_socket->SetConnectCallback(
-                MakeCallback(&TcpFlowSendApplication::ConnectionSucceeded, this),
-                MakeCallback(&TcpFlowSendApplication::ConnectionFailed, this)
+                MakeCallback(&TcpFlowClient::ConnectionSucceeded, this),
+                MakeCallback(&TcpFlowClient::ConnectionFailed, this)
         );
-        m_socket->SetSendCallback(MakeCallback(&TcpFlowSendApplication::DataSend, this));
+        m_socket->SetSendCallback(MakeCallback(&TcpFlowClient::DataSend, this));
         m_socket->SetCloseCallbacks(
-                MakeCallback(&TcpFlowSendApplication::SocketClosedNormal, this),
-                MakeCallback(&TcpFlowSendApplication::SocketClosedError, this)
+                MakeCallback(&TcpFlowClient::SocketClosedNormal, this),
+                MakeCallback(&TcpFlowClient::SocketClosedError, this)
         );
         if (m_enableDetailedLogging) {
 
@@ -157,39 +157,39 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
             m_log_update_helper_rtt_ns = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             // At the socket creation, there is no RTT measurement, so retrieving it early will just yield 0
             // As such there "is" basically no RTT measurement till then, so we are not going to write 0
-            m_socket->TraceConnectWithoutContext("RTT", MakeCallback(&TcpFlowSendApplication::RttChange, this));
+            m_socket->TraceConnectWithoutContext("RTT", MakeCallback(&TcpFlowClient::RttChange, this));
 
             // Retransmission timeout (ns)
             m_log_update_helper_rto_ns = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rto.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
-            m_socket->TraceConnectWithoutContext("RTO", MakeCallback(&TcpFlowSendApplication::RtoChange, this));
+            m_socket->TraceConnectWithoutContext("RTO", MakeCallback(&TcpFlowClient::RtoChange, this));
 
             // Congestion window
             m_log_update_helper_cwnd_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             // Congestion window is only set upon SYN reception, so retrieving it early will just yield 0
             // As such there "is" basically no congestion window till then, so we are not going to write 0
-            m_socket->TraceConnectWithoutContext("CongestionWindow", MakeCallback(&TcpFlowSendApplication::CwndChange, this));
+            m_socket->TraceConnectWithoutContext("CongestionWindow", MakeCallback(&TcpFlowClient::CwndChange, this));
 
             // Congestion window inflated
             m_log_update_helper_cwnd_inflated_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cwnd_inflated.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
-            m_socket->TraceConnectWithoutContext("CongestionWindowInflated", MakeCallback(&TcpFlowSendApplication::CwndInflatedChange, this));
+            m_socket->TraceConnectWithoutContext("CongestionWindowInflated", MakeCallback(&TcpFlowClient::CwndInflatedChange, this));
 
             // Slow-start threshold
             m_log_update_helper_ssthresh_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_ssthresh.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
-            m_socket->TraceConnectWithoutContext("SlowStartThreshold", MakeCallback(&TcpFlowSendApplication::SsthreshChange, this));
+            m_socket->TraceConnectWithoutContext("SlowStartThreshold", MakeCallback(&TcpFlowClient::SsthreshChange, this));
 
             // In-flight
             m_log_update_helper_inflight_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_inflight.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
-            m_socket->TraceConnectWithoutContext("BytesInFlight", MakeCallback(&TcpFlowSendApplication::InflightChange, this));
+            m_socket->TraceConnectWithoutContext("BytesInFlight", MakeCallback(&TcpFlowClient::InflightChange, this));
 
             // State
             m_log_update_helper_state = LogUpdateHelper<std::string>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_state.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             StateChange(TcpSocket::TcpStates_t::CLOSED, TcpSocket::TcpStates_t::CLOSED); // Default at start is CLOSED
-            m_socket->TraceConnectWithoutContext("State", MakeCallback(&TcpFlowSendApplication::StateChange, this));
+            m_socket->TraceConnectWithoutContext("State", MakeCallback(&TcpFlowClient::StateChange, this));
 
             // CongState
             m_log_update_helper_cong_state = LogUpdateHelper<std::string>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_cong_state.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             CongStateChange(TcpSocketState::TcpCongState_t::CA_OPEN, TcpSocketState::TcpCongState_t::CA_OPEN); // Default at start is CA_OPEN
-            m_socket->TraceConnectWithoutContext("CongState", MakeCallback(&TcpFlowSendApplication::CongStateChange, this));
+            m_socket->TraceConnectWithoutContext("CongState", MakeCallback(&TcpFlowClient::CongStateChange, this));
 
         }
 
@@ -210,12 +210,12 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
     }
 }
 
-void TcpFlowSendApplication::StopApplication(void) { // Called at time specified by Stop
+void TcpFlowClient::StopApplication(void) { // Called at time specified by Stop
     throw std::runtime_error("TCP flow client cannot be stopped like a regular application, "
                              "it finished only by the socket closing.");
 }
 
-void TcpFlowSendApplication::SendData(void) {
+void TcpFlowClient::SendData(void) {
     NS_LOG_FUNCTION(this);
     while (m_maxBytes == 0 || m_totBytes < m_maxBytes) { // Time to send more
 
@@ -249,16 +249,16 @@ void TcpFlowSendApplication::SendData(void) {
     }
 }
 
-void TcpFlowSendApplication::ConnectionSucceeded(Ptr <Socket> socket) {
+void TcpFlowClient::ConnectionSucceeded(Ptr <Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
-    NS_LOG_LOGIC("TcpFlowSendApplication Connection succeeded");
+    NS_LOG_LOGIC("TcpFlowClient Connection succeeded");
     m_connected = true;
     SendData();
 }
 
-void TcpFlowSendApplication::ConnectionFailed(Ptr <Socket> socket) {
+void TcpFlowClient::ConnectionFailed(Ptr <Socket> socket) {
     NS_LOG_FUNCTION(this << socket);
-    NS_LOG_LOGIC("TcpFlowSendApplication, Connection Failed");
+    NS_LOG_LOGIC("TcpFlowClient, Connection Failed");
     m_completionTimeNs = Simulator::Now().GetNanoSeconds();
     m_connFailed = true;
     m_closedByError = false;
@@ -268,7 +268,7 @@ void TcpFlowSendApplication::ConnectionFailed(Ptr <Socket> socket) {
     m_socket = 0;
 }
 
-void TcpFlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
+void TcpFlowClient::DataSend(Ptr <Socket>, uint32_t) {
     NS_LOG_FUNCTION(this);
     if (m_connected) { // Only send new data if the connection has completed
         SendData();
@@ -281,7 +281,7 @@ void TcpFlowSendApplication::DataSend(Ptr <Socket>, uint32_t) {
 
 }
 
-void TcpFlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
+void TcpFlowClient::SocketClosedNormal(Ptr <Socket> socket) {
     m_completionTimeNs = Simulator::Now().GetNanoSeconds();
     m_connFailed = false;
     m_closedByError = false;
@@ -292,7 +292,7 @@ void TcpFlowSendApplication::SocketClosedNormal(Ptr <Socket> socket) {
     m_socket = 0;
 }
 
-void TcpFlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
+void TcpFlowClient::SocketClosedError(Ptr <Socket> socket) {
     m_completionTimeNs = Simulator::Now().GetNanoSeconds();
     m_connFailed = false;
     m_closedByError = true;
@@ -302,7 +302,7 @@ void TcpFlowSendApplication::SocketClosedError(Ptr <Socket> socket) {
     m_socket = 0;
 }
 
-int64_t TcpFlowSendApplication::GetAckedBytes() {
+int64_t TcpFlowClient::GetAckedBytes() {
     if (m_connFailed || m_closedNormally || m_closedByError) {
         return m_ackedBytes;
     } else {
@@ -310,68 +310,68 @@ int64_t TcpFlowSendApplication::GetAckedBytes() {
     }
 }
 
-Ptr<Socket> TcpFlowSendApplication::GetSocket() {
+Ptr<Socket> TcpFlowClient::GetSocket() {
     return m_socket;
 }
 
-int64_t TcpFlowSendApplication::GetCompletionTimeNs() {
+int64_t TcpFlowClient::GetCompletionTimeNs() {
     return m_completionTimeNs;
 }
 
-bool TcpFlowSendApplication::IsCompleted() {
+bool TcpFlowClient::IsCompleted() {
     return m_isCompleted;
 }
 
-bool TcpFlowSendApplication::IsConnFailed() {
+bool TcpFlowClient::IsConnFailed() {
     return m_connFailed;
 }
 
-bool TcpFlowSendApplication::IsClosedNormally() {
+bool TcpFlowClient::IsClosedNormally() {
     return m_closedNormally;
 }
 
-bool TcpFlowSendApplication::IsClosedByError() {
+bool TcpFlowClient::IsClosedByError() {
     return m_closedByError;
 }
 
 void
-TcpFlowSendApplication::RttChange (Time oldRtt, Time newRtt)
+TcpFlowClient::RttChange (Time oldRtt, Time newRtt)
 {
     m_log_update_helper_rtt_ns.Update(Simulator::Now().GetNanoSeconds(), newRtt.GetNanoSeconds());
 }
 
 void
-TcpFlowSendApplication::RtoChange (Time oldRto, Time newRto)
+TcpFlowClient::RtoChange (Time oldRto, Time newRto)
 {
     m_log_update_helper_rto_ns.Update(Simulator::Now().GetNanoSeconds(), newRto.GetNanoSeconds());
 }
 
 void
-TcpFlowSendApplication::CwndChange(uint32_t, uint32_t newCwnd)
+TcpFlowClient::CwndChange(uint32_t, uint32_t newCwnd)
 {
     m_log_update_helper_cwnd_byte.Update(Simulator::Now().GetNanoSeconds(), newCwnd);
 }
 
 void
-TcpFlowSendApplication::CwndInflatedChange(uint32_t, uint32_t newCwndInflated)
+TcpFlowClient::CwndInflatedChange(uint32_t, uint32_t newCwndInflated)
 {
     m_log_update_helper_cwnd_inflated_byte.Update(Simulator::Now().GetNanoSeconds(), newCwndInflated);
 }
 
 void
-TcpFlowSendApplication::SsthreshChange(uint32_t oldCwnd, uint32_t newSsthresh)
+TcpFlowClient::SsthreshChange(uint32_t oldCwnd, uint32_t newSsthresh)
 {
     m_log_update_helper_ssthresh_byte.Update(Simulator::Now().GetNanoSeconds(), newSsthresh);
 }
 
 void
-TcpFlowSendApplication::InflightChange(uint32_t, uint32_t newInflight)
+TcpFlowClient::InflightChange(uint32_t, uint32_t newInflight)
 {
     m_log_update_helper_inflight_byte.Update(Simulator::Now().GetNanoSeconds(), newInflight);
 }
 
 void
-TcpFlowSendApplication::StateChange(TcpSocket::TcpStates_t, TcpSocket::TcpStates_t newState)
+TcpFlowClient::StateChange(TcpSocket::TcpStates_t, TcpSocket::TcpStates_t newState)
 {
     std::string newStateString;
     switch (newState) {
@@ -416,7 +416,7 @@ TcpFlowSendApplication::StateChange(TcpSocket::TcpStates_t, TcpSocket::TcpStates
 }
 
 void
-TcpFlowSendApplication::CongStateChange(TcpSocketState::TcpCongState_t, TcpSocketState::TcpCongState_t newCongState)
+TcpFlowClient::CongStateChange(TcpSocketState::TcpCongState_t, TcpSocketState::TcpCongState_t newCongState)
 {
     std::string newCongStateString;
     switch (newCongState) {
@@ -443,7 +443,7 @@ TcpFlowSendApplication::CongStateChange(TcpSocketState::TcpCongState_t, TcpSocke
 }
 
 void
-TcpFlowSendApplication::FinalizeDetailedLogs() {
+TcpFlowClient::FinalizeDetailedLogs() {
     if (m_enableDetailedLogging) {
 
         // The following traced variables exist really

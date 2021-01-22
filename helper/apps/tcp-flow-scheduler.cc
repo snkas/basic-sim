@@ -31,7 +31,7 @@ void TcpFlowScheduler::StartNextFlow(int i) {
     NS_ASSERT(now_ns == entry.GetStartTimeNs());
 
     // Helper to install the source application
-    TcpFlowSendHelper source(
+    TcpFlowClientHelper source(
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
             entry.GetSizeByte(),
             entry.GetTcpFlowId(),
@@ -130,16 +130,16 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         printf("  > Removed previous flow log files if present\n");
         m_basicSimulation->RegisterTimestamp("Remove previous flow log files");
 
-        // Install sink on each endpoint node
-        std::cout << "  > Setting up TCP flow sinks" << std::endl;
+        // Install server on each endpoint node
+        std::cout << "  > Setting up TCP flow servers" << std::endl;
         for (int64_t endpoint : m_topology->GetEndpoints()) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(endpoint)) {
-                TcpFlowSinkHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
-                ApplicationContainer app = sink.Install(m_nodes.Get(endpoint));
+                TcpFlowServerHelper server(InetSocketAddress(Ipv4Address::GetAny(), 1024));
+                ApplicationContainer app = server.Install(m_nodes.Get(endpoint));
                 app.Start(Seconds(0.0));
             }
         }
-        m_basicSimulation->RegisterTimestamp("Setup TCP flow sinks");
+        m_basicSimulation->RegisterTimestamp("Setup TCP flow servers");
 
         // Setup start of first source application
         std::cout << "  > Setting up traffic TCP flow starter" << std::endl;
@@ -184,7 +184,7 @@ void TcpFlowScheduler::WriteResults() {
         for (TcpFlowScheduleEntry& entry : m_schedule) {
 
             // Retrieve application
-            Ptr<TcpFlowSendApplication> flowSendApp = m_apps.at(app_idx).Get(0)->GetObject<TcpFlowSendApplication>();
+            Ptr<TcpFlowClient> flowSendApp = m_apps.at(app_idx).Get(0)->GetObject<TcpFlowClient>();
 
             // Finalize the detailed logs (if they are enabled)
             flowSendApp->FinalizeDetailedLogs();

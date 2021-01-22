@@ -31,8 +31,8 @@ def build(bld):
         'helper/core/tcp-optimizer.cc',
         'helper/core/point-to-point-ab-helper.cc',
 
-        'model/apps/tcp-flow-send-application.cc',
-        'model/apps/tcp-flow-sink.cc',
+        'model/apps/tcp-flow-client.cc',
+        'model/apps/tcp-flow-server.cc',
         'model/apps/udp-burst-header.cc',
         'model/apps/udp-burst-server.cc',
         'model/apps/udp-burst-client.cc',
@@ -40,8 +40,7 @@ def build(bld):
         'model/apps/udp-ping-server.cc',
         'model/apps/udp-ping-client.cc',
 
-        'helper/apps/tcp-flow-send-helper.cc',
-        'helper/apps/tcp-flow-sink-helper.cc',
+        'helper/apps/tcp-flow-helper.cc',
         'helper/apps/tcp-flow-schedule-reader.cc',
         'helper/apps/tcp-flow-scheduler.cc',
         'helper/apps/udp-burst-helper.cc',
@@ -83,8 +82,8 @@ def build(bld):
         'helper/core/tcp-optimizer.h',
         'helper/core/point-to-point-ab-helper.h',
 
-        'model/apps/tcp-flow-send-application.h',
-        'model/apps/tcp-flow-sink.h',
+        'model/apps/tcp-flow-client.h',
+        'model/apps/tcp-flow-server.h',
         'model/apps/udp-burst-header.h',
         'model/apps/udp-burst-server.h',
         'model/apps/udp-burst-client.h',
@@ -92,8 +91,7 @@ def build(bld):
         'model/apps/udp-ping-server.h',
         'model/apps/udp-ping-client.h',
 
-        'helper/apps/tcp-flow-send-helper.h',
-        'helper/apps/tcp-flow-sink-helper.h',
+        'helper/apps/tcp-flow-helper.h',
         'helper/apps/tcp-flow-schedule-reader.h',
         'helper/apps/tcp-flow-scheduler.h',
         'helper/apps/udp-burst-helper.h',

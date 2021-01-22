@@ -20,8 +20,8 @@
  * Author: Tom Henderson (tomhend@u.washington.edu)
  */
 
-#ifndef TCP_FLOW_SINK_H
-#define TCP_FLOW_SINK_H
+#ifndef TCP_FLOW_SERVER_H
+#define TCP_FLOW_SERVER_H
 
 #include "ns3/application.h"
 #include "ns3/event-id.h"
@@ -35,12 +35,12 @@ class Address;
 class Socket;
 class Packet;
 
-class TcpFlowSink : public Application
+class TcpFlowServer : public Application
 {
 public:
   static TypeId GetTypeId (void);
-  TcpFlowSink ();
-  virtual ~TcpFlowSink ();
+  TcpFlowServer ();
+  virtual ~TcpFlowServer ();
  
 protected:
   virtual void DoDispose (void);
@@ -66,4 +66,4 @@ private:
 
 } // namespace ns3
 
-#endif /* TCP_FLOW_SINK_H */
+#endif /* TCP_FLOW_SERVER_H */

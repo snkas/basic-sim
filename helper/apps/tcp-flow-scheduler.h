@@ -31,10 +31,9 @@
 #include "ns3/topology.h"
 
 #include "ns3/tcp-flow-schedule-reader.h"
-#include "ns3/tcp-flow-send-helper.h"
-#include "ns3/tcp-flow-send-application.h"
-#include "ns3/tcp-flow-sink-helper.h"
-#include "ns3/tcp-flow-sink.h"
+#include "ns3/tcp-flow-helper.h"
+#include "ns3/tcp-flow-client.h"
+#include "ns3/tcp-flow-server.h"
 
 namespace ns3 {
 

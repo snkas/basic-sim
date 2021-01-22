@@ -845,7 +845,7 @@ public:
     }
 
     void PerformBadClose() {
-        m_topology->GetNodes().Get(0)->GetApplication(1)->GetObject<TcpFlowSendApplication>()->GetSocket()->GetObject<TcpSocketBase>()->Close();
+        m_topology->GetNodes().Get(0)->GetApplication(1)->GetObject<TcpFlowClient>()->GetSocket()->GetObject<TcpSocketBase>()->Close();
     }
 
 };
