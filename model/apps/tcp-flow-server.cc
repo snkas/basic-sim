@@ -47,10 +47,10 @@ TcpFlowServer::GetTypeId(void) {
             .SetParent<Application>()
             .SetGroupName("Applications")
             .AddConstructor<TcpFlowServer>()
-            .AddAttribute("Local",
+            .AddAttribute("LocalAddress",
                           "The Address on which to Bind the rx socket.",
                           AddressValue(),
-                          MakeAddressAccessor(&TcpFlowServer::m_local),
+                          MakeAddressAccessor(&TcpFlowServer::m_localAddress),
                           MakeAddressChecker())
             ;
     return tid;
@@ -87,8 +87,8 @@ void TcpFlowServer::StartApplication() { // Called at time specified by Start
         m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
 
         // Socket constraints
-        NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_local), "No support for multicast");
-        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_local), "Only IPv4 is supported.");
+        NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_localAddress), "No support for multicast");
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
 
         // Bind socket
         //
@@ -97,15 +97,15 @@ void TcpFlowServer::StartApplication() { // Called at time specified by Start
         // IP addresses / TCP ports.
         //
         // WHEN DOES IT RECEIVE?
-        // (1) m_local(0, ANY) -- An ephemeral port is assigned. A SYN towards any IP address on this node + the ephemeral port will match it.
-        // (2) m_local(> 0, ANY) -- Same as (1) except you know which port you get
-        // (3) m_local(0, IP) -- Same as (1) except that the IP address must match exactly (together with the ephemeral port)
-        // (4) m_local(> 0, IP) -- Exactly this port and IP will match, all else will not (like (3) except you know what is the port)
+        // (1) m_localAddress(0, ANY) -- An ephemeral port is assigned. A SYN towards any IP address on this node + the ephemeral port will match it.
+        // (2) m_localAddress(> 0, ANY) -- Same as (1) except you know which port you get
+        // (3) m_localAddress(0, IP) -- Same as (1) except that the IP address must match exactly (together with the ephemeral port)
+        // (4) m_localAddress(> 0, IP) -- Exactly this port and IP will match, all else will not (like (3) except you know what is the port)
         //
         // Note: it might be possible that another TCP socket becomes more specific (particular IP as in (4)).
         // The more specificity (see Ipv4EndPointDemux) the more absolute it will get matched to.
         //
-        if (m_socket->Bind(m_local) == -1) {
+        if (m_socket->Bind(m_localAddress) == -1) {
             throw std::runtime_error("Failed to bind socket");
         }
         m_socket->Listen();
@@ -122,7 +122,7 @@ void TcpFlowServer::StartApplication() { // Called at time specified by Start
 }
 
 void TcpFlowServer::StopApplication() {  // Called at time specified by Stop
-    throw std::runtime_error("TCP flow sink is not intended to be stopped after being started.");
+    throw std::runtime_error("TCP flow server is not intended to be stopped after being started.");
     /*
      * Deprecated stop code:
      *

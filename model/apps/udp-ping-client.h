@@ -57,21 +57,23 @@ private:
   void Send (void);
   void HandleRead (Ptr<Socket> socket);
 
-  Time m_start_time; //!< Start time
-  Time m_interval; //!< Packet inter-send time
-  Time m_duration; //!< Duration of the sending
-  Time m_wait_afterwards; //!< How long to wait after the duration is over before closing socket
-  std::string m_additionalParameters; //!< Additional parameters
-  Ptr<Socket> m_socket; //!< Socket
-  Address m_localAddress; //!< Local address (IP, port)
-  Address m_peerAddress;  //!< Remote peer address (IP, port)
-  EventId m_sendEvent; //!< Event to send the next packet
+  // Parameters
+  Address m_localAddress;                //!< Local address (IP, port)
+  Address m_remoteAddress;               //!< Remote (server) address (IP, port)
+  uint32_t m_udpPingId;                  //!< Unique UDP ping identifier
+  Time m_interval;                       //!< Packet inter-send time
+  Time m_duration;                       //!< Duration of the sending
+  Time m_waitAfterwards;                 //!< How long to wait after the duration is over before closing socket
+  std::string m_additionalParameters;    //!< Additional parameters (unused; reserved for future use)
+
+  // State
+  Time m_startTime;             //!< Start time
+  Ptr<Socket> m_socket;         //!< Socket
+  EventId m_sendEvent;          //!< Event to send the next packet
   EventId m_waitForFinishEvent; //!< Event to wait to finish the client
+  uint32_t m_sent;              //!< Counter for sent packets
 
-  uint32_t m_udpPingId; //!< Unique UDP ping identifier
-  uint32_t m_max_udp_payload_size_byte;  //!< Maximum size of UDP payload before it gets fragmented
-  uint32_t m_sent; //!< Counter for sent packets
-
+  // Logging
   std::vector<int64_t> m_sendRequestTimestamps;
   std::vector<int64_t> m_replyTimestamps;
   std::vector<int64_t> m_receiveReplyTimestamps;

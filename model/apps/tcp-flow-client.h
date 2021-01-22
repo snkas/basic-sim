@@ -59,20 +59,26 @@ public:
 protected:
   virtual void DoDispose (void);
 private:
-  virtual void StartApplication (void);    // Called at time specified by Start
-  virtual void StopApplication (void);     // Called at time specified by Stop
+  virtual void StartApplication (void);  // Called at time specified by Start
+  virtual void StopApplication (void);   // Called at time specified by Stop
 
   /**
    * Send data until the L4 transmission buffer is full.
    */
   void SendData ();
 
-  Ptr<Socket>     m_socket;       //!< Associated socket
-  Address         m_peer;         //!< Peer address
-  bool            m_connected;    //!< True if connected
-  uint32_t        m_sendSize;     //!< Size of data to send each time
-  uint64_t        m_maxBytes;     //!< Limit total number of bytes sent
-  uint64_t        m_tcpFlowId;        //!< Flow identifier
+  // Parameters
+  Address         m_remoteAddress;                //!< Remote (server) address
+  uint32_t        m_sendStepSize;                 //!< Size of data to send each time in the send loop
+  uint64_t        m_tcpFlowId;                    //!< TCP flow identifier
+  uint64_t        m_flowSizeByte;                 //!< Limit total number of bytes sent
+  std::string     m_additionalParameters;         //!< Additional parameters (unused; reserved for future use)
+  bool            m_enableDetailedLoggingToFile;  //!< True iff you want to write detailed logs
+  std::string     m_baseLogsDir;                  //!< Where the logs will be written to:  logs_dir/tcp_flow_[id]_{progress, cwnd, ...}.csv
+
+  // State
+  Ptr<Socket>     m_socket;           //!< Associated socket
+  bool            m_connected;        //!< True if connected
   uint64_t        m_totBytes;         //!< Total bytes sent so far
   int64_t         m_completionTimeNs; //!< Completion time in nanoseconds
   bool            m_connFailed;       //!< Whether the connection failed
@@ -80,22 +86,17 @@ private:
   bool            m_closedByError;    //!< Whether the connection closed by error
   uint64_t        m_ackedBytes;       //!< Amount of acknowledged bytes cached after close of the socket
   bool            m_isCompleted;      //!< True iff the flow is completed fully AND closed normally
-  std::string     m_additionalParameters; //!< Not used in this version of the application
-  LogUpdateHelper<int64_t> m_log_update_helper_progress_byte; //!< Progress detailed logging
-  LogUpdateHelper<int64_t> m_log_update_helper_rtt_ns;        //!< RTT estimate detailed logging
-  LogUpdateHelper<int64_t> m_log_update_helper_rto_ns;        //!< Retransmission time-out detailed logging
-  LogUpdateHelper<int64_t> m_log_update_helper_cwnd_byte;     //!< Congestion window detailed logging
-  LogUpdateHelper<int64_t> m_log_update_helper_cwnd_inflated_byte; //!< Congestion window inflated detailed logging
-  LogUpdateHelper<int64_t> m_log_update_helper_ssthresh_byte; //!< Slow-start threshold detailed logging
-  LogUpdateHelper<int64_t> m_log_update_helper_inflight_byte; //!< In-flight detailed logging
-  LogUpdateHelper<std::string> m_log_update_helper_state;      //!< State detailed logging
-  LogUpdateHelper<std::string> m_log_update_helper_cong_state; //!< Congestion state detailed logging
 
-  // TCP flow logging
-  bool m_enableDetailedLogging;            //!< True iff you want to write detailed logs
-  std::string m_baseLogsDir;               //!< Where the logs will be written to:
-                                           //!<   logs_dir/tcp_flow_[id]_{progress, cwnd, rtt}.csv
-  TracedCallback<Ptr<const Packet> > m_txTrace;
+  // Detailed logging
+  LogUpdateHelper<int64_t> m_log_update_helper_progress_byte;      //!< Progress
+  LogUpdateHelper<int64_t> m_log_update_helper_rtt_ns;             //!< RTT estimate
+  LogUpdateHelper<int64_t> m_log_update_helper_rto_ns;             //!< Retransmission time-out
+  LogUpdateHelper<int64_t> m_log_update_helper_cwnd_byte;          //!< Congestion window
+  LogUpdateHelper<int64_t> m_log_update_helper_cwnd_inflated_byte; //!< Congestion window inflated
+  LogUpdateHelper<int64_t> m_log_update_helper_ssthresh_byte;      //!< Slow-start threshold
+  LogUpdateHelper<int64_t> m_log_update_helper_inflight_byte;      //!< In-flight
+  LogUpdateHelper<std::string> m_log_update_helper_state;          //!< State
+  LogUpdateHelper<std::string> m_log_update_helper_cong_state;     //!< Congestion state
 
 private:
   void ConnectionSucceeded (Ptr<Socket> socket);

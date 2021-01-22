@@ -53,16 +53,16 @@ UdpBurstServerHelper::InstallPriv (Ptr<Node> node) const
   return app;
 }
 
-UdpBurstClientHelper::UdpBurstClientHelper (Address localAddress, Address remoteAddress, int64_t udp_burst_id, double target_rate_megabit_per_s, Time duration, std::string additional_parameters, bool enablePreciseLoggingToFile, std::string baseLogsDir)
+UdpBurstClientHelper::UdpBurstClientHelper (Address localAddress, Address remoteAddress, int64_t udpBurstId, double targetRateMbps, Time duration, std::string additionalParameters, bool enableDetailedLoggingToFile, std::string baseLogsDir)
 {
   m_factory.SetTypeId (UdpBurstClient::GetTypeId ());
   SetAttribute ("LocalAddress", AddressValue (localAddress));
   SetAttribute ("RemoteAddress", AddressValue (remoteAddress));
-  SetAttribute ("UdpBurstId", UintegerValue (udp_burst_id));
-  SetAttribute ("TargetRateMbps", DoubleValue (target_rate_megabit_per_s));
+  SetAttribute ("UdpBurstId", UintegerValue (udpBurstId));
+  SetAttribute ("TargetRateMbps", DoubleValue (targetRateMbps));
   SetAttribute ("Duration", TimeValue (duration));
-  SetAttribute ("AdditionalParameters", StringValue (additional_parameters));
-  SetAttribute ("EnablePreciseLoggingToFile", BooleanValue (enablePreciseLoggingToFile));
+  SetAttribute ("AdditionalParameters", StringValue (additionalParameters));
+  SetAttribute ("EnableDetailedLoggingToFile", BooleanValue (enableDetailedLoggingToFile));
   SetAttribute ("BaseLogsDir", StringValue (baseLogsDir));
 }
 

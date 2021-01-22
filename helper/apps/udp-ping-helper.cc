@@ -52,16 +52,16 @@ UdpPingServerHelper::InstallPriv (Ptr<Node> node) const
   return app;
 }
 
-UdpPingClientHelper::UdpPingClientHelper (Address localAddress, Address remoteAddress, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters)
+UdpPingClientHelper::UdpPingClientHelper (Address localAddress, Address remoteAddress, int64_t udpPingId, Time interval, Time duration, Time waitAfterwards, std::string additionalParameters)
 {
   m_factory.SetTypeId (UdpPingClient::GetTypeId ());
   SetAttribute ("LocalAddress", AddressValue (localAddress));
   SetAttribute ("RemoteAddress", AddressValue (remoteAddress));
-  SetAttribute ("UdpPingId", UintegerValue (udp_ping_id));
+  SetAttribute ("UdpPingId", UintegerValue (udpPingId));
   SetAttribute ("Interval", TimeValue (interval));
   SetAttribute ("Duration", TimeValue (duration));
-  SetAttribute ("WaitAfterwards", TimeValue (wait_afterwards));
-  SetAttribute ("AdditionalParameters", StringValue (additional_parameters));
+  SetAttribute ("WaitAfterwards", TimeValue (waitAfterwards));
+  SetAttribute ("AdditionalParameters", StringValue (additionalParameters));
 }
 
 void 

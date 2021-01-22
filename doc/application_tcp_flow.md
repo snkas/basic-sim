@@ -95,16 +95,16 @@ You can use the application(s) separately, or make use of the scheduler (which i
    app.Start(Seconds(0.0));
    
    // Install the client on node A: Ptr<Node> node_a
-    TcpFlowClientHelper flowClientHelper(
+   TcpFlowClientHelper flowClientHelper(
             "ns3::TcpSocketFactory",
             InetSocketAddress(node_b->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
+            0, // Unique flow ID
             1000000000, // Flow size (byte)
-            0, // Flow id (must be unique!)
             true, // Enable detailed tracking of the TCP connection (e.g., progress, rtt, rto, cwnd, ...)
-            m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{progress, rtt, rto, cwnd, ...}.csv are written
-    );
-    ApplicationContainer app_flow_0 = flowClientHelper.Install(node_a);
-    app_flow_0.Start(NanoSeconds(0)); // Flow start time (ns since epoch)
+            m_basicSimulation->GetLogsDir() // Log directory where the tcp_flow_0_{progress, rtt, rto, cwnd, ...}.csv are written   
+   );
+   ApplicationContainer app_flow_0 = flowClientHelper.Install(node_a);
+   app_flow_0.Start(NanoSeconds(0)); // Flow start time (ns since epoch)
    ```
 
 3. After the run, in your code add:

@@ -51,32 +51,33 @@ TcpFlowClient::GetTypeId(void) {
             .SetParent<Application>()
             .SetGroupName("Applications")
             .AddConstructor<TcpFlowClient>()
-            .AddAttribute("SendSize", "The amount of data to send each time.",
-                          UintegerValue(100000),
-                          MakeUintegerAccessor(&TcpFlowClient::m_sendSize),
-                          MakeUintegerChecker<uint32_t>(1))
-            .AddAttribute("Remote", "The address of the destination (IPv4 address, port)",
+            .AddAttribute("RemoteAddress", "The address of the destination (IPv4 address, port)",
                           AddressValue(),
-                          MakeAddressAccessor(&TcpFlowClient::m_peer),
+                          MakeAddressAccessor(&TcpFlowClient::m_remoteAddress),
                           MakeAddressChecker())
-            .AddAttribute("MaxBytes",
-                          "The total number of bytes to send. "
-                          "Once these bytes are sent, "
-                          "no data  is sent again. The value zero means "
-                          "that there is no limit.",
-                          UintegerValue(0),
-                          MakeUintegerAccessor(&TcpFlowClient::m_maxBytes),
-                          MakeUintegerChecker<uint64_t>())
             .AddAttribute("TcpFlowId",
                           "TCP flow identifier",
                           UintegerValue(0),
                           MakeUintegerAccessor(&TcpFlowClient::m_tcpFlowId),
                           MakeUintegerChecker<uint64_t>())
-            .AddAttribute("EnableTcpFlowLoggingToFile",
+            .AddAttribute("FlowSizeByte",
+                          "The total number of bytes to send ('flow size')."
+                          "Once these bytes are sent, "
+                          "no data  is sent again. The value zero means "
+                          "that there is no limit.",
+                          UintegerValue(1),
+                          MakeUintegerAccessor(&TcpFlowClient::m_flowSizeByte),
+                          MakeUintegerChecker<uint64_t>(1))
+            .AddAttribute ("AdditionalParameters",
+                           "Additional parameters (unused; reserved for future use)",
+                           StringValue (""),
+                           MakeStringAccessor (&TcpFlowClient::m_additionalParameters),
+                           MakeStringChecker ())
+            .AddAttribute("EnableDetailedLoggingToFile",
                           "True iff you want to track some aspects (progress, rtt, rto, cwnd, inflated cwnd, "
                           "ssthresh, inflight, state, congestion state) of the TCP flow over time.",
                           BooleanValue(false),
-                          MakeBooleanAccessor(&TcpFlowClient::m_enableDetailedLogging),
+                          MakeBooleanAccessor(&TcpFlowClient::m_enableDetailedLoggingToFile),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
                            "Base logging directory (logging will be placed here, "
@@ -85,15 +86,10 @@ TcpFlowClient::GetTypeId(void) {
                            StringValue (""),
                            MakeStringAccessor (&TcpFlowClient::m_baseLogsDir),
                            MakeStringChecker ())
-            .AddAttribute ("AdditionalParameters",
-                           "Additional parameter string; this might be parsed in another version of this application "
-                           "to do slightly different behavior (e.g., set priority on TCP socket etc.)",
-                           StringValue (""),
-                           MakeStringAccessor (&TcpFlowClient::m_additionalParameters),
-                           MakeStringChecker ())
-            .AddTraceSource("Tx", "A new packet is created and is sent",
-                            MakeTraceSourceAccessor(&TcpFlowClient::m_txTrace),
-                            "ns3::Packet::TracedCallback");
+            .AddAttribute("SendStepSize", "The amount of data to send at each iteration step in the send loop.",
+                          UintegerValue(100000),
+                          MakeUintegerAccessor(&TcpFlowClient::m_sendStepSize),
+                          MakeUintegerChecker<uint32_t>(1));
     return tid;
 }
 
@@ -132,7 +128,7 @@ void TcpFlowClient::StartApplication(void) { // Called at time specified by Star
        m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
 
         // Bind socket
-        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peer), "Only IPv4 is supported.");
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
         if (m_socket->Bind() == -1) {
             throw std::runtime_error("Failed to bind socket");
         }
@@ -147,7 +143,7 @@ void TcpFlowClient::StartApplication(void) { // Called at time specified by Star
                 MakeCallback(&TcpFlowClient::SocketClosedNormal, this),
                 MakeCallback(&TcpFlowClient::SocketClosedError, this)
         );
-        if (m_enableDetailedLogging) {
+        if (m_enableDetailedLoggingToFile) {
 
             // Progress
             m_log_update_helper_progress_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
@@ -194,7 +190,7 @@ void TcpFlowClient::StartApplication(void) { // Called at time specified by Star
         }
 
         // Connect
-        if (m_socket->Connect(m_peer) == -1) {
+        if (m_socket->Connect(m_remoteAddress) == -1) {
             // If the connection error code is -1, the connection has already failed,
             // typically because of no route being available
             ConnectionFailed(m_socket);
@@ -217,33 +213,32 @@ void TcpFlowClient::StopApplication(void) { // Called at time specified by Stop
 
 void TcpFlowClient::SendData(void) {
     NS_LOG_FUNCTION(this);
-    while (m_maxBytes == 0 || m_totBytes < m_maxBytes) { // Time to send more
+    while (m_totBytes < m_flowSizeByte) { // As long as not everything has been put into the L4 buffer
 
-        // uint64_t to allow the comparison later.
-        // the result is in a uint32_t range anyway, because
-        // m_sendSize is uint32_t.
-        uint64_t toSend = m_sendSize;
-        // Make sure we don't send too many
-        if (m_maxBytes > 0) {
-            toSend = std::min(toSend, m_maxBytes - m_totBytes);
-        }
+        // How much to put into the buffer in this iteration
+        uint64_t toSend = std::min((uint64_t) m_sendStepSize, m_flowSizeByte - m_totBytes);
 
+        // Create a "packet" with the amount of data and send it to the TCP socket
+        // The packet will be taken apart by the TCP socket and put into the buffer in segment size pieces
+        // The sending returns the amount it was able to put into the buffer
         NS_LOG_LOGIC("sending packet at " << Simulator::Now());
         Ptr <Packet> packet = Create<Packet>(toSend);
         int actual = m_socket->Send(packet);
         if (actual > 0) {
             m_totBytes += actual;
-            m_txTrace(packet);
         }
+
         // We exit this loop when actual < toSend as the send side
         // buffer is full. The "DataSent" callback will pop when
         // some buffer space has freed up.
         if ((unsigned) actual != toSend) {
             break;
         }
+
     }
-    // Check if time to close (all sent)
-    if (m_totBytes == m_maxBytes && m_connected) {
+
+    // Check if it is time to close (all data has been put into the L4 buffer)
+    if (m_totBytes == m_flowSizeByte && m_connected) {
         m_socket->Close(); // Close will only happen after send buffer is finished
         m_connected = false;
     }
@@ -275,7 +270,7 @@ void TcpFlowClient::DataSend(Ptr <Socket>, uint32_t) {
     }
 
     // Log the progress as DataSend() is called anytime space in the transmission buffer frees up
-    if (m_enableDetailedLogging) {
+    if (m_enableDetailedLoggingToFile) {
         m_log_update_helper_progress_byte.Update(Simulator::Now().GetNanoSeconds (), GetAckedBytes());
     }
 
@@ -288,7 +283,7 @@ void TcpFlowClient::SocketClosedNormal(Ptr <Socket> socket) {
     m_closedNormally = true;
     NS_ABORT_MSG_IF(m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size() != 0, "Socket closed normally but send buffer is not empty");
     m_ackedBytes = m_totBytes - m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->Size();
-    m_isCompleted = m_ackedBytes == m_maxBytes;
+    m_isCompleted = m_ackedBytes == m_flowSizeByte;
     m_socket = 0;
 }
 
@@ -444,7 +439,7 @@ TcpFlowClient::CongStateChange(TcpSocketState::TcpCongState_t, TcpSocketState::T
 
 void
 TcpFlowClient::FinalizeDetailedLogs() {
-    if (m_enableDetailedLogging) {
+    if (m_enableDetailedLoggingToFile) {
 
         // The following traced variables exist really
         // only when the connection is alive

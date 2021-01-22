@@ -62,7 +62,7 @@ UdpBurstClient::GetTypeId(void) {
             .AddAttribute("TargetRateMbps",
                           "Target rate (incl. headers) in Mbit/s",
                           DoubleValue(10.0),
-                          MakeDoubleAccessor(&UdpBurstClient::m_target_rate_megabit_per_s),
+                          MakeDoubleAccessor(&UdpBurstClient::m_targetRateMegabitPerSec),
                           MakeDoubleChecker<double>())
             .AddAttribute("Duration",
                           "How long to do the bursting",
@@ -70,24 +70,30 @@ UdpBurstClient::GetTypeId(void) {
                           MakeTimeAccessor(&UdpBurstClient::m_duration),
                           MakeTimeChecker())
             .AddAttribute ("AdditionalParameters",
-                           "Additional parameter string; this might be parsed in another version of this application "
-                           "to do slightly different behavior",
+                           "Additional parameters (unused; reserved for future use)",
                            StringValue (""),
                            MakeStringAccessor (&UdpBurstClient::m_additionalParameters),
                            MakeStringChecker())
-            .AddAttribute("EnablePreciseLoggingToFile",
+            .AddAttribute("EnableDetailedLoggingToFile",
                           "True iff you want to have the exact send time stamps logged to file: logs_dir/udp_burst_[id]_outgoing.csv",
                           BooleanValue(false),
-                          MakeBooleanAccessor(&UdpBurstClient::m_enableDetailedLogging),
+                          MakeBooleanAccessor(&UdpBurstClient::m_enableDetailedLoggingToFile),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
                            "Base logging directory (logging will be placed here, i.e. logs_dir/udp_burst_[id]_outgoing.csv",
                            StringValue (""),
                            MakeStringAccessor (&UdpBurstClient::m_baseLogsDir),
                            MakeStringChecker ())
-            .AddAttribute("MaxUdpPayloadSizeByte", "Total UDP payload size (byte) before it gets fragmented.",
-                          UintegerValue(1472), // 1500 (point-to-point default) - 20 (IP) - 8 (UDP) = 1472
-                          MakeUintegerAccessor(&UdpBurstClient::m_max_udp_payload_size_byte),
+            .AddAttribute("MaxSegmentSizeByte",
+                          "Maximum segment size (byte), in other words: "
+                          "the maximum total packet size before it gets fragmented.",
+                          UintegerValue(1500), // 1500 (= point-to-point default)
+                          MakeUintegerAccessor (&UdpBurstClient::m_maxSegmentSizeByte),
+                          MakeUintegerChecker<uint32_t>())
+            .AddAttribute("MaxUdpPayloadSizeByte",
+                          "Maximum payload size after deducting all headers (IPv4/IPv6, UDP, any other tunneling, etc.).",
+                          UintegerValue(1472), // Default: 1500 (point-to-point default) - 20 (IPv4) - 8 (UDP) = 1472
+                          MakeUintegerAccessor (&UdpBurstClient::m_maxUdpPayloadSizeByte),
                           MakeUintegerChecker<uint32_t>());
     return tid;
 }
@@ -97,7 +103,6 @@ UdpBurstClient::UdpBurstClient() {
     m_socket = 0;
     m_sent = 0;
     m_sendEvent = EventId();
-    m_waitForFinishEvent = EventId();
 }
 
 UdpBurstClient::~UdpBurstClient() {
@@ -111,8 +116,14 @@ UdpBurstClient::DoDispose(void) {
     Application::DoDispose();
 }
 
-uint32_t UdpBurstClient::GetMaxUdpPayloadSizeByte() {
-    return m_max_udp_payload_size_byte;
+uint32_t
+UdpBurstClient::GetMaxSegmentSizeByte() const {
+    return m_maxSegmentSizeByte;
+}
+
+uint32_t
+UdpBurstClient::GetMaxUdpPayloadSizeByte() const {
+    return m_maxUdpPayloadSizeByte;
 }
 
 void
@@ -133,7 +144,7 @@ UdpBurstClient::StartApplication(void) {
         m_socket->Connect(m_peerAddress);
 
     }
-    m_start_time = Simulator::Now();
+    m_startTime = Simulator::Now();
     m_socket->SetRecvCallback(MakeCallback(&UdpBurstClient::HandleRead, this));
     m_socket->SetAllowBroadcast(true);
     ScheduleTransmit(Seconds(0.));
@@ -161,14 +172,14 @@ UdpBurstClient::Send(void) {
     UdpBurstHeader burstHeader;
     burstHeader.SetId(m_udpBurstId);
     burstHeader.SetSeq(m_sent);
-    Ptr<Packet> p = Create<Packet>(m_max_udp_payload_size_byte - burstHeader.GetSerializedSize());
+    Ptr<Packet> p = Create<Packet>(m_maxUdpPayloadSizeByte - burstHeader.GetSerializedSize());
     p->AddHeader(burstHeader);
 
     // Sent out
     m_sent++;
 
     // Log precise timestamp sent away of the sequence packet if needed
-    if (m_enableDetailedLogging) {
+    if (m_enableDetailedLoggingToFile) {
         std::ofstream ofs;
         ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_outgoing.csv", burstHeader.GetId()), std::ofstream::out | std::ofstream::app);
         ofs << burstHeader.GetId() << "," << burstHeader.GetSeq() << "," << Simulator::Now().GetNanoSeconds() << std::endl;
@@ -180,8 +191,8 @@ UdpBurstClient::Send(void) {
 
     // Schedule next transmit, or wait to close
     uint64_t now_ns = Simulator::Now().GetNanoSeconds();
-    uint64_t packet_gap_nanoseconds = std::ceil(1500.0 / (m_target_rate_megabit_per_s / 8000.0));
-    if (now_ns + packet_gap_nanoseconds < (uint64_t) (m_start_time.GetNanoSeconds() + m_duration.GetNanoSeconds())) {
+    uint64_t packet_gap_nanoseconds = std::ceil((double) m_maxSegmentSizeByte / (m_targetRateMegabitPerSec / 8000.0));
+    if (now_ns + packet_gap_nanoseconds < (uint64_t) (m_startTime.GetNanoSeconds() + m_duration.GetNanoSeconds())) {
         ScheduleTransmit(NanoSeconds(packet_gap_nanoseconds));
     }
 

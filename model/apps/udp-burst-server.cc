@@ -54,15 +54,23 @@ UdpBurstServer::GetTypeId(void) {
                            StringValue (""),
                            MakeStringAccessor (&UdpBurstServer::m_baseLogsDir),
                            MakeStringChecker ())
-            .AddAttribute("MaxUdpPayloadSizeByte", "Total UDP payload size (byte) before it gets fragmented.",
-                          UintegerValue(1472), // 1500 (point-to-point default) - 20 (IP) - 8 (UDP) = 1472
-                          MakeUintegerAccessor(&UdpBurstServer::m_max_udp_payload_size_byte),
+            .AddAttribute("MaxSegmentSizeByte",
+                          "Maximum segment size (byte), in other words: "
+                          "the maximum total packet size before it gets fragmented.",
+                          UintegerValue(1500), // 1500 (= point-to-point default)
+                          MakeUintegerAccessor (&UdpBurstServer::m_maxSegmentSizeByte),
+                          MakeUintegerChecker<uint32_t>())
+            .AddAttribute("MaxUdpPayloadSizeByte",
+                          "Maximum payload size after deducting all headers (IPv4/IPv6, UDP, any other tunneling, etc.).",
+                          UintegerValue(1472), // Default: 1500 (point-to-point default) - 20 (IPv4) - 8 (UDP) = 1472
+                          MakeUintegerAccessor (&UdpBurstServer::m_maxUdpPayloadSizeByte),
                           MakeUintegerChecker<uint32_t>());
     return tid;
 }
 
 UdpBurstServer::UdpBurstServer() {
     NS_LOG_FUNCTION(this);
+    m_socket = 0;
 }
 
 UdpBurstServer::~UdpBurstServer() {
@@ -77,8 +85,13 @@ UdpBurstServer::DoDispose(void) {
 }
 
 uint32_t
-UdpBurstServer::GetMaxUdpPayloadSizeByte() {
-    return m_max_udp_payload_size_byte;
+UdpBurstServer::GetMaxSegmentSizeByte() const {
+    return m_maxSegmentSizeByte;
+}
+
+uint32_t
+UdpBurstServer::GetMaxUdpPayloadSizeByte() const {
+    return m_maxUdpPayloadSizeByte;
 }
 
 void

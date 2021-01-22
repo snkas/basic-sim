@@ -256,7 +256,7 @@ void UdpBurstScheduler::WriteResults() {
             Ptr<UdpBurstClient> udpBurstClient = p.second;
 
             // Fetch data from the application
-            uint32_t complete_packet_size = 1500;
+            uint32_t complete_packet_size = udpBurstClient->GetMaxSegmentSizeByte();
             uint32_t max_udp_payload_size_byte = udpBurstClient->GetMaxUdpPayloadSizeByte();
             uint64_t sent_counter = udpBurstClient->GetSent();
 
@@ -313,7 +313,7 @@ void UdpBurstScheduler::WriteResults() {
             Ptr<UdpBurstServer> udpBurstServerIncoming = p.second;
 
             // Fetch data from the application
-            uint32_t complete_packet_size = 1500;
+            uint32_t complete_packet_size = udpBurstServerIncoming->GetMaxSegmentSizeByte();
             uint32_t max_udp_payload_size_byte = udpBurstServerIncoming->GetMaxUdpPayloadSizeByte();
             uint64_t received_counter = udpBurstServerIncoming->GetReceivedCounterOf(info.GetUdpBurstId());
 

@@ -52,7 +52,7 @@ private:
 class UdpBurstClientHelper
 {
 public:
-  UdpBurstClientHelper (Address localAddress, Address remoteAddress, int64_t udp_burst_id, double target_rate_megabit_per_s, Time duration, std::string additional_parameters, bool enablePreciseLoggingToFile, std::string baseLogsDir);
+  UdpBurstClientHelper (Address localAddress, Address remoteAddress, int64_t udpBurstId, double targetRateMbps, Time duration, std::string additionalParameters, bool enablePreciseLoggingToFile, std::string baseLogsDir);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
 

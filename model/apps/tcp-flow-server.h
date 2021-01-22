@@ -56,11 +56,13 @@ private:
   void HandlePeerError (Ptr<Socket> socket);
   void CleanUp (Ptr<Socket> socket);
 
+  // Parameters
+  Address m_localAddress; //!< Local address to bind to
+
+  // State
   Ptr<Socket> m_socket;                 //!< Listening socket (upon connection request, forks off a socket)
   std::list<Ptr<Socket> > m_socketList; //!< List of accepted sockets (are removed upon closed)
-
-  Address m_local;        //!< Local address to bind to
-  uint64_t m_totalRx;     //!< Total (payload) bytes received
+  uint64_t m_totalRx;                   //!< Total (payload) bytes received
 
 };
 

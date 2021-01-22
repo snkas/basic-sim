@@ -52,7 +52,7 @@ UdpPingClient::GetTypeId(void) {
             .AddAttribute("RemoteAddress",
                           "The destination address of the outbound packets (IPv4 address, port)",
                           AddressValue(),
-                          MakeAddressAccessor(&UdpPingClient::m_peerAddress),
+                          MakeAddressAccessor(&UdpPingClient::m_remoteAddress),
                           MakeAddressChecker())
             .AddAttribute("UdpPingId",
                           "Unique UDP ping identifier",
@@ -72,11 +72,10 @@ UdpPingClient::GetTypeId(void) {
             .AddAttribute("WaitAfterwards",
                           "How long to wait after the duration is over",
                           TimeValue(Seconds(1.0)),
-                          MakeTimeAccessor(&UdpPingClient::m_wait_afterwards),
+                          MakeTimeAccessor(&UdpPingClient::m_waitAfterwards),
                           MakeTimeChecker())
             .AddAttribute ("AdditionalParameters",
-                           "Additional parameter string; this might be parsed in another version of this application "
-                           "to do slightly different behavior",
+                           "Additional parameters (unused; reserved for future use)",
                            StringValue (""),
                            MakeStringAccessor (&UdpPingClient::m_additionalParameters),
                            MakeStringChecker());
@@ -86,9 +85,9 @@ UdpPingClient::GetTypeId(void) {
 UdpPingClient::UdpPingClient() {
     NS_LOG_FUNCTION(this);
     m_socket = 0;
-    m_sent = 0;
     m_sendEvent = EventId();
     m_waitForFinishEvent = EventId();
+    m_sent = 0;
 }
 
 UdpPingClient::~UdpPingClient() {
@@ -110,17 +109,17 @@ UdpPingClient::StartApplication(void) {
         m_socket = Socket::CreateSocket(GetNode(), tid);
 
         // Bind socket
-        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
         if (m_socket->Bind(m_localAddress) == -1) {
             throw std::runtime_error("Failed to bind socket");
         }
 
         // Connect
-        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
-        m_socket->Connect(m_peerAddress);
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
+        m_socket->Connect(m_remoteAddress);
 
     }
-    m_start_time = Simulator::Now();
+    m_startTime = Simulator::Now();
     m_socket->SetRecvCallback(MakeCallback(&UdpPingClient::HandleRead, this));
     m_socket->SetAllowBroadcast(true);
     ScheduleTransmit(Seconds(0.));
@@ -177,11 +176,11 @@ UdpPingClient::Send(void) {
     m_socket->Send(p);
 
     // Schedule next transmit, or wait to close
-    if (now_ns + m_interval.GetNanoSeconds() < (uint64_t) (m_start_time.GetNanoSeconds() + m_duration.GetNanoSeconds())) {
+    if (now_ns + m_interval.GetNanoSeconds() < (uint64_t) (m_startTime.GetNanoSeconds() + m_duration.GetNanoSeconds())) {
         ScheduleTransmit(m_interval);
     } else {
         m_waitForFinishEvent = Simulator::Schedule(
-                NanoSeconds(m_start_time.GetNanoSeconds() + m_duration.GetNanoSeconds() - now_ns + m_wait_afterwards.GetNanoSeconds()),
+                NanoSeconds(m_startTime.GetNanoSeconds() + m_duration.GetNanoSeconds() - now_ns + m_waitAfterwards.GetNanoSeconds()),
                 &UdpPingClient::Finish, this
         );
     }

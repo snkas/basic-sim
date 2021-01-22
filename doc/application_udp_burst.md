@@ -98,7 +98,7 @@ scheduler (which is recommended).
    // Setup a UDP burst server on node 23
    UdpBurstServerHelper burstServerHelper(
            InetSocketAddress(topology->GetNodes().Get(23)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1029),
-           "/path/to/desired/logs/dir"
+           m_basicSimulation->GetLogsDir()
    );
    ApplicationContainer udpBurstServerApp = burstServerHelper.Install(topology->GetNodes().Get(23));
    udpBurstServerApp.Start(NanoSeconds(0));
@@ -114,9 +114,9 @@ scheduler (which is recommended).
             0,
             15.0,
             NanoSeconds(700000000),
-            "/path/to/desired/logs/dir",
+            "",
             true,
-            basicSimulation->GetLogsDir()>>
+            m_basicSimulation->GetLogsDir()
    );
    ApplicationContainer udpBurstClientApp = burstClientHelper.Install(topology->GetNodes().Get(23));
    udpBurstClientApp.Start(NanoSeconds(1000));

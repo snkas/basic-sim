@@ -51,7 +51,7 @@ private:
 class UdpPingClientHelper
 {
 public:
-  UdpPingClientHelper (Address localAddress, Address remoteAddress, int64_t udp_ping_id, Time interval, Time duration, Time wait_afterwards, std::string additional_parameters);
+  UdpPingClientHelper (Address localAddress, Address remoteAddress, int64_t udpPingId, Time interval, Time duration, Time waitAfterwards, std::string additionalParameters);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
 

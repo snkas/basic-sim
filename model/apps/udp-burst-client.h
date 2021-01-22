@@ -44,7 +44,8 @@ public:
 
   uint32_t GetUdpBurstId();
   uint32_t GetSent();
-  uint32_t GetMaxUdpPayloadSizeByte();
+  uint32_t GetMaxSegmentSizeByte() const;
+  uint32_t GetMaxUdpPayloadSizeByte() const;
 
 protected:
   virtual void DoDispose (void);
@@ -58,21 +59,21 @@ private:
   void Send (void);
   void HandleRead (Ptr<Socket> socket);
 
-  uint32_t m_udpBurstId; //!< Unique UDP burst identifier
-  Time m_start_time; //!< Start time
-  double m_target_rate_megabit_per_s; //!< Target rate (incl. headers) in Mbit/s
-  Time m_duration; //!< Duration of the sending
-  std::string m_additionalParameters; //!< Additional parameters
-  Ptr<Socket> m_socket; //!< Socket
-  Address m_localAddress; //!< Local address (IP, port)
-  Address m_peerAddress;  //!< Remote peer address (IP, port)
-  EventId m_sendEvent; //!< Event to send the next packet
-  EventId m_waitForFinishEvent; //!< Event to wait to finish the client
+  Address m_localAddress;                //!< Local address (IP, port)
+  Address m_peerAddress;                 //!< Remote (server) address (IP, port)
+  uint32_t m_udpBurstId;                 //!< Unique UDP burst identifier
+  Time m_startTime;                      //!< Start time
+  double m_targetRateMegabitPerSec;      //!< Target rate (incl. headers) in Mbit/s
+  Time m_duration;                       //!< Duration of the sending
+  std::string m_additionalParameters;    //!< Additional parameters (unused; reserved for future use)
+  bool m_enableDetailedLoggingToFile;    //!< True iff you want to write detailed logs
+  std::string m_baseLogsDir;             //!< Where the logs will be written to: logs_dir/udp_burst_[id]_outgoing.csv
+  uint32_t m_maxSegmentSizeByte;         //!< Maximum segment size
+  uint32_t m_maxUdpPayloadSizeByte;      //!< Maximum size of UDP payload before it gets fragmented
 
-  bool m_enableDetailedLogging;  //!< True iff you want to write detailed logs
-  std::string m_baseLogsDir;     //!< Where the logs will be written to: logs_dir/udp_burst_[id]_outgoing.csv
-  uint32_t m_sent;               //!< Counter for sent packets
-  uint32_t m_max_udp_payload_size_byte;  //!< Maximum size of UDP payload before it gets fragmented
+  Ptr<Socket> m_socket;  //!< Socket
+  EventId m_sendEvent;   //!< Event to send the next packet
+  uint32_t m_sent;       //!< Counter for sent packets
 
 };
 

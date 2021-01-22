@@ -47,7 +47,10 @@ private:
   virtual void StopApplication (void);
   void HandleRead (Ptr<Socket> socket);
 
+  // Parameters
   Address m_localAddress; //!< Local address (IPv4, port) the server operates out of
+
+  // State
   Ptr<Socket> m_socket;   //!< IPv4 Socket
 
 };

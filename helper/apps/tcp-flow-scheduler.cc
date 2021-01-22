@@ -33,11 +33,11 @@ void TcpFlowScheduler::StartNextFlow(int i) {
     // Helper to install the source application
     TcpFlowClientHelper source(
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
-            entry.GetSizeByte(),
             entry.GetTcpFlowId(),
+            entry.GetSizeByte(),
+            entry.GetAdditionalParameters(),
             m_enable_logging_for_tcp_flow_ids.find(entry.GetTcpFlowId()) != m_enable_logging_for_tcp_flow_ids.end(),
-            m_basicSimulation->GetLogsDir(),
-            entry.GetAdditionalParameters()
+            m_basicSimulation->GetLogsDir()
     );
 
     // Install it on the node and start it right now

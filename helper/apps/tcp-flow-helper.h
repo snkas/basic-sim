@@ -43,9 +43,8 @@ namespace ns3 {
 class TcpFlowServerHelper
 {
 public:
-    TcpFlowServerHelper (Address address);
+    TcpFlowServerHelper (Address localAddress);
     void SetAttribute (std::string name, const AttributeValue &value);
-    ApplicationContainer Install (NodeContainer c) const;
     ApplicationContainer Install (Ptr<Node> node) const;
 
 private:
@@ -57,7 +56,7 @@ private:
 class TcpFlowClientHelper
 {
 public:
-  TcpFlowClientHelper (Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters);
+  TcpFlowClientHelper (Address remoteAddress, int64_t tcpFlowId, uint64_t flowSizeByte, std::string additionalParameters, bool enableDetailedLoggingToFile, std::string baseLogsDir);
   ApplicationContainer Install (Ptr<Node> node) const;
 
 private:

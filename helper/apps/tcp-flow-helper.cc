@@ -26,10 +26,10 @@
 
 namespace ns3 {
 
-TcpFlowServerHelper::TcpFlowServerHelper (Address address)
+TcpFlowServerHelper::TcpFlowServerHelper (Address localAddress)
 {
     m_factory.SetTypeId ("ns3::TcpFlowServer");
-    SetAttribute ("Local", AddressValue (address));
+    SetAttribute ("LocalAddress", AddressValue (localAddress));
 }
 
 void
@@ -44,18 +44,6 @@ TcpFlowServerHelper::Install (Ptr<Node> node) const
     return ApplicationContainer (InstallPriv (node));
 }
 
-ApplicationContainer
-TcpFlowServerHelper::Install (NodeContainer c) const
-{
-    ApplicationContainer apps;
-    for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
-    {
-        apps.Add (InstallPriv (*i));
-    }
-
-    return apps;
-}
-
 Ptr<Application>
 TcpFlowServerHelper::InstallPriv (Ptr<Node> node) const
 {
@@ -65,15 +53,15 @@ TcpFlowServerHelper::InstallPriv (Ptr<Node> node) const
     return app;
 }
 
-TcpFlowClientHelper::TcpFlowClientHelper (Address address, uint64_t maxBytes, int64_t flowId, bool enableFlowLoggingToFile, std::string baseLogsDir, std::string additionalParameters)
+TcpFlowClientHelper::TcpFlowClientHelper (Address remoteAddress, int64_t tcpFlowId, uint64_t flowSizeByte, std::string additionalParameters, bool enableDetailedLoggingToFile, std::string baseLogsDir)
 {
   m_factory.SetTypeId ("ns3::TcpFlowClient");
-  m_factory.Set ("Remote", AddressValue (address));
-  m_factory.Set ("MaxBytes", UintegerValue (maxBytes));
-  m_factory.Set ("TcpFlowId", UintegerValue (flowId));
-  m_factory.Set ("EnableTcpFlowLoggingToFile", BooleanValue (enableFlowLoggingToFile));
-  m_factory.Set ("BaseLogsDir", StringValue (baseLogsDir));
+  m_factory.Set ("RemoteAddress", AddressValue (remoteAddress));
+  m_factory.Set ("TcpFlowId", UintegerValue (tcpFlowId));
+  m_factory.Set ("FlowSizeByte", UintegerValue (flowSizeByte));
   m_factory.Set ("AdditionalParameters", StringValue (additionalParameters));
+  m_factory.Set ("EnableDetailedLoggingToFile", BooleanValue (enableDetailedLoggingToFile));
+  m_factory.Set ("BaseLogsDir", StringValue (baseLogsDir));
 }
 
 ApplicationContainer

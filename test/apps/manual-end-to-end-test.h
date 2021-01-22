@@ -67,19 +67,21 @@ public:
         ApplicationContainer udpClientApp = source_burst0.Install(topology->GetNodes().Get(0));
         udpClientApp.Start(NanoSeconds(1000));
 
-        // Install flow sink on all
-        TcpFlowServerHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
-        ApplicationContainer app = sink.Install(topology->GetNodes());
+        // Install TCP flow server on all
+        TcpFlowServerHelper tcpFlowServer(InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        ApplicationContainer app = tcpFlowServer.Install(topology->GetNodes().Get(0));
+        app.Start(NanoSeconds(0));
+        app = tcpFlowServer.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
 
         // 0 --> 1
         TcpFlowClientHelper source0(
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
-                1000000,
                 0,
+                1000000,
+                "",
                 true,
-                basicSimulation->GetLogsDir(),
-                ""
+                basicSimulation->GetLogsDir()
         );
         app = source0.Install(topology->GetNodes().Get(0));
         app.Start(NanoSeconds(0));
@@ -87,11 +89,11 @@ public:
         // 1 --> 0
         TcpFlowClientHelper source1(
                 InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
-                89999,
                 1,
+                89999,
+                "",
                 true,
-                basicSimulation->GetLogsDir(),
-                ""
+                basicSimulation->GetLogsDir()
         );
         app = source1.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(7000));
@@ -268,37 +270,37 @@ public:
     void DoRun () {
 
         ////////////////////////////////////////////////////////////////////
-        // Flow sink
+        // Flow server
 
         setup_basic();
 
-        // Install flow sink on node 1
-        TcpFlowServerHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
-        ApplicationContainer app = sink.Install(topology->GetNodes().Get(1));
+        // Install TCP flow server on node 1
+        TcpFlowServerHelper tcpFlowServer(InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        ApplicationContainer app = tcpFlowServer.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
         app.Stop(Seconds(0.1));
 
-        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "TCP flow sink is not intended to be stopped after being started.");
+        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "TCP flow server is not intended to be stopped after being started.");
         finish_basic();
 
         ////////////////////////////////////////////////////////////////////
-        // Flow send application
+        // Flow client
 
         setup_basic();
 
-        // Install flow sink on node 1
-        TcpFlowServerHelper sink2(InetSocketAddress(Ipv4Address::GetAny(), 1024));
-        app = sink2.Install(topology->GetNodes().Get(1));
+        // Install TCP flow server on node 1
+        TcpFlowServerHelper tcpFlowServer2(InetSocketAddress(Ipv4Address::GetAny(), 1024));
+        app = tcpFlowServer2.Install(topology->GetNodes().Get(1));
         app.Start(NanoSeconds(0));
 
         // Flow 0 --> 1
         TcpFlowClientHelper source0(
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
-                1000000,
                 0,
+                1000000,
+                "",
                 true,
-                basicSimulation->GetLogsDir(),
-                ""
+                basicSimulation->GetLogsDir()
         );
         app = source0.Install(topology->GetNodes().Get(0));
         app.Start(NanoSeconds(0));

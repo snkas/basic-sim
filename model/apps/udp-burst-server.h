@@ -39,10 +39,11 @@ public:
   static TypeId GetTypeId (void);
   UdpBurstServer ();
   virtual ~UdpBurstServer ();
+  uint32_t GetMaxSegmentSizeByte() const;
+  uint32_t GetMaxUdpPayloadSizeByte() const;
   void RegisterIncomingBurst(int64_t udp_burst_id, bool enable_precise_logging);
   std::vector<std::tuple<int64_t, uint64_t>> GetIncomingBurstsInformation();
   uint64_t GetReceivedCounterOf(int64_t udp_burst_id);
-  uint32_t GetMaxUdpPayloadSizeByte();
 
 protected:
   virtual void DoDispose (void);
@@ -53,13 +54,16 @@ private:
   virtual void StopApplication (void);
   void HandleRead (Ptr<Socket> socket);
 
-  Address m_localAddress;    //!< Local address (IPv4, port) the server operates out of
-  Ptr<Socket> m_socket;      //!< IPv4 Socket
-  std::string m_baseLogsDir; //!< Where the logs will be written to: logs_dir/udp_burst_[id]_incoming.csv
-  uint32_t m_max_udp_payload_size_byte;  //!< Maximum size of UDP payload before it gets fragmented
+  Address m_localAddress;            //!< Local address (IPv4, port) the server operates out of
+  std::string m_baseLogsDir;         //!< Where the logs will be written to: logs_dir/udp_burst_[id]_incoming.csv
+  uint32_t m_maxSegmentSizeByte;     //!< Maximum segment size
+  uint32_t m_maxUdpPayloadSizeByte;  //!< Maximum size of UDP payload before it gets fragmented
 
-  // Incoming bursts
-  std::vector<int64_t> m_incoming_bursts;
+  // State
+  Ptr<Socket> m_socket;  //!< IPv4 Socket
+
+  // Logging
+  std::vector<int64_t> m_incoming_bursts;                               //!< Registered incoming bursts
   std::map<int64_t, uint64_t> m_incoming_bursts_received_counter;       //!< Counter for how many packets received
   std::map<int64_t, uint64_t> m_incoming_bursts_enable_precise_logging; //!< True iff enable precise logging for each burst
 

@@ -54,6 +54,7 @@ UdpPingServer::GetTypeId(void) {
 
 UdpPingServer::UdpPingServer() {
     NS_LOG_FUNCTION(this);
+    m_socket = 0;
 }
 
 UdpPingServer::~UdpPingServer() {
