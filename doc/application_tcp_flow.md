@@ -1,4 +1,4 @@
-# TCP flow application
+# Application: TCP flow
 
 The TCP flow application is the most simple type of application.
 It schedules flows to start from A to B at time T to transfer X

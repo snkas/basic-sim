@@ -1,4 +1,4 @@
-# UDP burst application
+# Application: UDP burst
 
 The UDP burst application is a simple type of application.
 It schedules bursts, meaning "send from A to B at a rate of

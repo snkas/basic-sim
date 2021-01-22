@@ -1,4 +1,4 @@
-# UDP ping application
+# Application: UDP ping
 
 The UDP ping application is a simple type of application.
 It schedules pings, meaning "send from A to B pings at

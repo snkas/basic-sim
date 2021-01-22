@@ -1,4 +1,4 @@
-# Link interface traffic-control queueing discipline queue tracking
+# Tracking: link interface traffic-control queueing discipline queue
 
 This tracks the queue of point-to-point network devices' interface traffic-control
 main queueing discipline (part of a 'link').
