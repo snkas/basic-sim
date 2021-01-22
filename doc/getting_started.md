@@ -10,7 +10,7 @@ You can either immediately start with the tutorial below, or read more documenta
 * `tracking_link_interface_tc_qdisc_queue.md` -- Link interface traffic-control queueing discipline (qdisc) internal queue tracking
 * `application_tcp_flow.md` -- Flow application ("send from A to B a flow of size X at time T")
 * `application_udp_burst.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
-* `application_udp_ping.md` -- Ping application ("send from A to B pings at an interval I starting at time T for duration D")
+* `application_udp_ping.md` -- UDP ping application ("send from A to B pings at an interval I starting at time T for duration D and wait afterwards W time to get the last replies")
 * `tcp_optimizer.md` -- Optimize certain TCP parameters
 * `future_work.md` -- To find out what can be extended / improved
 * `general_coding_notes.md` -- A collection of general notes about how ns-3 is modeled and how one uses that model

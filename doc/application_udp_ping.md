@@ -2,7 +2,8 @@
 
 The UDP ping application is a simple type of application.
 It schedules pings, meaning "send from A to B pings at
-an interval I starting at time T for duration D". 
+an interval I starting at time T for duration D and
+wait afterwards W time to get the last replies". 
 It saves the results of the pings into useful file formats.
 
 It encompasses the following files:

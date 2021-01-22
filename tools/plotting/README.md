@@ -30,7 +30,6 @@ cd /path/to/tools/plotting/plot_tcp_flow
 python generate_tcp_flow_rate_csv.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data 0 10000000
 ```
 
-
 ### TCP flows ECDF plotting
 
 Plotting all flows' ECDF for flow completion time (FCT) and average throughput:
@@ -38,7 +37,6 @@ Plotting all flows' ECDF for flow completion time (FCT) and average throughput:
 cd /path/to/tools/plotting/plot_tcp_flows_ecdfs
 python plot_tcp_flows_ecdfs.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf
 ```
-
 
 ### UDP burst plotting
 
@@ -48,16 +46,14 @@ cd /path/to/tools/plotting/plot_udp_burst
 python plot_udp_burst.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 33 100000000
 ```
 
+### UDP ping plotting
 
-### Ping plotting
-
-Plotting pings between 21 -> 30 (RTT, # of out-of-order (in 10ms intervals))
+Plotting UDP ping with id 9 (RTT, # of out-of-order (in 10ms intervals))
 
 ```
-cd /path/to/tools/plotting/plot_ping
-python plot_ping.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 21 30 10000000
+cd /path/to/tools/plotting/plot_udp_ping
+python plot_udp_ping.py path/to/run_folder/logs_ns3 path/to/run_folder/logs_ns3/data path/to/run_folder/logs_ns3/pdf 9 10000000
 ```
-
 
 ### Link net-device utilization plotting
 
