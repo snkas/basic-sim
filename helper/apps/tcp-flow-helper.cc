@@ -53,9 +53,10 @@ TcpFlowServerHelper::InstallPriv (Ptr<Node> node) const
     return app;
 }
 
-TcpFlowClientHelper::TcpFlowClientHelper (Address remoteAddress, int64_t tcpFlowId, uint64_t flowSizeByte, std::string additionalParameters, bool enableDetailedLoggingToFile, std::string baseLogsDir)
+TcpFlowClientHelper::TcpFlowClientHelper (Address localAddress, Address remoteAddress, int64_t tcpFlowId, uint64_t flowSizeByte, std::string additionalParameters, bool enableDetailedLoggingToFile, std::string baseLogsDir)
 {
   m_factory.SetTypeId ("ns3::TcpFlowClient");
+  m_factory.Set ("LocalAddress", AddressValue (localAddress));
   m_factory.Set ("RemoteAddress", AddressValue (remoteAddress));
   m_factory.Set ("TcpFlowId", UintegerValue (tcpFlowId));
   m_factory.Set ("FlowSizeByte", UintegerValue (flowSizeByte));

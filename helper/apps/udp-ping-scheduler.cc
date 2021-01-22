@@ -30,7 +30,7 @@ void UdpPingScheduler::StartNextUdpPing(int i) {
 
     // Helper to install the source application
     UdpPingClientHelper client(
-            InetSocketAddress(m_nodes.Get(entry.GetFromNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0), // port 0 means an ephemeral port will be assigned
+            InetSocketAddress(m_nodes.Get(entry.GetFromNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0), // Port 0 means an ephemeral port will be assigned
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
             entry.GetUdpPingId(),
             NanoSeconds(entry.GetIntervalNs()),

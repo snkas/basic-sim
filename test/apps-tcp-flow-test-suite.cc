@@ -8,6 +8,7 @@ using namespace ns3;
 #include "test-case-with-log-validators.h"
 
 #include "apps/tcp-flow-schedule-reader-test.h"
+#include "apps/tcp-flow-simple-test.h"
 #include "apps/tcp-flow-end-to-end-test.h"
 
 class BasicSimAppsTcpFlowTestSuite : public TestSuite {
@@ -18,7 +19,11 @@ public:
         AddTestCase(new TcpFlowScheduleReaderNormalTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowScheduleReaderInvalidTestCase, TestCase::QUICK);
 
-        // TCP flows end-to-end
+        // TCP flow simple
+        AddTestCase(new TcpFlowSimpleDoubleServerBindTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowSimpleDoubleClientBindTestCase, TestCase::QUICK);
+
+        // TCP flow end-to-end
         AddTestCase(new TcpFlowEndToEndOneToOneEqualStartTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndOneToOneSimpleStartTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndOneToOneApartStartTestCase, TestCase::QUICK);

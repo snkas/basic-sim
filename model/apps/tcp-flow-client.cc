@@ -51,7 +51,13 @@ TcpFlowClient::GetTypeId(void) {
             .SetParent<Application>()
             .SetGroupName("Applications")
             .AddConstructor<TcpFlowClient>()
-            .AddAttribute("RemoteAddress", "The address of the destination (IPv4 address, port)",
+            .AddAttribute("LocalAddress",
+                          "The local address on which to bind the client socket (IPv4 address, port)",
+                          AddressValue(),
+                          MakeAddressAccessor(&TcpFlowClient::m_localAddress),
+                          MakeAddressChecker())
+            .AddAttribute("RemoteAddress",
+                          "The address of the destination server (IPv4 address, port)",
                           AddressValue(),
                           MakeAddressAccessor(&TcpFlowClient::m_remoteAddress),
                           MakeAddressChecker())
@@ -61,10 +67,7 @@ TcpFlowClient::GetTypeId(void) {
                           MakeUintegerAccessor(&TcpFlowClient::m_tcpFlowId),
                           MakeUintegerChecker<uint64_t>())
             .AddAttribute("FlowSizeByte",
-                          "The total number of bytes to send ('flow size')."
-                          "Once these bytes are sent, "
-                          "no data  is sent again. The value zero means "
-                          "that there is no limit.",
+                          "The total number of bytes to send",
                           UintegerValue(1),
                           MakeUintegerAccessor(&TcpFlowClient::m_flowSizeByte),
                           MakeUintegerChecker<uint64_t>(1))
@@ -128,8 +131,9 @@ void TcpFlowClient::StartApplication(void) { // Called at time specified by Star
        m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
 
         // Bind socket
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
         NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
-        if (m_socket->Bind() == -1) {
+        if (m_socket->Bind(m_localAddress) == -1) {
             throw std::runtime_error("Failed to bind socket");
         }
 

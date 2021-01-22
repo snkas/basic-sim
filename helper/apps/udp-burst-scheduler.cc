@@ -32,7 +32,7 @@ void UdpBurstScheduler::StartNextUdpBurst(int i) {
 
     // Helper to install the source application
     UdpBurstClientHelper client(
-            InetSocketAddress(m_nodes.Get(entry.GetFromNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0), // port 0 means an ephemeral port will be assigned
+            InetSocketAddress(m_nodes.Get(entry.GetFromNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0), // Port 0 means an ephemeral port will be assigned
             InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1025),
             entry.GetUdpBurstId(),
             entry.GetTargetRateMegabitPerSec(),

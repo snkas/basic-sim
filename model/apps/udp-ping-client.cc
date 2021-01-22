@@ -50,7 +50,7 @@ UdpPingClient::GetTypeId(void) {
                           MakeAddressAccessor(&UdpPingClient::m_localAddress),
                           MakeAddressChecker())
             .AddAttribute("RemoteAddress",
-                          "The destination address of the outbound packets (IPv4 address, port)",
+                          "The address of the destination server (IPv4 address, port)",
                           AddressValue(),
                           MakeAddressAccessor(&UdpPingClient::m_remoteAddress),
                           MakeAddressChecker())
@@ -121,7 +121,7 @@ UdpPingClient::StartApplication(void) {
     }
     m_startTime = Simulator::Now();
     m_socket->SetRecvCallback(MakeCallback(&UdpPingClient::HandleRead, this));
-    m_socket->SetAllowBroadcast(true);
+    m_socket->SetAllowBroadcast(false);
     ScheduleTransmit(Seconds(0.));
 }
 

@@ -160,8 +160,8 @@ public:
 
         // A flow each way
         std::vector<TcpFlowScheduleEntry> schedule;
-        schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 1000000, 0, "", "abc"));
-        schedule.push_back(TcpFlowScheduleEntry(1, 1, 0, 1000000, 0, "", ""));
+        schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 1000000, 0, "zyx1", "abc"));
+        schedule.push_back(TcpFlowScheduleEntry(1, 1, 0, 1000000, 0, "zyx2", ""));
 
         // Perform the run
         std::vector<int64_t> end_time_ns_list;

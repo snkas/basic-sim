@@ -57,7 +57,6 @@ private:
   void Finish ();
   void ScheduleTransmit (Time dt);
   void Send (void);
-  void HandleRead (Ptr<Socket> socket);
 
   Address m_localAddress;                //!< Local address (IP, port)
   Address m_peerAddress;                 //!< Remote (server) address (IP, port)

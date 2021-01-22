@@ -48,7 +48,7 @@ TcpFlowServer::GetTypeId(void) {
             .SetGroupName("Applications")
             .AddConstructor<TcpFlowServer>()
             .AddAttribute("LocalAddress",
-                          "The Address on which to Bind the rx socket.",
+                          "The local address on which to bind the server socket (IPv4 address, port)",
                           AddressValue(),
                           MakeAddressAccessor(&TcpFlowServer::m_localAddress),
                           MakeAddressChecker())

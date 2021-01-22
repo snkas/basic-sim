@@ -68,6 +68,7 @@ private:
   void SendData ();
 
   // Parameters
+  Address         m_localAddress;                 //!< Local address
   Address         m_remoteAddress;                //!< Remote (server) address
   uint32_t        m_sendStepSize;                 //!< Size of data to send each time in the send loop
   uint64_t        m_tcpFlowId;                    //!< TCP flow identifier

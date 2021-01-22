@@ -3,7 +3,6 @@
 The backlog of additional work that can be done on the `basic-sim` module:
 
 * Extra tests for UDP ping scheduler
-* Re-evaluate the `additional parameters` field
 * TCP/UDP socket generator
 * Restructure tests for easier rerunning when having failed previously
 * Add test for ECN marking for the simple_red queueing discipline

@@ -56,7 +56,7 @@ private:
 class TcpFlowClientHelper
 {
 public:
-  TcpFlowClientHelper (Address remoteAddress, int64_t tcpFlowId, uint64_t flowSizeByte, std::string additionalParameters, bool enableDetailedLoggingToFile, std::string baseLogsDir);
+  TcpFlowClientHelper (Address localAddress, Address remoteAddress, int64_t tcpFlowId, uint64_t flowSizeByte, std::string additionalParameters, bool enableDetailedLoggingToFile, std::string baseLogsDir);
   ApplicationContainer Install (Ptr<Node> node) const;
 
 private:

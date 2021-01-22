@@ -215,8 +215,8 @@ public:
 
         // A UDP burst each way
         std::vector<UdpBurstInfo> schedule;
-        schedule.push_back(UdpBurstInfo(0, 0, 1, 3, 1000000000, 3000000000, "", "abc"));
-        schedule.push_back(UdpBurstInfo(1, 0, 1, 4, 1000000000, 3000000000, "", "abc"));
+        schedule.push_back(UdpBurstInfo(0, 0, 1, 3, 1000000000, 3000000000, "xyz1", "abc"));
+        schedule.push_back(UdpBurstInfo(1, 0, 1, 4, 1000000000, 3000000000, "xyz2", "abc"));
 
         // Perform the run
         std::vector<double> list_outgoing_rate_megabit_per_s;
@@ -883,6 +883,26 @@ public:
         remove_dir_if_exists(temp_dir + "/logs_ns3");
         remove_dir_if_exists(temp_dir);
 
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpBurstEndToEndHeaderTestCase : public UdpBurstEndToEndTestCase
+{
+public:
+    UdpBurstEndToEndHeaderTestCase () : UdpBurstEndToEndTestCase ("udp-burst-end-to-end header") {};
+
+    void DoRun () {
+        UdpBurstHeader header;
+        header.SetId(55);
+        header.SetSeq(66);
+        ASSERT_EQUAL(header.GetId(), 55);
+        ASSERT_EQUAL(header.GetSeq(), 66);
+        ASSERT_EQUAL(header.GetSerializedSize(), 16);
+        std::ostringstream stream;
+        header.Print(stream);
+        ASSERT_EQUAL(stream.str(), "(id=55, seq=66)");
     }
 };
 

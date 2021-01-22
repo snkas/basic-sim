@@ -76,6 +76,7 @@ public:
 
         // 0 --> 1
         TcpFlowClientHelper source0(
+                InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0),
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 0,
                 1000000,
@@ -88,6 +89,7 @@ public:
 
         // 1 --> 0
         TcpFlowClientHelper source1(
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0),
                 InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 1,
                 89999,
@@ -270,7 +272,7 @@ public:
     void DoRun () {
 
         ////////////////////////////////////////////////////////////////////
-        // Flow server
+        // TCP flow server
 
         setup_basic();
 
@@ -284,7 +286,7 @@ public:
         finish_basic();
 
         ////////////////////////////////////////////////////////////////////
-        // Flow client
+        // TCP flow client
 
         setup_basic();
 
@@ -295,6 +297,7 @@ public:
 
         // Flow 0 --> 1
         TcpFlowClientHelper source0(
+                InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0),
                 InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024),
                 0,
                 1000000,

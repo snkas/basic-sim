@@ -8,6 +8,7 @@ using namespace ns3;
 #include "test-case-with-log-validators.h"
 
 #include "apps/udp-burst-schedule-reader-test.h"
+#include "apps/udp-burst-simple-test.h"
 #include "apps/udp-burst-end-to-end-test.h"
 
 class BasicSimAppsUdpBurstTestSuite : public TestSuite {
@@ -17,6 +18,11 @@ public:
         // UDP burst schedule reader
         AddTestCase(new UdpBurstScheduleReaderNormalTestCase, TestCase::QUICK);
         AddTestCase(new UdpBurstScheduleReaderInvalidTestCase, TestCase::QUICK);
+
+        // UDP burst simple
+        AddTestCase(new UdpBurstSimpleHeaderTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstSimpleDoubleServerBindTestCase, TestCase::QUICK);
+        AddTestCase(new UdpBurstSimpleDoubleClientBindTestCase, TestCase::QUICK);
 
         // UDP burst end-to-end
         AddTestCase(new UdpBurstEndToEndOneToOneEqualStartTestCase, TestCase::QUICK);

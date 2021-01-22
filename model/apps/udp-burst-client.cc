@@ -50,7 +50,7 @@ UdpBurstClient::GetTypeId(void) {
                           MakeAddressAccessor(&UdpBurstClient::m_localAddress),
                           MakeAddressChecker())
             .AddAttribute("RemoteAddress",
-                          "The destination address of the outbound packets (IPv4 address, port)",
+                          "The address of the destination server (IPv4 address, port)",
                           AddressValue(),
                           MakeAddressAccessor(&UdpBurstClient::m_peerAddress),
                           MakeAddressChecker())
@@ -145,8 +145,7 @@ UdpBurstClient::StartApplication(void) {
 
     }
     m_startTime = Simulator::Now();
-    m_socket->SetRecvCallback(MakeCallback(&UdpBurstClient::HandleRead, this));
-    m_socket->SetAllowBroadcast(true);
+    m_socket->SetAllowBroadcast(false);
     ScheduleTransmit(Seconds(0.));
 }
 
@@ -196,11 +195,6 @@ UdpBurstClient::Send(void) {
         ScheduleTransmit(NanoSeconds(packet_gap_nanoseconds));
     }
 
-}
-
-void
-UdpBurstClient::HandleRead(Ptr <Socket> socket) {
-    throw std::runtime_error("UDP burst client should not receive any packets.");
 }
 
 uint32_t UdpBurstClient::GetUdpBurstId() {
