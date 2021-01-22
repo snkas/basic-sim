@@ -33,7 +33,6 @@
 
 #include "ns3/udp-burst-schedule-reader.h"
 #include "ns3/udp-burst-helper.h"
-#include "ns3/udp-burst-info.h"
 
 namespace ns3 {
 
@@ -42,6 +41,7 @@ namespace ns3 {
 
     public:
         UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
+        void StartNextUdpBurst(int i);
         void WriteResults();
 
     protected:
@@ -62,8 +62,8 @@ namespace ns3 {
         std::string m_udp_bursts_incoming_csv_filename;
         std::string m_udp_bursts_incoming_txt_filename;
 
-        std::vector<std::pair<UdpBurstInfo, Ptr<UdpBurstApplication>>> m_responsible_for_outgoing_bursts;
-        std::vector<std::pair<UdpBurstInfo, Ptr<UdpBurstApplication>>> m_responsible_for_incoming_bursts;
+        std::vector<std::pair<UdpBurstInfo, Ptr<UdpBurstClient>>> m_responsible_for_outgoing_bursts;
+        std::vector<std::pair<UdpBurstInfo, Ptr<UdpBurstServer>>> m_responsible_for_incoming_bursts;
 
     };
 

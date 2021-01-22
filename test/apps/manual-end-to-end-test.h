@@ -44,33 +44,28 @@ public:
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         TcpOptimizer::OptimizeBasic(basicSimulation);
 
-        // Install a UDP burst client on all
-        UdpBurstHelper udpBurstHelper(1026, basicSimulation->GetLogsDir());
-        ApplicationContainer udpApp = udpBurstHelper.Install(topology->GetNodes());
-        udpApp.Start(Seconds(0.0));
+        // Install burst server on node 1
+        UdpBurstServerHelper burstServerHelper(
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1029),
+                basicSimulation->GetLogsDir()
+        );
+        ApplicationContainer udpServerApp = burstServerHelper.Install(topology->GetNodes().Get(1));
+        udpServerApp.Start(NanoSeconds(0));
+        udpServerApp.Get(0)->GetObject<UdpBurstServer>()->RegisterIncomingBurst(0, true);
 
-        // UDP burst info entry
-        UdpBurstInfo udpBurstInfo(
+        // Bursting 0 --> 1
+        UdpBurstClientHelper source_burst0(
+                InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 0),
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1029),
                 0,
-                0,
-                1,
-                15,
-                1000,
-                700000000,
-                "abc",
-                "def"
+                15.0,
+                NanoSeconds(700000000),
+                "",
+                false,
+                basicSimulation->GetLogsDir()
         );
-
-        // Register all bursts being sent from there and being received
-        udpApp.Get(0)->GetObject<UdpBurstApplication>()->RegisterOutgoingBurst(
-                udpBurstInfo,
-                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
-                true
-        );
-        udpApp.Get(1)->GetObject<UdpBurstApplication>()->RegisterIncomingBurst(
-                udpBurstInfo,
-                true
-        );
+        ApplicationContainer udpClientApp = source_burst0.Install(topology->GetNodes().Get(0));
+        udpClientApp.Start(NanoSeconds(1000));
 
         // Install flow sink on all
         TcpFlowSinkHelper sink(InetSocketAddress(Ipv4Address::GetAny(), 1024));
@@ -149,17 +144,11 @@ public:
         ASSERT_EQUAL(finished_lines[0], "Yes");
 
         // Check UDP burst completion information
-        std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_0_info = udpApp.Get(0)->GetObject<UdpBurstApplication>()->GetOutgoingBurstsInformation();
-        std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_1_info = udpApp.Get(1)->GetObject<UdpBurstApplication>()->GetOutgoingBurstsInformation();
-        std::vector<std::tuple<UdpBurstInfo, uint64_t>> incoming_0_info = udpApp.Get(0)->GetObject<UdpBurstApplication>()->GetIncomingBurstsInformation();
-        std::vector<std::tuple<UdpBurstInfo, uint64_t>> incoming_1_info = udpApp.Get(1)->GetObject<UdpBurstApplication>()->GetIncomingBurstsInformation();
-        ASSERT_EQUAL(outgoing_0_info.size(), 1);
-        ASSERT_EQUAL(std::get<0>(outgoing_0_info.at(0)).GetUdpBurstId(), 0);
-        ASSERT_EQUAL_APPROX((double) std::get<1>(outgoing_0_info.at(0)), 0.7 * 15 * 1000 * 1000 / 8.0 / 1500.0, 0.00001); // Everything will be sent
-        ASSERT_EQUAL(outgoing_1_info.size(), 0);
-        ASSERT_EQUAL(incoming_0_info.size(), 0);
+        int64_t udp_client_sent = udpClientApp.Get(0)->GetObject<UdpBurstClient>()->GetSent();
+        std::vector<std::tuple<int64_t, uint64_t>> incoming_1_info = udpServerApp.Get(0)->GetObject<UdpBurstServer>()->GetIncomingBurstsInformation();
+        ASSERT_EQUAL_APPROX((double) udp_client_sent, 0.7 * 15 * 1000 * 1000 / 8.0 / 1500.0, 0.00001); // Everything will be sent
         ASSERT_EQUAL(incoming_1_info.size(), 1);
-        ASSERT_EQUAL(std::get<0>(incoming_1_info.at(0)).GetUdpBurstId(), 0);
+        ASSERT_EQUAL(std::get<0>(incoming_1_info.at(0)), 0);
         ASSERT_EQUAL_APPROX((double) std::get<1>(incoming_1_info.at(0)), 0.7 * 15 * 1000 * 1000 / 8.0 / 1500.0, 100.0); // Not everything will arrive due to TCP competition
 
         // Make sure these are removed
@@ -279,43 +268,6 @@ public:
     void DoRun () {
 
         ////////////////////////////////////////////////////////////////////
-        // UDP burst
-
-        setup_basic();
-
-        // Install a UDP burst client on all
-        UdpBurstHelper udpBurstHelper(1026, basicSimulation->GetLogsDir());
-        ApplicationContainer udpApp = udpBurstHelper.Install(topology->GetNodes());
-        udpApp.Start(Seconds(0.0));
-        udpApp.Stop(Seconds(0.1));
-
-        // UDP burst info entry
-        UdpBurstInfo udpBurstInfo(
-                0,
-                0,
-                1,
-                15,
-                1000,
-                700000000,
-                "abc",
-                "def"
-        );
-
-        // Register all bursts being sent from there and being received
-        udpApp.Get(0)->GetObject<UdpBurstApplication>()->RegisterOutgoingBurst(
-                udpBurstInfo,
-                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
-                true
-        );
-        udpApp.Get(1)->GetObject<UdpBurstApplication>()->RegisterIncomingBurst(
-                udpBurstInfo,
-                true
-        );
-
-        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP burst application is not intended to be stopped after being started.");
-        finish_basic();
-
-        ////////////////////////////////////////////////////////////////////
         // Flow sink
 
         setup_basic();
@@ -352,7 +304,57 @@ public:
         app.Start(NanoSeconds(0));
         app.Stop(Seconds(0.1));
 
-        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "TCP flow send application is not intended to be stopped after being started.");
+        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "TCP flow client cannot be stopped like a regular application, it finished only by the socket closing.");
+        finish_basic();
+
+        ////////////////////////////////////////////////////////////////////
+        // UDP burst server
+
+        setup_basic();
+
+        // Install burst server on node 1
+        UdpBurstServerHelper burstServerHelper(
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
+                basicSimulation->GetLogsDir()
+        );
+        app = burstServerHelper.Install(topology->GetNodes().Get(1));
+        app.Start(NanoSeconds(0));
+        app.Stop(Seconds(0.1));
+
+        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP burst server is not permitted to be stopped.");
+        finish_basic();
+
+        ////////////////////////////////////////////////////////////////////
+        // UDP burst client
+
+        setup_basic();
+
+        // Install burst server on node 1
+        UdpBurstServerHelper burstServerHelper2(
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
+                basicSimulation->GetLogsDir()
+        );
+        app = burstServerHelper2.Install(topology->GetNodes().Get(1));
+        app.Start(NanoSeconds(0));
+        app.Stop(Seconds(0.2));
+        app.Get(0)->GetObject<UdpBurstServer>()->RegisterIncomingBurst(0, true);
+
+        // Bursting 0 --> 1
+        UdpBurstClientHelper source_burst0(
+                InetSocketAddress(topology->GetNodes().Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 0),
+                InetSocketAddress(topology->GetNodes().Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1025),
+                0,
+                10.0,
+                NanoSeconds(1000000000),
+                "",
+                false,
+                basicSimulation->GetLogsDir()
+        );
+        app = source_burst0.Install(topology->GetNodes().Get(0));
+        app.Start(NanoSeconds(100));
+        app.Stop(Seconds(0.1));
+
+        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP burst client cannot be stopped like a regular application, it finished only when it is done sending.");
         finish_basic();
 
         ////////////////////////////////////////////////////////////////////
@@ -368,7 +370,7 @@ public:
         app.Start(NanoSeconds(0));
         app.Stop(Seconds(0.1));
 
-        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP RTT server is not permitted to be stopped.");
+        ASSERT_EXCEPTION_MATCH_WHAT(basicSimulation->Run(), "UDP ping server is not permitted to be stopped.");
         finish_basic();
 
         ////////////////////////////////////////////////////////////////////

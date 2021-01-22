@@ -32,92 +32,92 @@
 
 namespace ns3 {
 
-    NS_LOG_COMPONENT_DEFINE ("UdpPingServer");
+NS_LOG_COMPONENT_DEFINE ("UdpPingServer");
 
-    NS_OBJECT_ENSURE_REGISTERED (UdpPingServer);
+NS_OBJECT_ENSURE_REGISTERED (UdpPingServer);
 
-    TypeId
-    UdpPingServer::GetTypeId(void) {
-        static TypeId tid = TypeId("ns3::UdpPingServer")
-                .SetParent<Application>()
-                .SetGroupName("Applications")
-                .AddConstructor<UdpPingServer>()
-                .AddAttribute("LocalAddress",
-                              "The local address (IPv4 address, port). Setting the IPv4 address will enable"
-                              "proper ECMP routing (as else it forces an early lookup with only destination IP). "
-                              "Setting the port is handy as it is a server, so it's good to be reachable.",
-                              AddressValue(),
-                              MakeAddressAccessor(&UdpPingServer::m_localAddress),
-                              MakeAddressChecker());
-        return tid;
-    }
+TypeId
+UdpPingServer::GetTypeId(void) {
+    static TypeId tid = TypeId("ns3::UdpPingServer")
+            .SetParent<Application>()
+            .SetGroupName("Applications")
+            .AddConstructor<UdpPingServer>()
+            .AddAttribute("LocalAddress",
+                          "The local address (IPv4 address, port). Setting the IPv4 address will enable"
+                          "proper ECMP routing (as else it forces an early lookup with only destination IP). "
+                          "Setting the port is handy as it is a server, so it's good to be reachable.",
+                          AddressValue(),
+                          MakeAddressAccessor(&UdpPingServer::m_localAddress),
+                          MakeAddressChecker());
+    return tid;
+}
 
-    UdpPingServer::UdpPingServer() {
-        NS_LOG_FUNCTION(this);
-    }
+UdpPingServer::UdpPingServer() {
+    NS_LOG_FUNCTION(this);
+}
 
-    UdpPingServer::~UdpPingServer() {
-        NS_LOG_FUNCTION(this);
-        m_socket = 0;
-    }
+UdpPingServer::~UdpPingServer() {
+    NS_LOG_FUNCTION(this);
+    m_socket = 0;
+}
 
-    void
-    UdpPingServer::DoDispose(void) {
-        NS_LOG_FUNCTION(this);
-        Application::DoDispose();
-    }
+void
+UdpPingServer::DoDispose(void) {
+    NS_LOG_FUNCTION(this);
+    Application::DoDispose();
+}
 
-    void
-    UdpPingServer::StartApplication(void) {
-        NS_LOG_FUNCTION(this);
+void
+UdpPingServer::StartApplication(void) {
+    NS_LOG_FUNCTION(this);
 
-        if (m_socket == 0) {
+    if (m_socket == 0) {
 
-            // Create socket
-            TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-            m_socket = Socket::CreateSocket(GetNode(), tid);
+        // Create socket
+        TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
+        m_socket = Socket::CreateSocket(GetNode(), tid);
 
-            // Bind to local address
-            if (m_socket->Bind(m_localAddress) == -1) {
-                throw std::runtime_error("Failed to bind socket");
-            }
-
+        // Bind to local address
+        if (m_socket->Bind(m_localAddress) == -1) {
+            throw std::runtime_error("Failed to bind socket");
         }
 
-        m_socket->SetRecvCallback(MakeCallback(&UdpPingServer::HandleRead, this));
     }
 
-    void
-    UdpPingServer::StopApplication() {
-        throw std::runtime_error("UDP RTT server is not permitted to be stopped.");
+    m_socket->SetRecvCallback(MakeCallback(&UdpPingServer::HandleRead, this));
+}
+
+void
+UdpPingServer::StopApplication() {
+    throw std::runtime_error("UDP ping server is not permitted to be stopped.");
+}
+
+void
+UdpPingServer::HandleRead(Ptr <Socket> socket) {
+    NS_LOG_FUNCTION(this << socket);
+    Ptr <Packet> packet;
+    Address from;
+    while ((packet = socket->RecvFrom(from))) {
+
+        // What we receive
+        UdpPingHeader incomingPingHeader;
+        packet->RemoveHeader (incomingPingHeader);
+
+        // Add header
+        UdpPingHeader outgoingPingHeader;
+        outgoingPingHeader.SetId(incomingPingHeader.GetId());
+        outgoingPingHeader.SetSeq(incomingPingHeader.GetSeq());
+        outgoingPingHeader.SetTs(Simulator::Now().GetNanoSeconds());
+        packet->AddHeader(outgoingPingHeader);
+
+        // Remove any tags
+        packet->RemoveAllPacketTags();
+        packet->RemoveAllByteTags();
+
+        // Send back with the reply header as payload
+        socket->SendTo(packet, 0, from);
+
     }
-
-    void
-    UdpPingServer::HandleRead(Ptr <Socket> socket) {
-        NS_LOG_FUNCTION(this << socket);
-        Ptr <Packet> packet;
-        Address from;
-        while ((packet = socket->RecvFrom(from))) {
-
-            // What we receive
-            UdpPingHeader incomingPingHeader;
-            packet->RemoveHeader (incomingPingHeader);
-
-            // Add header
-            UdpPingHeader outgoingPingHeader;
-            outgoingPingHeader.SetId(incomingPingHeader.GetId());
-            outgoingPingHeader.SetSeq(incomingPingHeader.GetSeq());
-            outgoingPingHeader.SetTs(Simulator::Now().GetNanoSeconds());
-            packet->AddHeader(outgoingPingHeader);
-
-            // Remove any tags
-            packet->RemoveAllPacketTags();
-            packet->RemoveAllByteTags();
-
-            // Send back with the reply header as payload
-            socket->SendTo(packet, 0, from);
-
-        }
-    }
+}
 
 } // Namespace ns3

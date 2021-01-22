@@ -2,13 +2,13 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* UDP burst convert to a socket each (add wait-afterwards)
+* Rename TCP flow send application / sink to client / server
+* Canary tests (comparing output to see if anything changed)
+* Extra tests for UDP ping scheduler
 * Re-evaluate the `additional parameters` field
 * TCP/UDP socket generator
-* UDP burst / ping multi-routing test
-* Upgrade to latest ns-3
-* Add test for UDP ping scheduler
 * Add test for ECN marking for the simple_red queueing discipline
+* Upgrade to latest ns-3
 * Make all variable and function naming consistent, along with whitespace conventions,
   in accordance with the ns-3 code style guide
 

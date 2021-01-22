@@ -7,11 +7,13 @@ the bursts into useful file formats.
 
 It encompasses the following files:
 
-* **UdpBurstApplication:** `model/apps/udp-burst-application.cc/h` 
+* **UdpBurstClient:** `model/apps/udp-burst-client.cc/h` 
 
-  Application which acts as both client and server. One application
-  instance is installed for each node, and the bursts for which it is
-  incoming or outgoing are registered with it.
+  Client which sends the burst uni-directional to a UDP burst server.
+  
+* **UdpBurstServer:** `model/apps/udp-burst-server.cc/h` 
+
+  Server which receives incoming bursts and logs.
   
 * **UdpBurstInfo:** `model/apps/udp-burst-info.cc/h`
 
@@ -93,36 +95,41 @@ scheduler (which is recommended).
 2. Before the start of the simulation run, in your code add:
 
    ```c++
-    // Setup the application on both nodes
-    UdpBurstHelper udpBurstHelper(1026, m_basicSimulation->GetLogsDir());
-    ApplicationContainer app_a = udpBurstHelper.Install(node_a);
-    app_a.Start(Seconds(0.0));
-    ApplicationContainer app_b = udpBurstHelper.Install(node_b);
-    app_b.Start(Seconds(0.0));
-   
-   
-   // Start a burst from node A (id: 6) to node B (id: 23)
-   UdpBurstInfo info = UdpBurstInfo(0, 6, 23, 50, 0, 1000000000, "", "");
-   
-   // Register the outgoing burst on node A
-   app_a.Get(0)->RegisterOutgoingBurst(
-            info,
-            InetSocketAddress(node_b->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
-            true   
+   // Setup a UDP burst server on node 23
+   UdpBurstServerHelper burstServerHelper(
+           InetSocketAddress(topology->GetNodes().Get(23)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1029),
+           "/path/to/desired/logs/dir"
    );
+   ApplicationContainer udpBurstServerApp = burstServerHelper.Install(topology->GetNodes().Get(23));
+   udpBurstServerApp.Start(NanoSeconds(0));
    
-   // Register the incoming burst on node B
-   app_b.Get(0)->RegisterIncomingBurst(info, true);
+   // Register a burst with ID 0 expected to be received on the server
+   udpBurstServerApp.Get(0)->GetObject<UdpBurstServer>()->RegisterIncomingBurst(0, true);
+   
+   // Start UDP burst with ID 0 
+   // From node 23 to 6 it sends at 15 Mbit/s for 700ms, starting at t=1 microsecond
+   UdpBurstClientHelper burstClientHelper(
+            InetSocketAddress(topology->GetNodes().Get(6)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 0),
+            InetSocketAddress(topology->GetNodes().Get(23)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1029),
+            0,
+            15.0,
+            NanoSeconds(700000000),
+            "/path/to/desired/logs/dir",
+            true,
+            basicSimulation->GetLogsDir()>>
+   );
+   ApplicationContainer udpBurstClientApp = burstClientHelper.Install(topology->GetNodes().Get(23));
+   udpBurstClientApp.Start(NanoSeconds(1000));
    ```
 
 3. After the run, in your code add:
 
    ```c++
    // Each burst you get the number of sent out packets
-   std::vector<std::tuple<UdpBurstInfo, uint64_t>> outgoing_bursts = app_a.Get(0)->GetOutgoingBurstsInformation();
+   uint64_t sent_packets = udpBurstClientApp.Get(0)->GetSent();
    
    // Each burst you get the number of received packets
-   std::vector<std::tuple<UdpBurstInfo, uint64_t>> incoming_bursts = app_b.Get(0)->GetIncomingBurstsInformation();
+   std::vector<std::tuple<int64_t, uint64_t>> incoming_bursts = udpBurstServerApp.Get(0)->GetIncomingBurstsInformation();
    ```
 
 

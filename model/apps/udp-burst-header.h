@@ -20,19 +20,19 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#ifndef ID_SEQ_HEADER_H
-#define ID_SEQ_HEADER_H
+#ifndef UDP_BURST_HEADER_H
+#define UDP_BURST_HEADER_H
 
 #include "ns3/header.h"
 
 namespace ns3 {
     
-class IdSeqHeader : public Header
+class UdpBurstHeader : public Header
 {
 public:
   static TypeId GetTypeId (void);
     
-  IdSeqHeader ();
+  UdpBurstHeader ();
   void SetId (uint64_t id);
   void SetSeq (uint64_t seq);
   uint64_t GetId (void) const;
@@ -51,4 +51,4 @@ private:
 
 } // namespace ns3
 
-#endif /* ID_SEQ_HEADER_H */
+#endif /* UDP_BURST_HEADER_H */

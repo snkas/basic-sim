@@ -337,7 +337,7 @@ public:
         ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(3), bandwidth_rate, 0.1);
         ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(4), bandwidth_rate, 0.1);
         ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(5), bandwidth_rate, 0.1);
-        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(6), bandwidth_rate / 2.0 * (1.0 - 0.3), 0.1);
+        ASSERT_EQUAL_APPROX(list_incoming_rate_megabit_per_s.at(6), bandwidth_rate / 2.0 * (1.0 - 0.3), 0.15);
 
     }
 };
@@ -711,7 +711,7 @@ public:
     void DoRun () {
         prepare_test_dir();
 
-        int64_t simulation_end_time_ns = 200000000;
+        int64_t simulation_end_time_ns = 250000000;
         int64_t simulation_seed = 1839582950225;
 
         /* topology.properties
@@ -735,7 +735,7 @@ public:
         topology_file << "undirected_edges=set(0-4,1-4,2-4,0-8,0-6,1-7,2-5,3-8,3-6,3-7,3-5)" << std::endl;
         topology_file << "all_nodes_are_endpoints=false" << std::endl;
         topology_file << "link_channel_delay_ns=100000" << std::endl;
-        topology_file << "link_net_device_data_rate_megabit_per_s=20" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=50" << std::endl;
         topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
@@ -759,7 +759,7 @@ public:
         std::vector<UdpBurstInfo> write_schedule;
         int num_bursts = 100;
         for (int i = 0; i < num_bursts; i++) {
-            write_schedule.push_back(UdpBurstInfo(i, 4, 3, 0.2, 0, simulation_end_time_ns, "", ""));
+            write_schedule.push_back(UdpBurstInfo(i, 4, 3, 0.5, 0, simulation_end_time_ns, "", ""));
         }
 
         // Write schedule file
@@ -843,16 +843,23 @@ public:
         validate_link_net_device_utilization_logs(temp_dir, dir_a_b_list, simulation_end_time_ns, 100000000, link_net_device_utilization, link_overall_utilization_as_fraction);
 
         // To print the actual utilization
-        // std::cout << "5-3: " << link_overall_utilization_as_fraction.at(std::make_pair(5, 3)) << std::endl;
-        // std::cout << "6-3: " << link_overall_utilization_as_fraction.at(std::make_pair(6, 3)) << std::endl;
-        // std::cout << "7-3: " << link_overall_utilization_as_fraction.at(std::make_pair(7, 3)) << std::endl;
-        // std::cout << "8-3: " << link_overall_utilization_as_fraction.at(std::make_pair(8, 3)) << std::endl;
+        std::cout << "5-3: " << link_overall_utilization_as_fraction.at(std::make_pair(5, 3)) << std::endl;
+        std::cout << "6-3: " << link_overall_utilization_as_fraction.at(std::make_pair(6, 3)) << std::endl;
+        std::cout << "7-3: " << link_overall_utilization_as_fraction.at(std::make_pair(7, 3)) << std::endl;
+        std::cout << "8-3: " << link_overall_utilization_as_fraction.at(std::make_pair(8, 3)) << std::endl;
 
-        // TODO: The utilization should be in expectation 0.25 for all four paths
-        // ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(5, 3)) >= 0.15);
-        // ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(6, 3)) >= 0.15);
-        // ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(7, 3)) >= 0.15);
-        // ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(8, 3)) >= 0.15);
+        // The utilization should be 33% for (6-3, 8-3), 33% for 5-3 and 33% for 7-3
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(5, 3)) >= 0.25);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(6, 3)) >= 0.125);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(7, 3)) >= 0.25);
+        ASSERT_TRUE(link_overall_utilization_as_fraction.at(std::make_pair(8, 3)) >= 0.125);
+        ASSERT_TRUE(
+            link_overall_utilization_as_fraction.at(std::make_pair(5, 3)) +
+            link_overall_utilization_as_fraction.at(std::make_pair(6, 3)) +
+            link_overall_utilization_as_fraction.at(std::make_pair(7, 3)) +
+            link_overall_utilization_as_fraction.at(std::make_pair(8, 3))
+            <= 1.1
+        );
 
         // Make sure these are removed
         remove_file_if_exists(temp_dir + "/config_ns3.properties");

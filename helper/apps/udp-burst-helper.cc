@@ -16,23 +16,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Simon
- * Adapted from UdpRttHelper by: Simon
  * Adapted from UdpEchoHelper by:
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
+
 #include "udp-burst-helper.h"
 
 namespace ns3 {
 
-UdpBurstHelper::UdpBurstHelper (uint16_t port, std::string baseLogsDir)
+UdpBurstServerHelper::UdpBurstServerHelper (Address localAddress, std::string baseLogsDir)
 {
-  m_factory.SetTypeId (UdpBurstApplication::GetTypeId ());
-  SetAttribute ("Port", UintegerValue (port));
+  m_factory.SetTypeId (UdpBurstServer::GetTypeId ());
+  SetAttribute ("LocalAddress", AddressValue (localAddress));
   SetAttribute ("BaseLogsDir", StringValue (baseLogsDir));
 }
 
 void 
-UdpBurstHelper::SetAttribute (
+UdpBurstServerHelper::SetAttribute (
   std::string name, 
   const AttributeValue &value)
 {
@@ -40,26 +40,52 @@ UdpBurstHelper::SetAttribute (
 }
 
 ApplicationContainer
-UdpBurstHelper::Install (Ptr<Node> node) const
+UdpBurstServerHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
-ApplicationContainer
-UdpBurstHelper::Install (NodeContainer c) const
+Ptr<Application>
+UdpBurstServerHelper::InstallPriv (Ptr<Node> node) const
 {
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i) {
-      apps.Add (InstallPriv (*i));
-  }
-  return apps;
+  Ptr<Application> app = m_factory.Create<UdpBurstServer> ();
+  node->AddApplication (app);
+  return app;
+}
+
+UdpBurstClientHelper::UdpBurstClientHelper (Address localAddress, Address remoteAddress, int64_t udp_burst_id, double target_rate_megabit_per_s, Time duration, std::string additional_parameters, bool enablePreciseLoggingToFile, std::string baseLogsDir)
+{
+  m_factory.SetTypeId (UdpBurstClient::GetTypeId ());
+  SetAttribute ("LocalAddress", AddressValue (localAddress));
+  SetAttribute ("RemoteAddress", AddressValue (remoteAddress));
+  SetAttribute ("UdpBurstId", UintegerValue (udp_burst_id));
+  SetAttribute ("TargetRateMbps", DoubleValue (target_rate_megabit_per_s));
+  SetAttribute ("Duration", TimeValue (duration));
+  SetAttribute ("AdditionalParameters", StringValue (additional_parameters));
+  SetAttribute ("EnablePreciseLoggingToFile", BooleanValue (enablePreciseLoggingToFile));
+  SetAttribute ("BaseLogsDir", StringValue (baseLogsDir));
+}
+
+void 
+UdpBurstClientHelper::SetAttribute (
+  std::string name, 
+  const AttributeValue &value)
+{
+  m_factory.Set (name, value);
+}
+
+ApplicationContainer
+UdpBurstClientHelper::Install (Ptr<Node> node) const
+{
+  return ApplicationContainer (InstallPriv (node));
 }
 
 Ptr<Application>
-UdpBurstHelper::InstallPriv (Ptr<Node> node) const
+UdpBurstClientHelper::InstallPriv (Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<UdpBurstApplication> ();
+  Ptr<Application> app = m_factory.Create<UdpBurstClient> ();
   node->AddApplication (app);
+
   return app;
 }
 

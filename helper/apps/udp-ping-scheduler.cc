@@ -30,8 +30,8 @@ void UdpPingScheduler::StartNextUdpPing(int i) {
 
     // Helper to install the source application
     UdpPingClientHelper client(
-            InetSocketAddress(m_nodes.Get(entry.GetFromNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0), // 0 port means ANY port
-            InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1025),
+            InetSocketAddress(m_nodes.Get(entry.GetFromNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 0), // port 0 means an ephemeral port will be assigned
+            InetSocketAddress(m_nodes.Get(entry.GetToNodeId())->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026),
             entry.GetUdpPingId(),
             NanoSeconds(entry.GetIntervalNs()),
             NanoSeconds(entry.GetDurationNs()),
@@ -119,12 +119,12 @@ UdpPingScheduler::UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         // Endpoints
         std::set<int64_t> endpoints = m_topology->GetEndpoints();
 
-        // Install echo server on each node
+        // Install UDP server on each node
         std::cout << "  > Setting up " << endpoints.size() << " UDP ping servers" << std::endl;
         for (int64_t i : endpoints) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(i)) {
                 UdpPingServerHelper pingServerHelper(
-                    InetSocketAddress(m_nodes.Get(i)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1025)
+                    InetSocketAddress(m_nodes.Get(i)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026)
                 );
                 ApplicationContainer app = pingServerHelper.Install(m_nodes.Get(i));
                 app.Start(Seconds(0.0));
@@ -132,7 +132,7 @@ UdpPingScheduler::UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         }
         m_basicSimulation->RegisterTimestamp("Setup UDP ping servers");
 
-        // Setup start of first source application
+        // Setup start of first client application
         std::cout << "  > Schedule start of first UDP ping client" << std::endl;
         if (m_schedule.size() > 0) {
             Simulator::Schedule(

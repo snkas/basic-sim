@@ -44,16 +44,6 @@ UdpPingServerHelper::Install (Ptr<Node> node) const
   return ApplicationContainer (InstallPriv (node));
 }
 
-ApplicationContainer
-UdpPingServerHelper::Install (NodeContainer c) const
-{
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i) {
-      apps.Add (InstallPriv (*i));
-  }
-  return apps;
-}
-
 Ptr<Application>
 UdpPingServerHelper::InstallPriv (Ptr<Node> node) const
 {

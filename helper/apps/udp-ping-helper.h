@@ -42,7 +42,6 @@ public:
   UdpPingServerHelper (Address localAddress);
   void SetAttribute (std::string name, const AttributeValue &value);
   ApplicationContainer Install (Ptr<Node> node) const;
-  ApplicationContainer Install (NodeContainer c) const;
 
 private:
   Ptr<Application> InstallPriv (Ptr<Node> node) const;

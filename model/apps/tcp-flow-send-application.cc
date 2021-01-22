@@ -75,7 +75,7 @@ TcpFlowSendApplication::GetTypeId(void) {
             .AddAttribute("EnableTcpFlowLoggingToFile",
                           "True iff you want to track some aspects (progress, rtt, rto, cwnd, inflated cwnd, "
                           "ssthresh, inflight, state, congestion state) of the TCP flow over time.",
-                          BooleanValue(true),
+                          BooleanValue(false),
                           MakeBooleanAccessor(&TcpFlowSendApplication::m_enableDetailedLogging),
                           MakeBooleanChecker())
             .AddAttribute ("BaseLogsDir",
@@ -211,18 +211,8 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
 }
 
 void TcpFlowSendApplication::StopApplication(void) { // Called at time specified by Stop
-    throw std::runtime_error("TCP flow send application is not intended to be stopped after being started.");
-    /*
-     * Deprecated stop code:
-     *
-     * NS_LOG_FUNCTION(this);
-     * if (m_socket != 0) {
-     *    m_socket->Close();
-     *    m_connected = false;
-     * } else {
-     *    NS_LOG_WARN("TcpFlowSendApplication found null socket to close in StopApplication");
-     * }
-     */
+    throw std::runtime_error("TCP flow client cannot be stopped like a regular application, "
+                             "it finished only by the socket closing.");
 }
 
 void TcpFlowSendApplication::SendData(void) {

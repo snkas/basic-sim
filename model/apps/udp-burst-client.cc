@@ -1,0 +1,203 @@
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
+/*
+ * Copyright 2007 University of Washington
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation;
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#include "ns3/log.h"
+#include "ns3/ipv4-address.h"
+#include "ns3/ipv6-address.h"
+#include "ns3/nstime.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/inet6-socket-address.h"
+#include "ns3/socket.h"
+#include "ns3/simulator.h"
+#include "ns3/socket-factory.h"
+#include "ns3/packet.h"
+#include "ns3/uinteger.h"
+#include "ns3/trace-source-accessor.h"
+#include "udp-burst-client.h"
+
+namespace ns3 {
+
+NS_LOG_COMPONENT_DEFINE ("UdpBurstClient");
+
+NS_OBJECT_ENSURE_REGISTERED (UdpBurstClient);
+
+TypeId
+UdpBurstClient::GetTypeId(void) {
+    static TypeId tid = TypeId("ns3::UdpBurstClient")
+            .SetParent<Application>()
+            .SetGroupName("Applications")
+            .AddConstructor<UdpBurstClient>()
+            .AddAttribute("LocalAddress",
+                          "The local address (IPv4 address, port). Setting the IPv4 address will enable"
+                          "proper ECMP routing (as else it forces an early lookup with only destination IP). "
+                          "Setting the port is not necessary, as it will be assigned an ephemeral one.",
+                          AddressValue(),
+                          MakeAddressAccessor(&UdpBurstClient::m_localAddress),
+                          MakeAddressChecker())
+            .AddAttribute("RemoteAddress",
+                          "The destination address of the outbound packets (IPv4 address, port)",
+                          AddressValue(),
+                          MakeAddressAccessor(&UdpBurstClient::m_peerAddress),
+                          MakeAddressChecker())
+            .AddAttribute("UdpBurstId",
+                          "Unique UDP burst identifier",
+                          UintegerValue(0),
+                          MakeUintegerAccessor(&UdpBurstClient::m_udpBurstId),
+                          MakeUintegerChecker<uint64_t>())
+            .AddAttribute("TargetRateMbps",
+                          "Target rate (incl. headers) in Mbit/s",
+                          DoubleValue(10.0),
+                          MakeDoubleAccessor(&UdpBurstClient::m_target_rate_megabit_per_s),
+                          MakeDoubleChecker<double>())
+            .AddAttribute("Duration",
+                          "How long to do the bursting",
+                          TimeValue(Seconds(10.0)),
+                          MakeTimeAccessor(&UdpBurstClient::m_duration),
+                          MakeTimeChecker())
+            .AddAttribute ("AdditionalParameters",
+                           "Additional parameter string; this might be parsed in another version of this application "
+                           "to do slightly different behavior",
+                           StringValue (""),
+                           MakeStringAccessor (&UdpBurstClient::m_additionalParameters),
+                           MakeStringChecker())
+            .AddAttribute("EnablePreciseLoggingToFile",
+                          "True iff you want to have the exact send time stamps logged to file: logs_dir/udp_burst_[id]_outgoing.csv",
+                          BooleanValue(false),
+                          MakeBooleanAccessor(&UdpBurstClient::m_enableDetailedLogging),
+                          MakeBooleanChecker())
+            .AddAttribute ("BaseLogsDir",
+                           "Base logging directory (logging will be placed here, i.e. logs_dir/udp_burst_[id]_outgoing.csv",
+                           StringValue (""),
+                           MakeStringAccessor (&UdpBurstClient::m_baseLogsDir),
+                           MakeStringChecker ())
+            .AddAttribute("MaxUdpPayloadSizeByte", "Total UDP payload size (byte) before it gets fragmented.",
+                          UintegerValue(1472), // 1500 (point-to-point default) - 20 (IP) - 8 (UDP) = 1472
+                          MakeUintegerAccessor(&UdpBurstClient::m_max_udp_payload_size_byte),
+                          MakeUintegerChecker<uint32_t>());
+    return tid;
+}
+
+UdpBurstClient::UdpBurstClient() {
+    NS_LOG_FUNCTION(this);
+    m_socket = 0;
+    m_sent = 0;
+    m_sendEvent = EventId();
+    m_waitForFinishEvent = EventId();
+}
+
+UdpBurstClient::~UdpBurstClient() {
+    NS_LOG_FUNCTION(this);
+    m_socket = 0;
+}
+
+void
+UdpBurstClient::DoDispose(void) {
+    NS_LOG_FUNCTION(this);
+    Application::DoDispose();
+}
+
+uint32_t UdpBurstClient::GetMaxUdpPayloadSizeByte() {
+    return m_max_udp_payload_size_byte;
+}
+
+void
+UdpBurstClient::StartApplication(void) {
+    NS_LOG_FUNCTION(this);
+    if (m_socket == 0) {
+        TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
+        m_socket = Socket::CreateSocket(GetNode(), tid);
+
+        // Bind socket
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
+        if (m_socket->Bind(m_localAddress) == -1) {
+            throw std::runtime_error("Failed to bind socket");
+        }
+
+        // Connect
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
+        m_socket->Connect(m_peerAddress);
+
+    }
+    m_start_time = Simulator::Now();
+    m_socket->SetRecvCallback(MakeCallback(&UdpBurstClient::HandleRead, this));
+    m_socket->SetAllowBroadcast(true);
+    ScheduleTransmit(Seconds(0.));
+}
+
+void
+UdpBurstClient::StopApplication() { // Called at time specified by Stop
+    throw std::runtime_error(
+            "UDP burst client cannot be stopped like a regular application, it finished only when it is done sending."
+    );
+}
+
+void
+UdpBurstClient::ScheduleTransmit(Time dt) {
+    NS_LOG_FUNCTION(this << dt);
+    m_sendEvent = Simulator::Schedule(dt, &UdpBurstClient::Send, this);
+}
+
+void
+UdpBurstClient::Send(void) {
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(m_sendEvent.IsExpired());
+
+    // Full payload packet
+    UdpBurstHeader burstHeader;
+    burstHeader.SetId(m_udpBurstId);
+    burstHeader.SetSeq(m_sent);
+    Ptr<Packet> p = Create<Packet>(m_max_udp_payload_size_byte - burstHeader.GetSerializedSize());
+    p->AddHeader(burstHeader);
+
+    // Sent out
+    m_sent++;
+
+    // Log precise timestamp sent away of the sequence packet if needed
+    if (m_enableDetailedLogging) {
+        std::ofstream ofs;
+        ofs.open(m_baseLogsDir + "/" + format_string("udp_burst_%" PRIu64 "_outgoing.csv", burstHeader.GetId()), std::ofstream::out | std::ofstream::app);
+        ofs << burstHeader.GetId() << "," << burstHeader.GetSeq() << "," << Simulator::Now().GetNanoSeconds() << std::endl;
+        ofs.close();
+    }
+
+    // Send out
+    m_socket->Send(p);
+
+    // Schedule next transmit, or wait to close
+    uint64_t now_ns = Simulator::Now().GetNanoSeconds();
+    uint64_t packet_gap_nanoseconds = std::ceil(1500.0 / (m_target_rate_megabit_per_s / 8000.0));
+    if (now_ns + packet_gap_nanoseconds < (uint64_t) (m_start_time.GetNanoSeconds() + m_duration.GetNanoSeconds())) {
+        ScheduleTransmit(NanoSeconds(packet_gap_nanoseconds));
+    }
+
+}
+
+void
+UdpBurstClient::HandleRead(Ptr <Socket> socket) {
+    throw std::runtime_error("UDP burst client should not receive any packets.");
+}
+
+uint32_t UdpBurstClient::GetUdpBurstId() {
+    return m_udpBurstId;
+}
+
+uint32_t UdpBurstClient::GetSent() {
+    return m_sent;
+}
+
+} // Namespace ns3

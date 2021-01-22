@@ -134,7 +134,7 @@ UdpPingClient::StopApplication() { // Called at time specified by Stop
 }
 
 void
-UdpPingClient::Finish() { // Called at time specified by Stop
+UdpPingClient::Finish() {
     NS_LOG_FUNCTION(this);
     NS_ABORT_UNLESS(m_sendEvent.IsExpired());
     NS_ABORT_UNLESS(m_waitForFinishEvent.IsExpired());
@@ -161,7 +161,7 @@ UdpPingClient::Send(void) {
 
     // Packet with timestamp
     Ptr<Packet> p = Create<Packet>();
-    UdpPingHeader pingHeader; // Creates one with the current timestamp
+    UdpPingHeader pingHeader;
     pingHeader.SetId(m_udpPingId);
     pingHeader.SetSeq(m_sent);
     pingHeader.SetTs(now_ns);

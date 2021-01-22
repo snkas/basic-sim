@@ -24,26 +24,26 @@
 #include "ns3/log.h"
 #include "ns3/header.h"
 #include "ns3/simulator.h"
-#include "id-seq-header.h"
+#include "udp-burst-header.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("IdSeqHeader");
+NS_LOG_COMPONENT_DEFINE ("UdpBurstHeader");
 
-NS_OBJECT_ENSURE_REGISTERED (IdSeqHeader);
+NS_OBJECT_ENSURE_REGISTERED (UdpBurstHeader);
 
 TypeId
-IdSeqHeader::GetTypeId (void)
+UdpBurstHeader::GetTypeId (void)
 {
-    static TypeId tid = TypeId ("ns3::IdSeqHeader")
+    static TypeId tid = TypeId ("ns3::UdpBurstHeader")
             .SetParent<Header> ()
             .SetGroupName("BasicSim")
-            .AddConstructor<IdSeqHeader> ()
+            .AddConstructor<UdpBurstHeader> ()
     ;
     return tid;
 }
 
-IdSeqHeader::IdSeqHeader ()
+UdpBurstHeader::UdpBurstHeader ()
   : m_id (0),
     m_seq (0)
 {
@@ -51,55 +51,55 @@ IdSeqHeader::IdSeqHeader ()
 }
 
 void
-IdSeqHeader::SetId (uint64_t id)
+UdpBurstHeader::SetId (uint64_t id)
 {
     NS_LOG_FUNCTION (this << id);
     m_id = id;
 }
 
 uint64_t
-IdSeqHeader::GetId (void) const
+UdpBurstHeader::GetId (void) const
 {
     NS_LOG_FUNCTION (this);
     return m_id;
 }
 
 void
-IdSeqHeader::SetSeq (uint64_t seq)
+UdpBurstHeader::SetSeq (uint64_t seq)
 {
   NS_LOG_FUNCTION (this << seq);
   m_seq = seq;
 }
 
 uint64_t
-IdSeqHeader::GetSeq (void) const
+UdpBurstHeader::GetSeq (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_seq;
 }
 
 TypeId
-IdSeqHeader::GetInstanceTypeId (void) const
+UdpBurstHeader::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
 }
 
 void
-IdSeqHeader::Print (std::ostream &os) const
+UdpBurstHeader::Print (std::ostream &os) const
 {
   NS_LOG_FUNCTION (this << &os);
   os << "(id=" << m_id << ", seq=" << m_seq << ")";
 }
 
 uint32_t
-IdSeqHeader::GetSerializedSize (void) const
+UdpBurstHeader::GetSerializedSize (void) const
 {
   NS_LOG_FUNCTION (this);
   return 8+8;
 }
 
 void
-IdSeqHeader::Serialize (Buffer::Iterator start) const
+UdpBurstHeader::Serialize (Buffer::Iterator start) const
 {
   NS_LOG_FUNCTION (this << &start);
   Buffer::Iterator i = start;
@@ -108,7 +108,7 @@ IdSeqHeader::Serialize (Buffer::Iterator start) const
 }
 
 uint32_t
-IdSeqHeader::Deserialize (Buffer::Iterator start)
+UdpBurstHeader::Deserialize (Buffer::Iterator start)
 {
   NS_LOG_FUNCTION (this << &start);
   Buffer::Iterator i = start;
