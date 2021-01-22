@@ -24,7 +24,7 @@ set xtics nomirror
 set ytics nomirror
 
 # Line styles
-set style line 1 lt rgb "#2177b0" lw 2.4 pt 2 ps 1.4
+set style line 1 lt rgb "#2177b0" lw 2.4 pt 7 ps 0.7
 set style line 2 lt rgb "#fc7f2b" lw 2.4 pt 2 ps 0
 set style line 3 lt rgb "#2f9e37" lw 2.4 pt 3 ps 0
 set style line 4 lt rgb "#d42a2d" lw 2.4 pt 4 ps 1.4
