@@ -108,8 +108,18 @@ def build(bld):
     module_test.source = [
         'test/test-helpers.cc',
         'test/test-case-with-log-validators.cc',
-        'test/basic-sim-core-test-suite.cc',
-        'test/basic-sim-apps-test-suite.cc',
+        'test/core-basic-simulation-test-suite.cc',
+        'test/core-exp-util-test-suite.cc',
+        'test/core-log-update-helper-test-suite.cc',
+        'test/core-ptop-test-suite.cc',
+        'test/core-ptop-tracking-test-suite.cc',
+        'test/core-tcp-optimizer-test-suite.cc',
+        'test/core-arbiter-test-suite.cc',
+        'test/apps-initial-helpers-test-suite.cc',
+        'test/apps-manual-test-suite.cc',
+        'test/apps-tcp-flow-test-suite.cc',
+        'test/apps-udp-burst-test-suite.cc',
+        'test/apps-udp-ping-test-suite.cc',
         ]
 
     # Main

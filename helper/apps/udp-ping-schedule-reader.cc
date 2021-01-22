@@ -130,7 +130,7 @@ std::vector<UdpPingInfo> read_udp_ping_schedule(const std::string& filename, Ptr
 
         // Must be weakly ascending start time
         if (prev_start_time_ns > start_time_ns) {
-            throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with UDP ping ID: %" PRId64 ", violation: %" PRId64 ")\n", udp_ping_id, start_time_ns));
+            throw std::invalid_argument(format_string("Start time is not weakly ascending (on line with UDP ping ID: %" PRId64 ", violation: %" PRId64 ")", udp_ping_id, start_time_ns));
         }
         prev_start_time_ns = start_time_ns;
 

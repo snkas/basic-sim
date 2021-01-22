@@ -216,9 +216,12 @@ public:
         // Not ordered time
         schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,1000,100002,2000009,33,xyz,abc" << std::endl;
-        schedule_file << "0,3,1,1000,100001,2000009,33,xyz,abc" << std::endl;
+        schedule_file << "1,3,1,1000,100001,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION_MATCH_WHAT(
+                read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000),
+                "Start time is not weakly ascending (on line with UDP ping ID: 1, violation: 100001)"
+        );
 
         // Exceeding time
         schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");

@@ -22,17 +22,35 @@ cd ${NS3_VERSION} || exit 1
 echo "Zeroing coverage counters"
 lcov --directory build/debug_all --zerocounters
 
+# Function to run multiple test suites but get a single file with all outcomes
+run_test_suite_and_append () {
+  echo "Running test suite $1"
+  python test.py -v -s "$1" -t ../test_results/temp || exit 1
+  cat ../test_results/temp.txt >> "$2" || exit 1
+  rm ../test_results/temp.txt || exit 1
+}
+
 # Core tests
 if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "--core" ] || [ "$4" == "--core" ] || [ "$5" == "--core" ]; then
   echo "Performing core tests"
-  python test.py -v -s "basic-sim-core" -t ../test_results/test_results_core || exit 1
+  run_test_suite_and_append "basic-sim-core-basic-simulation" "../test_results/test_results_core.txt"
+  run_test_suite_and_append "basic-sim-core-exp-util" "../test_results/test_results_core.txt"
+  run_test_suite_and_append "basic-sim-core-log-update-helper" "../test_results/test_results_core.txt"
+  run_test_suite_and_append "basic-sim-core-ptop" "../test_results/test_results_core.txt"
+  run_test_suite_and_append "basic-sim-core-arbiter" "../test_results/test_results_core.txt"
+  run_test_suite_and_append "basic-sim-core-ptop-tracking"  "../test_results/test_results_core.txt"
+  run_test_suite_and_append "basic-sim-core-tcp-optimizer"  "../test_results/test_results_core.txt"
   cat ../test_results/test_results_core.txt
 fi
 
 # Apps tests
 if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "--apps" ] || [ "$4" == "--apps" ] || [ "$5" == "--apps" ]; then
   echo "Performing apps tests"
-  python test.py -v -s "basic-sim-apps" -t ../test_results/test_results_apps || exit 1
+  run_test_suite_and_append "basic-sim-apps-initial-helpers" "../test_results/test_results_apps.txt"
+  run_test_suite_and_append "basic-sim-apps-manual" "../test_results/test_results_apps.txt"
+  run_test_suite_and_append "basic-sim-apps-tcp-flow" "../test_results/test_results_apps.txt"
+  run_test_suite_and_append "basic-sim-apps-udp-burst" "../test_results/test_results_apps.txt"
+  run_test_suite_and_append "basic-sim-apps-udp-ping" "../test_results/test_results_apps.txt"
   cat ../test_results/test_results_apps.txt
 fi
 
