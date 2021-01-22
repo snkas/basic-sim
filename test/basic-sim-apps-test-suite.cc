@@ -1,14 +1,21 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "initial-helpers-test.h"
-#include "manual-end-to-end-test.h"
-#include "tcp-flow-schedule-reader-test.h"
-#include "tcp-flow-end-to-end-test.h"
-#include "udp-burst-schedule-reader-test.h"
-#include "udp-burst-end-to-end-test.h"
-#include "udp-ping-schedule-reader-test.h"
-#include "udp-ping-end-to-end-test.h"
-#include "udp-ping-pingmesh-test.h"
+#include "ns3/basic-sim-module.h"
+
+using namespace ns3;
+
+#include "test-helpers.h"
+#include "test-case-with-log-validators.h"
+
+#include "apps/initial-helpers-test.h"
+#include "apps/manual-end-to-end-test.h"
+#include "apps/tcp-flow-schedule-reader-test.h"
+#include "apps/tcp-flow-end-to-end-test.h"
+#include "apps/udp-burst-schedule-reader-test.h"
+#include "apps/udp-burst-end-to-end-test.h"
+#include "apps/udp-ping-schedule-reader-test.h"
+#include "apps/udp-ping-end-to-end-test.h"
+#include "apps/udp-ping-pingmesh-test.h"
 
 class BasicAppsTestSuite : public TestSuite {
 public:

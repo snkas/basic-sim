@@ -106,7 +106,10 @@ def build(bld):
     # Tests
     module_test = bld.create_ns3_module_test_library('basic-sim')
     module_test.source = [
-        'test/basic-sim-test-suite.cc',
+        'test/test-helpers.cc',
+        'test/test-case-with-log-validators.cc',
+        'test/basic-sim-core-test-suite.cc',
+        'test/basic-sim-apps-test-suite.cc',
         ]
 
     # Main

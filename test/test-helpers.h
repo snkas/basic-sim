@@ -2,6 +2,7 @@
 #define TEST_HELPERS_H
 
 #include "ns3/test.h"
+#include <set>
 
 #define ASSERT_EQUAL(a, b) NS_TEST_ASSERT_MSG_EQ((a), (b), "")
 #define ASSERT_NOT_EQUAL(a, b) NS_TEST_ASSERT_MSG_NE((a), (b), "")
@@ -12,12 +13,8 @@
 #define ASSERT_EXCEPTION_MATCH_WHAT(a, expected_exception_msg) do { bool caught = false; try { a; } catch (std::exception& e) { NS_TEST_ASSERT_MSG_EQ(std::string(e.what()), expected_exception_msg, "Exception message did not match"); caught = true; } ASSERT_TRUE(caught); } while(0)
 #define ASSERT_PAIR_EQUAL(a, b) ASSERT_TRUE(((a) == (b)))
 
-bool set_int64_contains(const std::set<int64_t>& s, const int64_t value) {
-    return s.find(value) != s.end();
-}
+bool set_int64_contains(const std::set<int64_t>& s, const int64_t value);
 
-bool set_pair_int64_contains(const std::set<std::pair<int64_t, int64_t>>& s, const std::pair<int64_t, int64_t> value) {
-    return s.find(value) != s.end();
-}
+bool set_pair_int64_contains(const std::set<std::pair<int64_t, int64_t>>& s, const std::pair<int64_t, int64_t> value);
 
 #endif //TEST_HELPERS_H
