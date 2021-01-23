@@ -12,13 +12,13 @@ public:
         std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file.close();
     }
 
     void cleanup_ptop_receive_error_model_test() {
         remove_file_if_exists(test_run_dir + "/config_ns3.properties");
-        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
         remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
@@ -41,7 +41,7 @@ public:
         prepare_ptop_receive_error_model_test_config();
         
         std::ofstream topology_file;
-        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=8" << std::endl;
         topology_file << "num_undirected_edges=7" << std::endl;
         topology_file << "switches=set(4)" << std::endl;
@@ -122,7 +122,7 @@ public:
         std::ofstream topology_file;
         Ptr<BasicSimulation> basicSimulation;
         basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
-        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -143,7 +143,7 @@ public:
         prepare_clean_run_dir(test_run_dir);
         prepare_ptop_receive_error_model_test_config();
         basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
-        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -164,7 +164,7 @@ public:
         prepare_clean_run_dir(test_run_dir);
         prepare_ptop_receive_error_model_test_config();
         basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
-        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;

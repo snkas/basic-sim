@@ -5,19 +5,12 @@
 class UdpPingPingmeshTestCase : public TestCaseWithLogValidators {
 public:
     UdpPingPingmeshTestCase(std::string s) : TestCaseWithLogValidators(s) {};
-    const std::string temp_dir = ".tmp-udp-ping-pingmesh-test";
-
-    void prepare_test_dir() {
-        mkdir_if_not_exists(temp_dir);
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-    }
-
+    std::string test_run_dir = ".tmp-test-udp-ping-pingmesh";
+    
     std::vector<UdpPingInfo> write_pingmesh_to_udp_ping_schedule(int64_t pingmesh_interval_ns, std::string pingmesh_endpoints_pair_str, std::vector<int64_t> endpoints) {
         std::vector<UdpPingInfo> result;
         std::ofstream schedule_file;
-        schedule_file.open (temp_dir + "/udp_ping_schedule.csv");
+        schedule_file.open (test_run_dir + "/udp_ping_schedule.csv");
         if (pingmesh_endpoints_pair_str == "all") {
             int n = 0;
             for (int64_t i : endpoints) {
@@ -64,7 +57,7 @@ public:
 
     void write_basic_config(int64_t simulation_end_time_ns) {
         std::ofstream config_file;
-        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file.open (test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
@@ -80,7 +73,7 @@ public:
     //
     void write_six_topology() {
         std::ofstream topology_file;
-        topology_file.open (temp_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=6" << std::endl;
         topology_file << "num_undirected_edges=7" << std::endl;
         topology_file << "switches=set(0,1,2,3,4,5)" << std::endl;
@@ -102,10 +95,11 @@ public:
 class UdpPingPingmeshNineAllTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    UdpPingPingmeshNineAllTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh nine-all") {};
+    UdpPingPingmeshNineAllTestCase () : UdpPingPingmeshTestCase ("udp-ping-pingmesh nine-all") {};
 
     void DoRun () {
-        prepare_test_dir();
+        test_run_dir = ".tmp-test-udp-ping-pingmesh-nine-all";
+        prepare_clean_run_dir(test_run_dir);
 
         // 5 seconds, every 100ms a ping
         write_basic_config(5000000000);
@@ -155,7 +149,7 @@ public:
         std::vector<std::vector<int64_t>> list_rtt_ns;
 
         // Perform basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         UdpPingScheduler udpPingScheduler(basicSimulation, topology);
@@ -166,7 +160,7 @@ public:
         // Perform the run and get results
         validate_udp_ping_logs(
                 5000000000,
-                temp_dir,
+                test_run_dir,
                 udp_ping_schedule,
                 list_latency_there_ns,
                 list_latency_back_ns,
@@ -200,16 +194,16 @@ public:
         }
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.txt");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
@@ -219,10 +213,11 @@ public:
 class UdpPingPingmeshFivePairsTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    UdpPingPingmeshFivePairsTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh five-pairs") {};
+    UdpPingPingmeshFivePairsTestCase () : UdpPingPingmeshTestCase ("udp-ping-pingmesh five-pairs") {};
 
     void DoRun () {
-        prepare_test_dir();
+        test_run_dir = ".tmp-test-udp-ping-pingmesh-five-pairs";
+        prepare_clean_run_dir(test_run_dir);
 
         // 5 seconds, every 100ms a ping
         write_basic_config(5000000000);
@@ -254,7 +249,7 @@ public:
         std::vector<std::vector<int64_t>> list_rtt_ns;
 
         // Perform basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         UdpPingScheduler udpPingScheduler(basicSimulation, topology);
@@ -265,7 +260,7 @@ public:
         // Perform the run and get results
         validate_udp_ping_logs(
                 5000000000,
-                temp_dir,
+                test_run_dir,
                 udp_ping_schedule,
                 list_latency_there_ns,
                 list_latency_back_ns,
@@ -299,16 +294,16 @@ public:
         }
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.txt");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
@@ -318,14 +313,15 @@ public:
 class UdpPingPingmeshCompetitionTcpTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    UdpPingPingmeshCompetitionTcpTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh competition-tcp") {};
+    UdpPingPingmeshCompetitionTcpTestCase () : UdpPingPingmeshTestCase ("udp-ping-pingmesh competition-tcp") {};
 
     void DoRun () {
-        prepare_test_dir();
+        test_run_dir = ".tmp-test-udp-ping-pingmesh-competition-tcp";
+        prepare_clean_run_dir(test_run_dir);
 
         // 5 seconds, every 100ms a ping
         std::ofstream config_file;
-        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file.open (test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=5000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
@@ -336,12 +332,12 @@ public:
         config_file.close();
 
         std::ofstream tcp_flow_schedule_file;
-        tcp_flow_schedule_file.open (temp_dir + "/tcp_flow_schedule.csv");
+        tcp_flow_schedule_file.open (test_run_dir + "/tcp_flow_schedule.csv");
         tcp_flow_schedule_file << "0,0,1,1000000000,0,," << std::endl;
         tcp_flow_schedule_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (temp_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -370,7 +366,7 @@ public:
         std::vector<std::vector<int64_t>> list_rtt_ns;
 
         // Perform basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         UdpPingScheduler udpPingScheduler(basicSimulation, topology);
@@ -383,7 +379,7 @@ public:
         // Perform the run and get results
         validate_udp_ping_logs(
                 5000000000,
-                temp_dir,
+                test_run_dir,
                 result,
                 list_latency_there_ns,
                 list_latency_back_ns,
@@ -416,19 +412,19 @@ public:
         }
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.txt");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
@@ -438,10 +434,11 @@ public:
 class UdpPingPingmeshOnePairNoRecTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    UdpPingPingmeshOnePairNoRecTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh one-pair-no-rec") {};
+    UdpPingPingmeshOnePairNoRecTestCase () : UdpPingPingmeshTestCase ("udp-ping-pingmesh one-pair-no-rec") {};
 
     void DoRun () {
-        prepare_test_dir();
+        test_run_dir = ".tmp-test-udp-ping-pingmesh-one-pair-no-rec";
+        prepare_clean_run_dir(test_run_dir);
 
         // 0.049999999 seconds, every 10ms a ping, but takes 50ms to return back
         write_basic_config(49999999);
@@ -459,7 +456,7 @@ public:
         ping_pairs.push_back(std::make_pair(2, 1));
 
         // Perform basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         UdpPingScheduler udpPingScheduler(basicSimulation, topology);
@@ -475,7 +472,7 @@ public:
         // Perform the run and get results
         validate_udp_ping_logs(
                 49999999,
-                temp_dir,
+                test_run_dir,
                 udp_ping_schedule,
                 list_latency_there_ns,
                 list_latency_back_ns,
@@ -499,16 +496,16 @@ public:
         }
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.txt");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
@@ -518,10 +515,11 @@ public:
 class UdpPingPingmeshInvalidPairATestCase : public UdpPingPingmeshTestCase
 {
 public:
-    UdpPingPingmeshInvalidPairATestCase () : UdpPingPingmeshTestCase ("udp-pingmesh invalid-pair-a") {};
+    UdpPingPingmeshInvalidPairATestCase () : UdpPingPingmeshTestCase ("udp-ping-pingmesh invalid-pair-a") {};
 
     void DoRun () {
-        prepare_test_dir();
+        test_run_dir = ".tmp-test-udp-ping-pingmesh-invalid-pair-a";
+        prepare_clean_run_dir(test_run_dir);
 
         // 5 seconds, every 100ms a ping
         write_basic_config(5000000000);
@@ -535,7 +533,7 @@ public:
         write_six_topology();
 
         // Initialize basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
@@ -544,14 +542,14 @@ public:
         basicSimulation->Finalize();
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
@@ -561,10 +559,11 @@ public:
 class UdpPingPingmeshInvalidPairBTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    UdpPingPingmeshInvalidPairBTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh invalid-pair-b") {};
+    UdpPingPingmeshInvalidPairBTestCase () : UdpPingPingmeshTestCase ("udp-ping-pingmesh invalid-pair-b") {};
 
     void DoRun () {
-        prepare_test_dir();
+        test_run_dir = ".tmp-test-udp-ping-pingmesh-invalid-pair-b";
+        prepare_clean_run_dir(test_run_dir);
 
         // 5 seconds, every 100ms a ping
         write_basic_config(5000000000);
@@ -578,7 +577,7 @@ public:
         write_six_topology();
 
         // Initialize basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
 
@@ -587,14 +586,14 @@ public:
         basicSimulation->Finalize();
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
@@ -604,16 +603,17 @@ public:
 class UdpPingPingmeshNotEnabledTestCase : public UdpPingPingmeshTestCase
 {
 public:
-    UdpPingPingmeshNotEnabledTestCase () : UdpPingPingmeshTestCase ("udp-pingmesh not-enabled") {};
+    UdpPingPingmeshNotEnabledTestCase () : UdpPingPingmeshTestCase ("udp-ping-pingmesh not-enabled") {};
 
     void DoRun () {
 
         // Run directory
-        prepare_test_dir();
+        test_run_dir = ".tmp-test-udp-ping-pingmesh-not-enabled";
+        prepare_clean_run_dir(test_run_dir);
 
         // Config file
         std::ofstream config_file;
-        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file.open (test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << 1000000000 << std::endl;
         config_file << "simulation_seed=" << 1111111111 << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
@@ -622,7 +622,7 @@ public:
 
         // Topology
         std::ofstream topology_file;
-        topology_file.open (temp_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(2)" << std::endl;
@@ -637,7 +637,7 @@ public:
         topology_file.close();
 
         // Perform basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         UdpPingScheduler udpPingScheduler(basicSimulation, topology);
         basicSimulation->Run();
@@ -645,14 +645,14 @@ public:
         basicSimulation->Finalize();
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/udp_ping_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 

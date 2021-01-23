@@ -14,13 +14,13 @@ public:
         std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file.close();
     }
 
     void prepare_arbiter_test_default_topology() {
         std::ofstream topology_file;
-        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -37,7 +37,7 @@ public:
 
     void cleanup_arbiter_test() {
         remove_file_if_exists(test_run_dir + "/config_ns3.properties");
-        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
         remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
         remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
@@ -635,7 +635,7 @@ public:
 
         // Topology with > 40000 nodes
         std::ofstream topology_file;
-        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=40001" << std::endl;
         topology_file << "num_undirected_edges=0" << std::endl;
         topology_file << "switches=" << nodes << std::endl;
@@ -674,7 +674,7 @@ public:
 
         // Topology file
         std::ofstream topology_file;
-        topology_file.open (test_run_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=2" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -750,14 +750,14 @@ public:
         std::ofstream config_file(run_test_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=100000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
-        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "enable_tcp_flow_scheduler=true" << std::endl;
         config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
         config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=set(0)" << std::endl;
         config_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (run_test_dir + "/topology.properties.temp");
+        topology_file.open (run_test_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -824,7 +824,7 @@ public:
 
         // Clean-up
         remove_file_if_exists(run_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(run_test_dir + "/topology.properties.temp");
+        remove_file_if_exists(run_test_dir + "/topology.properties");
         remove_file_if_exists(run_test_dir + "/tcp_flow_schedule.csv");
         remove_file_if_exists(run_test_dir + "/logs_ns3/finished.txt");
         remove_file_if_exists(run_test_dir + "/logs_ns3/timing_results.txt");

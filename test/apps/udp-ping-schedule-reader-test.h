@@ -2,43 +2,46 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string udp_ping_schedule_reader_test_dir = ".tmp-udp-ping-scheduler-reader-test";
+class UdpPingScheduleReaderTestCase : public TestCaseWithLogValidators
+{
+public:
+    UdpPingScheduleReaderTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    std::string test_run_dir = ".tmp-test-udp-ping-schedule-reader";
 
-void prepare_udp_ping_schedule_reader_test_config() {
-    mkdir_if_not_exists(udp_ping_schedule_reader_test_dir);
-}
+    void cleanup_udp_ping_schedule_reader_test() {
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_ping_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+    }
 
-void cleanup_udp_ping_schedule_reader_test() {
-    remove_file_if_exists(udp_ping_schedule_reader_test_dir + "/config_ns3.properties");
-    remove_file_if_exists(udp_ping_schedule_reader_test_dir + "/topology.properties");
-    remove_file_if_exists(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
-    remove_file_if_exists(udp_ping_schedule_reader_test_dir + "/logs_ns3/finished.txt");
-    remove_file_if_exists(udp_ping_schedule_reader_test_dir + "/logs_ns3/timing_results.txt");
-    remove_file_if_exists(udp_ping_schedule_reader_test_dir + "/logs_ns3/timing_results.csv");
-    remove_dir_if_exists(udp_ping_schedule_reader_test_dir + "/logs_ns3");
-    remove_dir_if_exists(udp_ping_schedule_reader_test_dir);
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class UdpPingScheduleReaderNormalTestCase : public TestCase
+class UdpPingScheduleReaderNormalTestCase : public UdpPingScheduleReaderTestCase
 {
 public:
-    UdpPingScheduleReaderNormalTestCase () : TestCase ("udp-ping-schedule-reader normal") {};
+    UdpPingScheduleReaderNormalTestCase () : UdpPingScheduleReaderTestCase ("udp-ping-schedule-reader normal") {};
 
     void DoRun () {
-        prepare_udp_ping_schedule_reader_test_config();
+        test_run_dir = ".tmp-test-udp-ping-schedule-reader-normal";
+        prepare_clean_run_dir(test_run_dir);
 
         // Normal
 
-        std::ofstream config_file(udp_ping_schedule_reader_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "udp_ping_schedule_filename=\"udp_ping_schedule.csv\"" << std::endl;
         config_file.close();
 
-        std::ofstream schedule_file(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        std::ofstream schedule_file(test_run_dir + "/udp_ping_schedule.csv");
         // From 0 to 1 every 10ms starting at 500ns for 1 second send a ping and wait afterwards 50ms before exiting
         schedule_file << "0,0,1,10000000,500,1000000000,50000000,a=c,test14" << std::endl;
         // From 7 to 3 every 5ms starting at 6666ns for 0.5 second send a ping and wait afterwards 0ms before exiting
@@ -46,7 +49,7 @@ public:
         schedule_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (udp_ping_schedule_reader_test_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=8" << std::endl;
         topology_file << "num_undirected_edges=7" << std::endl;
         topology_file << "switches=set(0,1,2,3,4,5,6,7)" << std::endl;
@@ -60,9 +63,9 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(udp_ping_schedule_reader_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        std::vector<UdpPingInfo> schedule = read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000000);
+        std::vector<UdpPingInfo> schedule = read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000000);
 
         ASSERT_EQUAL(schedule.size(), 2);
 
@@ -88,9 +91,9 @@ public:
 
         // Empty
 
-        std::ofstream schedule_file_empty(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        std::ofstream schedule_file_empty(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file_empty.close();
-        std::vector<UdpPingInfo> schedule_empty = read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000);
+        std::vector<UdpPingInfo> schedule_empty = read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000);
         ASSERT_EQUAL(schedule_empty.size(), 0);
 
         basicSimulation->Finalize();
@@ -101,18 +104,19 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class UdpPingScheduleReaderInvalidTestCase : public TestCase
+class UdpPingScheduleReaderInvalidTestCase : public UdpPingScheduleReaderTestCase
 {
 public:
-    UdpPingScheduleReaderInvalidTestCase () : TestCase ("udp-ping-schedule-reader invalid") {};
+    UdpPingScheduleReaderInvalidTestCase () : UdpPingScheduleReaderTestCase ("udp-ping-schedule-reader invalid") {};
 
     void DoRun () {
-        prepare_udp_ping_schedule_reader_test_config();
+        test_run_dir = ".tmp-test-udp-ping-schedule-reader-invalid";
+        prepare_clean_run_dir(test_run_dir);
 
         std::ofstream schedule_file;
         std::vector<UdpPingInfo> schedule;
 
-        std::ofstream config_file(udp_ping_schedule_reader_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
@@ -120,7 +124,7 @@ public:
         config_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (udp_ping_schedule_reader_test_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=5" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3,4)" << std::endl;
@@ -134,100 +138,100 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(udp_ping_schedule_reader_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // Non-existent file
         ASSERT_EXCEPTION(read_udp_ping_schedule("does-not-exist-temp.file", topology, 10000000));
         
         // Normal
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        schedule = read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000);
+        schedule = read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000);
 
         // Source = Destination
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,3,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Invalid source (out of range)
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,9,1,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Invalid destination (out of range)
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,9,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Invalid source (not a ToR)
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,2,3,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Invalid destination (not a ToR)
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,2,1000,100002,2000009,33,xyz,abcc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Not ascending UDP ping ID
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "1,3,1,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Negative UDP ping interval
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,-1,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Zero UDP ping rate
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,0,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Not enough values
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,1000,100002,2000009,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Negative time
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,1000,-100,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(schedule = read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(schedule = read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         // Just normal ordered with equal start time
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file << "1,3,1,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        schedule = read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000);
+        schedule = read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000);
 
         // Not ordered time
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,1000,100002,2000009,33,xyz,abc" << std::endl;
         schedule_file << "1,3,1,1000,100001,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
         ASSERT_EXCEPTION_MATCH_WHAT(
-                read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000),
+                read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000),
                 "Start time is not weakly ascending (on line with UDP ping ID: 1, violation: 100001)"
         );
 
         // Exceeding time
-        schedule_file = std::ofstream(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/udp_ping_schedule.csv");
         schedule_file << "0,3,1,1000,10000000,2000009,33,xyz,abc" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_udp_ping_schedule(udp_ping_schedule_reader_test_dir + "/udp_ping_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_udp_ping_schedule(test_run_dir + "/udp_ping_schedule.csv", topology, 10000000));
 
         basicSimulation->Finalize();
         cleanup_udp_ping_schedule_reader_test();

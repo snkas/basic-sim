@@ -2,9 +2,8 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Extra tests for UDP ping scheduler
 * TCP/UDP socket generator
-* Restructure tests for easier rerunning when having failed previously
+* Extra tests for UDP ping scheduler
 * Add test for ECN marking for the simple_red queueing discipline
 * Canary tests (comparing output to see if anything changed)
 * Upgrade to latest ns-3

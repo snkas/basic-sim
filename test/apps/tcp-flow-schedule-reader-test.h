@@ -2,49 +2,52 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string tcp_flow_schedule_reader_test_dir = ".tmp-flow-scheduler-reader-test";
+class TcpFlowScheduleReaderTestCase : public TestCaseWithLogValidators
+{
+public:
+    TcpFlowScheduleReaderTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    std::string test_run_dir = ".tmp-test-tcp-flow-schedule-reader";
 
-void prepare_tcp_flow_schedule_reader_test_config() {
-    mkdir_if_not_exists(tcp_flow_schedule_reader_test_dir);
-}
+    void cleanup_tcp_flow_schedule_reader_test() {
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+    }
 
-void cleanup_tcp_flow_schedule_reader_test() {
-    remove_file_if_exists(tcp_flow_schedule_reader_test_dir + "/config_ns3.properties");
-    remove_file_if_exists(tcp_flow_schedule_reader_test_dir + "/topology.properties");
-    remove_file_if_exists(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
-    remove_file_if_exists(tcp_flow_schedule_reader_test_dir + "/logs_ns3/finished.txt");
-    remove_file_if_exists(tcp_flow_schedule_reader_test_dir + "/logs_ns3/timing_results.txt");
-    remove_file_if_exists(tcp_flow_schedule_reader_test_dir + "/logs_ns3/timing_results.csv");
-    remove_dir_if_exists(tcp_flow_schedule_reader_test_dir + "/logs_ns3");
-    remove_dir_if_exists(tcp_flow_schedule_reader_test_dir);
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TcpFlowScheduleReaderNormalTestCase : public TestCase
+class TcpFlowScheduleReaderNormalTestCase : public TcpFlowScheduleReaderTestCase
 {
 public:
-    TcpFlowScheduleReaderNormalTestCase () : TestCase ("tcp-flow-schedule-reader normal") {};
+    TcpFlowScheduleReaderNormalTestCase () : TcpFlowScheduleReaderTestCase ("tcp-flow-schedule-reader normal") {};
 
     void DoRun () {
-        prepare_tcp_flow_schedule_reader_test_config();
+        test_run_dir = ".tmp-test-tcp-flow-schedule-reader-normal";
+        prepare_clean_run_dir(test_run_dir);
 
         // Normal
 
-        std::ofstream config_file(tcp_flow_schedule_reader_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
         config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
         config_file.close();
 
-        std::ofstream schedule_file(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        std::ofstream schedule_file(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,0,1,100000,47327,a=b,test" << std::endl;
         schedule_file << "1,7,3,7488338,1356567,a=b2," << std::endl;
         schedule_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (tcp_flow_schedule_reader_test_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=8" << std::endl;
         topology_file << "num_undirected_edges=7" << std::endl;
         topology_file << "switches=set(0,1,2,3,4,5,6,7)" << std::endl;
@@ -58,9 +61,9 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(tcp_flow_schedule_reader_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
-        std::vector<TcpFlowScheduleEntry> schedule = read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000000);
+        std::vector<TcpFlowScheduleEntry> schedule = read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000000);
 
         ASSERT_EQUAL(schedule.size(), 2);
 
@@ -82,9 +85,9 @@ public:
 
         // Empty
 
-        std::ofstream schedule_file_empty(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        std::ofstream schedule_file_empty(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file_empty.close();
-        std::vector<TcpFlowScheduleEntry> schedule_empty = read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000);
+        std::vector<TcpFlowScheduleEntry> schedule_empty = read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000);
         ASSERT_EQUAL(schedule_empty.size(), 0);
 
         basicSimulation->Finalize();
@@ -95,18 +98,19 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TcpFlowScheduleReaderInvalidTestCase : public TestCase
+class TcpFlowScheduleReaderInvalidTestCase : public TcpFlowScheduleReaderTestCase
 {
 public:
-    TcpFlowScheduleReaderInvalidTestCase () : TestCase ("tcp-flow-schedule-reader invalid") {};
+    TcpFlowScheduleReaderInvalidTestCase () : TcpFlowScheduleReaderTestCase ("tcp-flow-schedule-reader invalid") {};
 
     void DoRun () {
-        prepare_tcp_flow_schedule_reader_test_config();
+        test_run_dir = ".tmp-test-tcp-flow-schedule-reader-invalid";
+        prepare_clean_run_dir(test_run_dir);
 
         std::ofstream schedule_file;
         std::vector<TcpFlowScheduleEntry> schedule;
 
-        std::ofstream config_file(tcp_flow_schedule_reader_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
@@ -114,7 +118,7 @@ public:
         config_file.close();
 
         std::ofstream topology_file;
-        topology_file.open (tcp_flow_schedule_reader_test_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=5" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3,4)" << std::endl;
@@ -128,91 +132,91 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(tcp_flow_schedule_reader_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // Non-existent file
         ASSERT_EXCEPTION(read_tcp_flow_schedule("does-not-exist-temp.file", topology, 10000000));
         
         // Normal
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,0,4,100000,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        schedule = read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000);
+        schedule = read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000);
 
         // Source = Destination
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,3,100000,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Invalid source (out of range)
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,9,0,100000,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Invalid destination (out of range)
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,6,100000,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Invalid source (not a ToR)
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,2,4,100000,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Invalid destination (not a ToR)
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,4,2,100000,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Not ascending flow ID
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "1,3,4,100000,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Negative flow size
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,4,-6,1356567,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Not enough values
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,4,7778,1356567,a=b" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Negative time
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,4,86959,-7,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(schedule = read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(schedule = read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Just normal ordered with equal start time
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,4,86959,9999,a=b,test" << std::endl;
         schedule_file << "1,3,4,86959,9999,a=b,test" << std::endl;
         schedule_file.close();
-        schedule = read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000);
+        schedule = read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000);
 
         // Not ordered time
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,4,86959,10000,a=b,test" << std::endl;
         schedule_file << "1,3,4,86959,9999,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         // Exceeding time
-        schedule_file = std::ofstream(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv");
+        schedule_file = std::ofstream(test_run_dir + "/tcp_flow_schedule.csv");
         schedule_file << "0,3,4,86959,10000000,a=b,test" << std::endl;
         schedule_file.close();
-        ASSERT_EXCEPTION(read_tcp_flow_schedule(tcp_flow_schedule_reader_test_dir + "/tcp_flow_schedule.csv", topology, 10000000));
+        ASSERT_EXCEPTION(read_tcp_flow_schedule(test_run_dir + "/tcp_flow_schedule.csv", topology, 10000000));
 
         basicSimulation->Finalize();
         cleanup_tcp_flow_schedule_reader_test();

@@ -2,21 +2,19 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class ManualEndToEndTestCase : public TestCase {
+class ManualEndToEndTestCase : public TestCaseWithLogValidators {
 public:
-    ManualEndToEndTestCase () : TestCase ("manual end-to-end") {};
-    const std::string temp_dir = ".tmp-manual-end-to-end-test";
+    ManualEndToEndTestCase () : TestCaseWithLogValidators ("manual end-to-end") {};
+    const std::string test_run_dir = ".tmp-test-manual-end-to-end";
 
     void DoRun () {
 
         // Create temporary run directory
-        mkdir_if_not_exists(temp_dir);
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
+        prepare_clean_run_dir(test_run_dir);
 
         // Basic configuration
         std::ofstream config_file;
-        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file.open (test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=2000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
@@ -24,7 +22,7 @@ public:
 
         // Topology
         std::ofstream topology_file;
-        topology_file.open (temp_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -39,7 +37,7 @@ public:
         topology_file.close();
 
         // Perform basic simulation
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         TcpOptimizer::OptimizeBasic(basicSimulation);
@@ -143,7 +141,7 @@ public:
         basicSimulation->Finalize();
 
         // Check finished.txt
-        std::vector<std::string> finished_lines = read_file_direct(temp_dir + "/logs_ns3/finished.txt");
+        std::vector<std::string> finished_lines = read_file_direct(test_run_dir + "/logs_ns3/finished.txt");
         ASSERT_EQUAL(finished_lines.size(), 1);
         ASSERT_EQUAL(finished_lines[0], "Yes");
 
@@ -156,33 +154,33 @@ public:
         ASSERT_EQUAL_APPROX((double) std::get<1>(incoming_1_info.at(0)), 0.7 * 15 * 1000 * 1000 / 8.0 / 1500.0, 100.0); // Not everything will arrive due to TCP competition
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rto.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_state.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cong_state.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_rtt.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_rto.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_cwnd_inflated.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_ssthresh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_inflight.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_state.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_1_cong_state.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_incoming.csv");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_progress.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_rto.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_state.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_cong_state.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_progress.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_rtt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_rto.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_cwnd.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_cwnd_inflated.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_ssthresh.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_inflight.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_state.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_1_cong_state.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_burst_0_incoming.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 
@@ -190,10 +188,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class ManualTriggerStopExceptionsTestCase : public TestCase {
+class ManualTriggerStopExceptionsTestCase : public TestCaseWithLogValidators {
 public:
-    ManualTriggerStopExceptionsTestCase () : TestCase ("manual trigger-stop-exceptions") {};
-    const std::string temp_dir = ".tmp-manual-trigger-stop-exceptions-test";
+    ManualTriggerStopExceptionsTestCase () : TestCaseWithLogValidators ("manual trigger-stop-exceptions") {};
+    const std::string test_run_dir = ".tmp-test-manual-trigger-stop-exceptions";
 
     Ptr<BasicSimulation> basicSimulation;
     Ptr<TopologyPtop> topology;
@@ -201,13 +199,11 @@ public:
     void setup_basic() {
 
         // Create temporary run directory
-        mkdir_if_not_exists(temp_dir);
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
+        prepare_clean_run_dir(test_run_dir);
 
         // Basic configuration
         std::ofstream config_file;
-        config_file.open (temp_dir + "/config_ns3.properties");
+        config_file.open (test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=2000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
@@ -215,7 +211,7 @@ public:
 
         // Topology
         std::ofstream topology_file;
-        topology_file.open (temp_dir + "/topology.properties");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -230,7 +226,7 @@ public:
         topology_file.close();
 
         // Perform basic simulation
-        basicSimulation = CreateObject<BasicSimulation>(temp_dir);
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         TcpOptimizer::OptimizeBasic(basicSimulation);
@@ -243,29 +239,29 @@ public:
         basicSimulation->Finalize();
 
         // Make sure these are removed
-        remove_file_if_exists(temp_dir + "/config_ns3.properties");
-        remove_file_if_exists(temp_dir + "/topology.properties");
-        remove_file_if_exists(temp_dir + "/tcp_flow_schedule.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flows.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_pings.txt");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_progress.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_rto.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_state.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/tcp_flow_0_cong_state.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
-        remove_file_if_exists(temp_dir + "/logs_ns3/udp_burst_0_incoming.csv");
-        remove_dir_if_exists(temp_dir + "/logs_ns3");
-        remove_dir_if_exists(temp_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_pings.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_progress.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_rtt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_rto.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_cwnd.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_cwnd_inflated.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_ssthresh.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_inflight.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_state.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_0_cong_state.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_burst_0_outgoing.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_burst_0_incoming.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 
