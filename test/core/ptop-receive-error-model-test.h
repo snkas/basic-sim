@@ -2,38 +2,46 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string ptop_receive_error_model_test_dir = ".tmp-ptop-receive-error-model-test";
+class PtopReceiveErrorModelTestCase : public TestCaseWithLogValidators
+{
+public:
+    PtopReceiveErrorModelTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    std::string test_run_dir = ".tmp-test-ptop-receive-error-model";
 
-void prepare_ptop_receive_error_model_test_config() {
-    mkdir_if_not_exists(ptop_receive_error_model_test_dir);
-    std::ofstream config_file(ptop_receive_error_model_test_dir + "/config_ns3.properties");
-    config_file << "simulation_end_time_ns=10000000000" << std::endl;
-    config_file << "simulation_seed=123456789" << std::endl;
-    config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-    config_file.close();
-}
+    void prepare_ptop_receive_error_model_test_config() {
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=10000000000" << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file.close();
+    }
 
-void cleanup_ptop_receive_error_model_test() {
-    remove_file_if_exists(ptop_receive_error_model_test_dir + "/config_ns3.properties");
-    remove_file_if_exists(ptop_receive_error_model_test_dir + "/topology.properties.temp");
-    remove_file_if_exists(ptop_receive_error_model_test_dir + "/logs_ns3/finished.txt");
-    remove_file_if_exists(ptop_receive_error_model_test_dir + "/logs_ns3/timing_results.txt");
-    remove_file_if_exists(ptop_receive_error_model_test_dir + "/logs_ns3/timing_results.csv");
-    remove_dir_if_exists(ptop_receive_error_model_test_dir + "/logs_ns3");
-    remove_dir_if_exists(ptop_receive_error_model_test_dir);
-}
+    void cleanup_ptop_receive_error_model_test() {
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+    }
+
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopReceiveErrorModelValidTestCase : public TestCase
+class PtopReceiveErrorModelValidTestCase : public PtopReceiveErrorModelTestCase
 {
 public:
-    PtopReceiveErrorModelValidTestCase () : TestCase ("ptop-receive-error-model invalid") {};
+    PtopReceiveErrorModelValidTestCase () : PtopReceiveErrorModelTestCase ("ptop-receive-error-model valid") {};
+
     void DoRun () {
+        test_run_dir = ".tmp-test-ptop-receive-error-model-valid";
+        prepare_clean_run_dir(test_run_dir);
         prepare_ptop_receive_error_model_test_config();
         
         std::ofstream topology_file;
-        topology_file.open (ptop_receive_error_model_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=8" << std::endl;
         topology_file << "num_undirected_edges=7" << std::endl;
         topology_file << "switches=set(4)" << std::endl;
@@ -48,7 +56,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_receive_error_model_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // And now we are going to go test all the network devices installed and their channels in-between
@@ -101,19 +109,20 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopReceiveErrorModelInvalidTestCase : public TestCase
+class PtopReceiveErrorModelInvalidTestCase : public PtopReceiveErrorModelTestCase
 {
 public:
-    PtopReceiveErrorModelInvalidTestCase () : TestCase ("ptop-receive-error-model invalid") {};
+    PtopReceiveErrorModelInvalidTestCase () : PtopReceiveErrorModelTestCase ("ptop-receive-error-model invalid") {};
     void DoRun () {
-        
-        std::ofstream topology_file;
-        Ptr<BasicSimulation> basicSimulation;
+        test_run_dir = ".tmp-test-ptop-receive-error-model-invalid";
+        prepare_clean_run_dir(test_run_dir);
+        prepare_ptop_receive_error_model_test_config();
 
         // Invalid receiving error model
-        prepare_ptop_receive_error_model_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(ptop_receive_error_model_test_dir);
-        topology_file.open (ptop_receive_error_model_test_dir + "/topology.properties.temp");
+        std::ofstream topology_file;
+        Ptr<BasicSimulation> basicSimulation;
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -131,9 +140,10 @@ public:
         cleanup_ptop_receive_error_model_test();
 
         // Invalid receiving error model double value (above one)
+        prepare_clean_run_dir(test_run_dir);
         prepare_ptop_receive_error_model_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(ptop_receive_error_model_test_dir);
-        topology_file.open (ptop_receive_error_model_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -151,9 +161,10 @@ public:
         cleanup_ptop_receive_error_model_test();
 
         // Invalid receiving error model double value (below zero)
+        prepare_clean_run_dir(test_run_dir);
         prepare_ptop_receive_error_model_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(ptop_receive_error_model_test_dir);
-        topology_file.open (ptop_receive_error_model_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;

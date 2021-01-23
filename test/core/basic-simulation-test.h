@@ -2,25 +2,23 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string basic_simulation_test_dir = ".tmp-basic-simulation-test";
-
-////////////////////////////////////////////////////////////////////////////////////////
-
 class BasicSimulationNormalTestCase : public TestCaseWithLogValidators
 {
 public:
     BasicSimulationNormalTestCase () : TestCaseWithLogValidators ("basic-simulation normal") {};
+    const std::string test_run_dir = ".tmp-test-basic-simulation-normal";
+    
     void DoRun () {
+        prepare_clean_run_dir(test_run_dir);
 
         // Prepare run directory
-        mkdir_if_not_exists(basic_simulation_test_dir);
-        std::ofstream config_file(basic_simulation_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file.close();
 
         // Create and run
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(basic_simulation_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         basicSimulation->Run();
         basicSimulation->Finalize();
 
@@ -43,19 +41,19 @@ public:
                 "Distributed mode is not enabled, as such the node assignment should not need to be retrieved"
         );
         ASSERT_EQUAL(basicSimulation->GetSimulationEndTimeNs(), 10000000000);
-        ASSERT_EQUAL(basicSimulation->GetRunDir(), ".tmp-basic-simulation-test");
-        ASSERT_EQUAL(basicSimulation->GetLogsDir(), ".tmp-basic-simulation-test/logs_ns3");
+        ASSERT_EQUAL(basicSimulation->GetRunDir(), ".tmp-test-basic-simulation-normal");
+        ASSERT_EQUAL(basicSimulation->GetLogsDir(), ".tmp-test-basic-simulation-normal/logs_ns3");
 
         // Verify finished
-        validate_finished(basic_simulation_test_dir);
+        validate_finished(test_run_dir);
 
         // Clean-up
-        remove_file_if_exists(basic_simulation_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(basic_simulation_test_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(basic_simulation_test_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(basic_simulation_test_dir + "/logs_ns3/timing_results.csv");
-        remove_dir_if_exists(basic_simulation_test_dir + "/logs_ns3");
-        remove_dir_if_exists(basic_simulation_test_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };
@@ -66,11 +64,13 @@ class BasicSimulationUnusedKeyTestCase : public TestCaseWithLogValidators
 {
 public:
     BasicSimulationUnusedKeyTestCase () : TestCaseWithLogValidators ("basic-simulation unused-key") {};
+    const std::string test_run_dir = ".tmp-test-basic-simulation-unused-key";
+
     void DoRun () {
+        prepare_clean_run_dir(test_run_dir);
 
         // Prepare run directory
-        mkdir_if_not_exists(basic_simulation_test_dir);
-        std::ofstream config_file(basic_simulation_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=10000000000" << std::endl;
         config_file << "    \t\n\r" << std::endl;
         config_file << "another_key=abcdef" << std::endl;
@@ -79,17 +79,17 @@ public:
         config_file.close();
 
         // Create and run
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(basic_simulation_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         ASSERT_EXCEPTION_MATCH_WHAT(
                 basicSimulation->Run(),
                 "Config key 'another_key' has not been requested (unused config keys are not allowed)"
         );
 
         // Clean-up
-        remove_file_if_exists(basic_simulation_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(basic_simulation_test_dir + "/logs_ns3/finished.txt");
-        remove_dir_if_exists(basic_simulation_test_dir + "/logs_ns3");
-        remove_dir_if_exists(basic_simulation_test_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };

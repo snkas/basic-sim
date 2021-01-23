@@ -4,38 +4,45 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string topology_ptop_test_dir = ".tmp-topology-ptop-test";
+class TopologyPtopTestCase : public TestCaseWithLogValidators
+{
+public:
+    TopologyPtopTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    std::string test_run_dir = ".tmp-test-topology-ptop";
 
-void prepare_topology_ptop_test_config() {
-    mkdir_if_not_exists(topology_ptop_test_dir);
-    std::ofstream config_file(topology_ptop_test_dir + "/config_ns3.properties");
-    config_file << "simulation_end_time_ns=10000000000" << std::endl;
-    config_file << "simulation_seed=123456789" << std::endl;
-    config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-    config_file.close();
-}
+    void prepare_topology_ptop_test_config() {
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=10000000000" << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file.close();
+    }
 
-void cleanup_topology_ptop_test() {
-    remove_file_if_exists(topology_ptop_test_dir + "/config_ns3.properties");
-    remove_file_if_exists(topology_ptop_test_dir + "/topology.properties.temp");
-    remove_file_if_exists(topology_ptop_test_dir + "/logs_ns3/finished.txt");
-    remove_file_if_exists(topology_ptop_test_dir + "/logs_ns3/timing_results.txt");
-    remove_file_if_exists(topology_ptop_test_dir + "/logs_ns3/timing_results.csv");
-    remove_dir_if_exists(topology_ptop_test_dir + "/logs_ns3");
-    remove_dir_if_exists(topology_ptop_test_dir);
-}
+    void cleanup_topology_ptop_test() {
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+    }
+    
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TopologyPtopEmptyTestCase : public TestCase
+class TopologyPtopEmptyTestCase : public TopologyPtopTestCase
 {
 public:
-    TopologyPtopEmptyTestCase () : TestCase ("topology-ptop empty") {};
+    TopologyPtopEmptyTestCase () : TopologyPtopTestCase("topology-ptop empty") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-topology-ptop-empty";
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
         
         std::ofstream topology_file;
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=0" << std::endl;
         topology_file << "num_undirected_edges=0" << std::endl;
         topology_file << "switches=set()" << std::endl;
@@ -50,7 +57,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
         
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         
         ASSERT_EQUAL(topology->GetNumNodes(), 0);
@@ -70,15 +77,17 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TopologyPtopSingleTestCase : public TestCase
+class TopologyPtopSingleTestCase : public TopologyPtopTestCase
 {
 public:
-    TopologyPtopSingleTestCase () : TestCase ("topology-ptop single") {};
+    TopologyPtopSingleTestCase () : TopologyPtopTestCase("topology-ptop single") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-topology-ptop-single";
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
 
         std::ofstream topology_file;
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -93,7 +102,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=map(0->1: disabled, 1->0: disabled)" << std::endl;
         topology_file.close();
         
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // Basic sizes
@@ -141,15 +150,17 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TopologyPtopTorTestCase : public TestCase
+class TopologyPtopTorTestCase : public TopologyPtopTestCase
 {
 public:
-    TopologyPtopTorTestCase () : TestCase ("topology-ptop tor") {};
+    TopologyPtopTorTestCase () : TopologyPtopTestCase("topology-ptop tor") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-topology-ptop-tor";
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
         
         std::ofstream topology_file;
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=8" << std::endl;
         topology_file << "num_undirected_edges=7" << std::endl;
         topology_file << "switches=set(4)" << std::endl;
@@ -164,7 +175,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=map(0->4: default, 1->4: fq_codel_better_rtt, 2->4: disabled, 3->4: default, 5->4:disabled, 6->4:default, 7->4:fq_codel_better_rtt, 4->0: disabled, 4->1: fq_codel_better_rtt, 4->2: default, 4->3: disabled, 4->5: default, 4->6: disabled, 4->7: fq_codel_better_rtt)" << std::endl;
         topology_file.close();
         
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // Basic sizes
@@ -323,15 +334,17 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TopologyPtopLeafSpineTestCase : public TestCase
+class TopologyPtopLeafSpineTestCase : public TopologyPtopTestCase
 {
 public:
-    TopologyPtopLeafSpineTestCase () : TestCase ("topology-ptop leaf-spine") {};
+    TopologyPtopLeafSpineTestCase () : TopologyPtopTestCase("topology-ptop leaf-spine") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-topology-ptop-leaf-spine";
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
 
         std::ofstream topology_file;
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=49" << std::endl;
         topology_file << "num_undirected_edges=72" << std::endl;
         topology_file << "switches=set(0,1,2,3,4,5,6,7,8,9,10,11,12)" << std::endl;
@@ -345,7 +358,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=disabled" << std::endl;
         topology_file.close();
 
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // Basic values
@@ -412,15 +425,17 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TopologyPtopRingTestCase : public TestCase
+class TopologyPtopRingTestCase : public TopologyPtopTestCase
 {
 public:
-    TopologyPtopRingTestCase () : TestCase ("topology-ptop ring") {};
+    TopologyPtopRingTestCase () : TopologyPtopTestCase("topology-ptop ring") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-topology-ptop-ring";
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
 
         std::ofstream topology_file;
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -434,7 +449,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=default" << std::endl;
         topology_file.close();
         
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // Basic sizes
@@ -492,19 +507,20 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class TopologyPtopInvalidTestCase : public TestCase
+class TopologyPtopInvalidTestCase : public TopologyPtopTestCase
 {
 public:
-    TopologyPtopInvalidTestCase () : TestCase ("topology-ptop invalid") {};
+    TopologyPtopInvalidTestCase () : TopologyPtopTestCase("topology-ptop invalid") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-topology-ptop-invalid";
+        prepare_clean_run_dir(test_run_dir);
+        prepare_topology_ptop_test_config();
         
+        // Incorrect number of nodes
         std::ofstream topology_file;
         Ptr<BasicSimulation> basicSimulation;
-
-        // Incorrect number of nodes
-        prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=1" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -522,9 +538,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Incorrect number of edges
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=3" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1,2)" << std::endl;
@@ -542,9 +559,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Non-existent node id
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -562,9 +580,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Not all node ids are covered
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=3" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -582,9 +601,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Duplicate edge
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -602,9 +622,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Duplicate node id
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=2" << std::endl;
         topology_file << "num_undirected_edges=1" << std::endl;
         topology_file << "switches=set(0,1,1)" << std::endl;
@@ -622,9 +643,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Edge between server and non-ToR switch
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -642,9 +664,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Edge between server and server
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1)" << std::endl;
@@ -662,9 +685,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Server marked as ToR
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(1,2)" << std::endl;
@@ -682,9 +706,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Servers and switches not distinct
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(1,2)" << std::endl;
@@ -702,9 +727,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Edge to itself
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(1,2)" << std::endl;
@@ -722,9 +748,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Edge left out of bound
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(1,2)" << std::endl;
@@ -742,9 +769,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Edge right out of bound
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(1,2)" << std::endl;
@@ -762,9 +790,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Duplicate edges
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(1,2)" << std::endl;
@@ -782,9 +811,10 @@ public:
         cleanup_topology_ptop_test();
 
         // This should be valid
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -802,9 +832,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid property
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -822,9 +853,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Undirected edge map, should work
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -842,9 +874,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid map order for undirected edge
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -862,9 +895,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Duplicate in map for undirected edge
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -882,9 +916,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Undirected edge map has not-present edge
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -902,9 +937,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Undirected edge map does not fully cover
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -922,9 +958,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Directed edge map, should work
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -942,9 +979,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Directed edge map, duplicates
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -962,9 +1000,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Directed edge map, unknown edge
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -982,9 +1021,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Directed edge map, not all covered
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -1002,9 +1042,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid queue type
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -1022,9 +1063,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid drop tail queue size
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -1042,9 +1084,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid drop tail queue size
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -1062,9 +1105,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid traffic control queue disc
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -1082,9 +1126,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid receiving error model
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -1102,9 +1147,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid receiving error model double value (above one)
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -1122,9 +1168,10 @@ public:
         cleanup_topology_ptop_test();
 
         // Invalid receiving error model double value (below zero)
+        prepare_clean_run_dir(test_run_dir);
         prepare_topology_ptop_test_config();
-        basicSimulation = CreateObject<BasicSimulation>(topology_ptop_test_dir);
-        topology_file.open (topology_ptop_test_dir + "/topology.properties.temp");
+        basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        topology_file.open (test_run_dir + "/topology.properties");
         topology_file << "num_nodes=4" << std::endl;
         topology_file << "num_undirected_edges=3" << std::endl;
         topology_file << "switches=set(0,1,2,3)" << std::endl;

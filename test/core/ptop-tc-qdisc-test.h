@@ -4,34 +4,41 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string ptop_tc_qdisc_test_dir = ".tmp-ptop-tc-qdisc-test";
+class PtopTcQdiscTestCase : public TestCaseWithLogValidators
+{
+public:
+    PtopTcQdiscTestCase (std::string s) : TestCaseWithLogValidators (s) {};
+    std::string test_run_dir = ".tmp-test-ptop-tc-qdisc";
 
-void prepare_ptop_tc_qdisc_test_config() {
-    mkdir_if_not_exists(ptop_tc_qdisc_test_dir);
-    std::ofstream config_file(ptop_tc_qdisc_test_dir + "/config_ns3.properties");
-    config_file << "simulation_end_time_ns=10000000000" << std::endl;
-    config_file << "simulation_seed=123456789" << std::endl;
-    config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
-    config_file.close();
-}
+    void prepare_ptop_tc_qdisc_test_config() {
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=10000000000" << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
+        config_file.close();
+    }
 
-void cleanup_ptop_tc_qdisc_test() {
-    remove_file_if_exists(ptop_tc_qdisc_test_dir + "/config_ns3.properties");
-    remove_file_if_exists(ptop_tc_qdisc_test_dir + "/topology.properties.temp");
-    remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/finished.txt");
-    remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/timing_results.txt");
-    remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/timing_results.csv");
-    remove_dir_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3");
-    remove_dir_if_exists(ptop_tc_qdisc_test_dir);
-}
+    void cleanup_ptop_tc_qdisc_test() {
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+    }
+
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTcQdiscRedValidTestCase : public TestCase
+class PtopTcQdiscRedValidTestCase : public PtopTcQdiscTestCase
 {
 public:
-    PtopTcQdiscRedValidTestCase () : TestCase ("ptop-tc-qdisc-red valid") {};
+    PtopTcQdiscRedValidTestCase () : PtopTcQdiscTestCase ("ptop-tc-qdisc-red valid") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-ptop-tc-qdisc-red-valid";
+        prepare_clean_run_dir(test_run_dir);
         prepare_ptop_tc_qdisc_test_config();
 
         // Desired qdisc configurations
@@ -64,7 +71,7 @@ public:
 
         // Write topology
         std::ofstream topology_file;
-        topology_file.open (ptop_tc_qdisc_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=5" << std::endl;
         topology_file << "num_undirected_edges=4" << std::endl;
         topology_file << "switches=set(2)" << std::endl;
@@ -79,7 +86,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=" << link_interface_traffic_control_qdisc_str << std::endl;
         topology_file.close();
 
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_tc_qdisc_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // Basic sizes
@@ -192,15 +199,17 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTcQdiscFqCodelValidTestCase : public TestCase
+class PtopTcQdiscFqCodelValidTestCase : public PtopTcQdiscTestCase
 {
 public:
-    PtopTcQdiscFqCodelValidTestCase () : TestCase ("ptop-tc-qdisc fq-codel-valid") {};
+    PtopTcQdiscFqCodelValidTestCase () : PtopTcQdiscTestCase ("ptop-tc-qdisc fq-codel-valid") {};
     void DoRun () {
+        test_run_dir = ".tmp-test-ptop-tc-qdisc-fq-codel-valid";
+        prepare_clean_run_dir(test_run_dir);
         prepare_ptop_tc_qdisc_test_config();
         
         std::ofstream topology_file;
-        topology_file.open (ptop_tc_qdisc_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=8" << std::endl;
         topology_file << "num_undirected_edges=7" << std::endl;
         topology_file << "switches=set(4)" << std::endl;
@@ -215,7 +224,7 @@ public:
         topology_file << "link_interface_traffic_control_qdisc=map(0->4: default, 1->4: fq_codel_better_rtt, 2->4: disabled, 3->4: default, 5->4:disabled, 6->4:default, 7->4:fq_codel_better_rtt, 4->0: disabled, 4->1: fq_codel_better_rtt, 4->2: default, 4->3: disabled, 4->5: default, 4->6: disabled, 4->7: fq_codel_better_rtt)" << std::endl;
         topology_file.close();
         
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_tc_qdisc_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
 
         // And now we are going to go test all the network devices installed and their channels in-between
@@ -276,10 +285,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTcQdiscInvalidTestCase : public TestCase
+class PtopTcQdiscInvalidTestCase : public PtopTcQdiscTestCase
 {
 public:
-    PtopTcQdiscInvalidTestCase () : TestCase ("ptop-tc-qdisc invalid") {};
+    PtopTcQdiscInvalidTestCase () : PtopTcQdiscTestCase ("ptop-tc-qdisc invalid") {};
     void DoRun () {
 
         std::ofstream topology_file;
@@ -308,9 +317,12 @@ public:
 
         // Check each invalid case
         for (std::pair<std::string, std::string> scenario : qdisc_and_expected_what) {
+            test_run_dir = ".tmp-test-ptop-tc-qdisc-invalid";
+            prepare_clean_run_dir(test_run_dir);
             prepare_ptop_tc_qdisc_test_config();
-            basicSimulation = CreateObject<BasicSimulation>(ptop_tc_qdisc_test_dir);
-            topology_file.open(ptop_tc_qdisc_test_dir + "/topology.properties.temp");
+
+            basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+            topology_file.open(test_run_dir + "/topology.properties.temp");
             topology_file << "num_nodes=4" << std::endl;
             topology_file << "num_undirected_edges=3" << std::endl;
             topology_file << "switches=set(0,1,2,3)" << std::endl;
@@ -340,11 +352,13 @@ class PtopTcQdiscRedEcnAndDropMarkingTestCase : public TestCaseWithLogValidators
 {
 public:
     PtopTcQdiscRedEcnAndDropMarkingTestCase () : TestCaseWithLogValidators ("ptop-tc-qdisc-red ecn-and-drop-marking") {};
+    const std::string test_run_dir = ".tmp-test-ptop-tc-qdisc-red-ecn-and-drop-marking";
+
     void DoRun () {
-        mkdir_if_not_exists(ptop_tc_qdisc_test_dir);
+        prepare_clean_run_dir(test_run_dir);
 
         // Write configuration
-        std::ofstream config_file(ptop_tc_qdisc_test_dir + "/config_ns3.properties");
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=1950000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties.temp\"" << std::endl;
@@ -358,7 +372,7 @@ public:
 
         // Write topology
         std::ofstream topology_file;
-        topology_file.open (ptop_tc_qdisc_test_dir + "/topology.properties.temp");
+        topology_file.open (test_run_dir + "/topology.properties.temp");
         topology_file << "num_nodes=3" << std::endl;
         topology_file << "num_undirected_edges=2" << std::endl;
         topology_file << "switches=set(0)" << std::endl;
@@ -375,7 +389,7 @@ public:
 
         // Write UDP burst file
         std::ofstream udp_burst_schedule_file;
-        udp_burst_schedule_file.open (ptop_tc_qdisc_test_dir + "/udp_burst_schedule.csv");
+        udp_burst_schedule_file.open (test_run_dir + "/udp_burst_schedule.csv");
         // 1000 Mbit/s for 2000000 ns = 167 packets
         // 1000 Mbit/s for 6000000 ns = 500 packets
         // 1000 Mbit/s for 12000000 ns = 1000 packets
@@ -385,7 +399,7 @@ public:
         topology_file.close();
 
         // Create simulation environment
-        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(ptop_tc_qdisc_test_dir);
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
 
         // Create topology
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
@@ -425,12 +439,12 @@ public:
         // Get the link net-device queue development
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_pkt;
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_byte;
-        validate_link_net_device_queue_logs(ptop_tc_qdisc_test_dir, links, link_net_device_queue_pkt, link_net_device_queue_byte);
+        validate_link_net_device_queue_logs(test_run_dir, links, link_net_device_queue_pkt, link_net_device_queue_byte);
 
         // Get the link interface traffic-control qdisc queue development
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_pkt;
         std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_byte;
-        validate_link_interface_tc_qdisc_queue_logs(ptop_tc_qdisc_test_dir, links, link_interface_tc_qdisc_queue_pkt, link_interface_tc_qdisc_queue_byte);
+        validate_link_interface_tc_qdisc_queue_logs(test_run_dir, links, link_interface_tc_qdisc_queue_pkt, link_interface_tc_qdisc_queue_byte);
 
         // Re-used for convenience
         std::vector<std::tuple<int64_t, int64_t, int64_t>> qdisc_queue_intervals = link_interface_tc_qdisc_queue_pkt.at(std::make_pair(0, 1));
@@ -546,22 +560,22 @@ public:
         // ASSERT_EQUAL_APPROX(largest_queue_size_pkt, AMOUNT, DEVIATION);
 
         // Clean up
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/config_ns3.properties");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/topology.properties.temp");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/udp_burst_schedule.csv");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/finished.txt");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/timing_results.txt");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/timing_results.csv");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/udp_bursts_incoming.csv");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/udp_bursts_incoming.txt");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/udp_bursts_outgoing.csv");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/udp_bursts_outgoing.txt");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/link_net_device_queue_byte.csv");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
-        remove_file_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
-        remove_dir_if_exists(ptop_tc_qdisc_test_dir + "/logs_ns3");
-        remove_dir_if_exists(ptop_tc_qdisc_test_dir);
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties.temp");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_incoming.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_incoming.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_outgoing.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_outgoing.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
 
     }
 };

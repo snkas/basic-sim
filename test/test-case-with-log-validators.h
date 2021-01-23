@@ -13,6 +13,8 @@ class TestCaseWithLogValidators : public TestCase
 public:
     TestCaseWithLogValidators (std::string s);
 
+    void prepare_clean_run_dir(std::string run_dir);
+
     void validate_finished(std::string run_dir);
 
     void validate_link_net_device_queue_logs(

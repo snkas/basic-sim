@@ -7,6 +7,94 @@ TestCaseWithLogValidators::TestCaseWithLogValidators (std::string s) : TestCase 
 };
 
 /**
+ * If the run directory exists, it clears all files from the run directory and its logs_ns3 directory.
+ * After it is all empty, it removes the logs_ns3 directory and then the run directory.
+ * If there are other unexpected files present in the run directory or its logs_ns3,
+ * this function will fail with an exception as the directory it would try to remove would be non-empty.
+ *
+ * Finally, it will create the run directory (again).
+ *
+ * @param run_dir   Run directory to create (or if its exists, clear, delete, and re-create)
+ */
+void TestCaseWithLogValidators::prepare_clean_run_dir(std::string run_dir) {
+
+    if (dir_exists(run_dir)) {
+
+        // Run directory
+        remove_file_if_exists(run_dir + "/config_ns3.properties");
+        remove_file_if_exists(run_dir + "/topology.properties");
+        remove_file_if_exists(run_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(run_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(run_dir + "/udp_ping_schedule.csv");
+
+        // Logs directory
+
+        // Basic simulation
+        remove_file_if_exists(run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(run_dir + "/logs_ns3/timing_results.csv");
+
+        // TCP flow remnants
+        remove_file_if_exists(run_dir + "/logs_ns3/tcp_flows.txt");
+        remove_file_if_exists(run_dir + "/logs_ns3/tcp_flows.csv");
+        for (size_t i = 0; i < 1000; i++) {
+            if (!file_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv")) {
+                break; // We stop this long loop once there is one not present
+            }
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_state.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cong_state.csv");
+        }
+
+        // UDP burst remnants
+        remove_file_if_exists(run_dir + "/logs_ns3/udp_bursts_outgoing.txt");
+        remove_file_if_exists(run_dir + "/logs_ns3/udp_bursts_outgoing.csv");
+        remove_file_if_exists(run_dir + "/logs_ns3/udp_bursts_incoming.txt");
+        remove_file_if_exists(run_dir + "/logs_ns3/udp_bursts_incoming.csv");
+        for (size_t i = 0; i < 1000; i++) {
+            if (!file_exists(run_dir + "/logs_ns3/udp_burst_" + std::to_string(i) + "_outgoing.csv")) {
+                break; // We stop this long loop once there is one not present
+            }
+            remove_file_if_exists(run_dir + "/logs_ns3/udp_burst_" + std::to_string(i) + "_outgoing.csv");
+            remove_file_if_exists(run_dir + "/logs_ns3/udp_burst_" + std::to_string(i) + "_incoming.csv");
+        }
+
+        // UDP ping remnants
+        remove_file_if_exists(run_dir + "/logs_ns3/udp_pings.txt");
+        remove_file_if_exists(run_dir + "/logs_ns3/udp_pings.csv");
+
+        // Topology link interface traffic control queueing discipline queue
+        remove_file_if_exists(run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
+        remove_file_if_exists(run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
+
+        // Topology link net-device queue
+        remove_file_if_exists(run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
+        remove_file_if_exists(run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+
+        // Topology link net-device utilization
+        remove_file_if_exists(run_dir + "/logs_ns3/link_net_device_utilization.csv");
+        remove_file_if_exists(run_dir + "/logs_ns3/link_net_device_utilization_compressed.csv");
+        remove_file_if_exists(run_dir + "/logs_ns3/link_net_device_utilization_compressed.txt");
+        remove_file_if_exists(run_dir + "/logs_ns3/link_net_device_utilization_summary.txt");
+
+        // Finally, remove the directories themselves (should be empty)
+        remove_dir_if_exists(run_dir + "/logs_ns3");
+        remove_dir_if_exists(run_dir);
+
+    }
+
+    // Create the run directory
+    mkdir_if_not_exists(run_dir);
+
+}
+
+/**
  * Validation of finished.txt
  *
  * @param run_dir           In:  run directory
