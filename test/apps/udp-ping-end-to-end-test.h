@@ -7,7 +7,7 @@ public:
     UdpPingEndToEndTestCase(std::string s) : TestCaseWithLogValidators(s) {};
     std::string test_run_dir = ".tmp-test-udp-ping-end-to-end";
 
-    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed, std::string detailed_logging_enabled_for) {
+    void write_basic_config(int64_t simulation_end_time_ns, int64_t simulation_seed) {
         std::ofstream config_file;
         config_file.open (test_run_dir + "/config_ns3.properties");
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
@@ -101,6 +101,130 @@ public:
 
     }
 
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class UdpPingEndToEndOneToOneManyTestCase : public UdpPingEndToEndTestCase
+{
+public:
+    UdpPingEndToEndOneToOneManyTestCase () : UdpPingEndToEndTestCase ("udp-ping-end-to-end one-to-one-many") {};
+
+    void DoRun () {
+        test_run_dir = ".tmp-test-udp-ping-end-to-end-one-to-one-many";
+        prepare_clean_run_dir(test_run_dir);
+
+        // One-to-one (single) topology, 5s, 10000.0 Mbit/s, 1ms delay
+        int64_t simulation_end_time_ns = 5000000000;
+        write_basic_config(simulation_end_time_ns, 7595483);
+        write_single_topology(10000.0, 1000000);
+
+        // Several UDP pings
+        std::vector<UdpPingInfo> schedule;
+        schedule.push_back(UdpPingInfo(0, 1, 0, 10000, 5000, 100000, 1950000, "", "abc"));           // 1 -> 0, interval = 10us, start = 5us, duration = 100us, wait = 1.95ms
+        schedule.push_back(UdpPingInfo(1, 0, 1, 10000000, 500000, 2000000000, 0, "", ""));           // 0 -> 1, interval = 10ms, start = 500us, duration = 2s, wait = 0ms
+        schedule.push_back(UdpPingInfo(2, 0, 1, 1000000, 1000000, 100000000, 0, "", ""));            // 0 -> 1, interval = 1ms, start = 1ms, duration = 100ms, wait = 0ms
+        schedule.push_back(UdpPingInfo(3, 0, 1, 1000000, 1000000, 100000000, 1000000, "", ""));      // 0 -> 1, interval = 1ms, start = 1ms, duration = 100ms, wait = 1ms
+        schedule.push_back(UdpPingInfo(4, 0, 1, 1000000, 1000000, 100000000, 2000000, "", ""));      // 0 -> 1, interval = 1ms, start = 1ms, duration = 100ms, wait = 2ms
+        schedule.push_back(UdpPingInfo(5, 1, 0, 1000000, 1000000, 100000000, 0, "", ""));            // 1 -> 0, interval = 1ms, start = 1ms, duration = 100ms, wait = 0ms
+
+        // Perform the run
+        std::vector<std::vector<int64_t>> list_latency_there_ns;
+        std::vector<std::vector<int64_t>> list_latency_back_ns;
+        std::vector<std::vector<int64_t>> list_rtt_ns;
+        test_run_and_validate_udp_ping_logs(simulation_end_time_ns, test_run_dir, schedule, list_latency_there_ns, list_latency_back_ns, list_rtt_ns);
+
+        // 1 -> 0, interval = 10us, start = 5us, duration = 100us, wait = 1.95ms
+        ASSERT_EQUAL(list_latency_there_ns.at(0).size(), 10);
+        for (size_t i = 0; i < list_latency_there_ns.at(0).size(); i++) {
+            int64_t latency_there_ns = list_latency_there_ns.at(0).at(i);
+            int64_t latency_back_ns = list_latency_back_ns.at(0).at(i);
+            int64_t latency_rtt_ns = list_rtt_ns.at(0).at(i);
+            if (i < 5) {
+                ASSERT_EQUAL_APPROX(latency_there_ns, 1000000, 50);
+                ASSERT_EQUAL_APPROX(latency_back_ns, 1000000, 50);
+                ASSERT_EQUAL_APPROX(latency_rtt_ns, 2000000, 100);
+            } else {
+                ASSERT_EQUAL(latency_there_ns, -1);
+                ASSERT_EQUAL(latency_back_ns, -1);
+                ASSERT_EQUAL(latency_rtt_ns, -1);
+            }
+        }
+
+        // 0 -> 1, interval = 10ms, start = 500us, duration = 2s, wait = 0ms
+        ASSERT_EQUAL(list_latency_there_ns.at(1).size(), 200);
+        for (size_t i = 0; i < list_latency_there_ns.at(1).size(); i++) {
+            int64_t latency_there_ns = list_latency_there_ns.at(1).at(i);
+            int64_t latency_back_ns = list_latency_back_ns.at(1).at(i);
+            int64_t latency_rtt_ns = list_rtt_ns.at(1).at(i);
+            ASSERT_EQUAL_APPROX(latency_there_ns, 1000000, 50);
+            ASSERT_EQUAL_APPROX(latency_back_ns, 1000000, 50);
+            ASSERT_EQUAL_APPROX(latency_rtt_ns, 2000000, 100);
+        }
+
+        // 0 -> 1, interval = 1ms, start = 1ms, duration = 100ms, wait = 0ms
+        ASSERT_EQUAL(list_latency_there_ns.at(2).size(), 100);
+        for (size_t i = 0; i < list_latency_there_ns.at(2).size(); i++) {
+            int64_t latency_there_ns = list_latency_there_ns.at(2).at(i);
+            int64_t latency_back_ns = list_latency_back_ns.at(2).at(i);
+            int64_t latency_rtt_ns = list_rtt_ns.at(2).at(i);
+            if (i < 98) {
+                ASSERT_EQUAL_APPROX(latency_there_ns, 1000000, 50);
+                ASSERT_EQUAL_APPROX(latency_back_ns, 1000000, 50);
+                ASSERT_EQUAL_APPROX(latency_rtt_ns, 2000000, 100);
+            } else {
+                ASSERT_EQUAL(latency_there_ns, -1);
+                ASSERT_EQUAL(latency_back_ns, -1);
+                ASSERT_EQUAL(latency_rtt_ns, -1);
+            }
+        }
+
+        // 0 -> 1, interval = 1ms, start = 1ms, duration = 100ms, wait = 1ms
+        ASSERT_EQUAL(list_latency_there_ns.at(3).size(), 100);
+        for (size_t i = 0; i < list_latency_there_ns.at(3).size(); i++) {
+            int64_t latency_there_ns = list_latency_there_ns.at(3).at(i);
+            int64_t latency_back_ns = list_latency_back_ns.at(3).at(i);
+            int64_t latency_rtt_ns = list_rtt_ns.at(3).at(i);
+            if (i < 99) {
+                ASSERT_EQUAL_APPROX(latency_there_ns, 1000000, 100);
+                ASSERT_EQUAL_APPROX(latency_back_ns, 1000000, 100);
+                ASSERT_EQUAL_APPROX(latency_rtt_ns, 2000000, 200);
+            } else {
+                ASSERT_EQUAL(latency_there_ns, -1);
+                ASSERT_EQUAL(latency_back_ns, -1);
+                ASSERT_EQUAL(latency_rtt_ns, -1);
+            }
+        }
+
+        // 0 -> 1, interval = 1ms, start = 1ms, duration = 100ms, wait = 2ms
+        ASSERT_EQUAL(list_latency_there_ns.at(4).size(), 100);
+        for (size_t i = 0; i < list_latency_there_ns.at(4).size(); i++) {
+            int64_t latency_there_ns = list_latency_there_ns.at(4).at(i);
+            int64_t latency_back_ns = list_latency_back_ns.at(4).at(i);
+            int64_t latency_rtt_ns = list_rtt_ns.at(4).at(i);
+            ASSERT_EQUAL_APPROX(latency_there_ns, 1000000, 150);
+            ASSERT_EQUAL_APPROX(latency_back_ns, 1000000, 150);
+            ASSERT_EQUAL_APPROX(latency_rtt_ns, 2000000, 300);
+        }
+
+        // 1 -> 0, interval = 1ms, start = 1ms, duration = 100ms, wait = 0ms
+        ASSERT_EQUAL(list_latency_there_ns.at(5).size(), 100);
+        for (size_t i = 0; i < list_latency_there_ns.at(5).size(); i++) {
+            int64_t latency_there_ns = list_latency_there_ns.at(5).at(i);
+            int64_t latency_back_ns = list_latency_back_ns.at(5).at(i);
+            int64_t latency_rtt_ns = list_rtt_ns.at(5).at(i);
+            if (i < 98) {
+                ASSERT_EQUAL_APPROX(latency_there_ns, 1000000, 150);
+                ASSERT_EQUAL_APPROX(latency_back_ns, 1000000, 150);
+                ASSERT_EQUAL_APPROX(latency_rtt_ns, 2000000, 300);
+            } else {
+                ASSERT_EQUAL(latency_there_ns, -1);
+                ASSERT_EQUAL(latency_back_ns, -1);
+                ASSERT_EQUAL(latency_rtt_ns, -1);
+            }
+        }
+
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////

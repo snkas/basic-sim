@@ -26,6 +26,7 @@ public:
         AddTestCase(new UdpPingSimpleDoubleClientBindTestCase, TestCase::QUICK);
 
         // UDP ping end-to-end
+        AddTestCase(new UdpPingEndToEndOneToOneManyTestCase, TestCase::QUICK);
         AddTestCase(new UdpPingEndToEndMultiPathTestCase, TestCase::QUICK);
 
         // UDP ping pingmesh
