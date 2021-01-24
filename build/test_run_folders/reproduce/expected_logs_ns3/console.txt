@@ -1,0 +1,265 @@
+Waf: Entering directory `/home/kassings/projects/github/basic-sim/build/ns-3.31/build/debug_all'
+Waf: Leaving directory `/home/kassings/projects/github/basic-sim/build/ns-3.31/build/debug_all'
+Build commands will be stored in build/debug_all/compile_commands.json
+'build' finished successfully (0.226s)
+BASIC SIMULATION START
+  > Date... Sunday January 24, 2021
+  > Time... 16:41:29
+
+CONFIGURE RUN DIRECTORY
+  > Run directory: ../test_run_folders/reproduce
+  > Logs directory: ../test_run_folders/reproduce/logs_ns3
+
+CONFIGURATION
+-----
+KEY                                       VALUE
+enable_link_interface_tc_qdisc_queue_tracking  true
+enable_link_net_device_queue_tracking     true
+enable_link_net_device_utilization_tracking  true
+enable_tcp_flow_scheduler                 true
+enable_udp_burst_scheduler                true
+enable_udp_ping_scheduler                 true
+link_interface_tc_qdisc_queue_tracking_enable_for_links  set(0->1)
+link_net_device_queue_tracking_enable_for_links  set(0->1, 1->0)
+link_net_device_utilization_tracking_enable_for_links  all
+link_net_device_utilization_tracking_interval_ns  100000000
+simulation_end_time_ns                    2000000000
+simulation_seed                           123456789
+tcp_flow_enable_logging_for_tcp_flow_ids  set(0)
+tcp_flow_schedule_filename                tcp_flow_schedule.csv
+topology_ptop_filename                    topology_single_everything.properties
+udp_burst_enable_logging_for_udp_burst_ids  set(0, 1)
+udp_burst_schedule_filename               udp_burst_schedule.csv
+udp_ping_schedule_filename                udp_ping_schedule.csv
+
+CONFIGURE SIMULATION
+  > Distributed is not enabled
+  > System id........ 0
+  > No. of systems... 1
+  > Seed............. 123456789
+  > Duration......... 2.00 s (2000000000 ns)
+
+TOPOLOGY GRAPH PARSING
+  > Number of nodes.... 2
+    >> Switches........ 2 (of which 2 are ToRs)
+    >> Servers......... 0
+  > Undirected edges... 1
+
+TOPOLOGY LINK PROPERTIES PARSING
+  > Link channel delays
+    >> Single global value... 10000 ns
+  > Link device data rates
+    >> Per link device mapping was read
+  > Link device queues
+    >> Per link device mapping was read
+  > Link device receive error model
+    >> Per link device receive error model mapping was read
+  > Worst-case RTT estimation
+    >> Highest link delay......... 10000 ns
+    >> Lowest link data rate...... 20.5 Mbit/s
+    >> Highest max. queue size.... 153204 byte (assuming 1502 byte frames)
+    >> Worst-case per-hop delay... 59.7969 ms
+    >> Worst-case hop count....... 2 (set to at most 20 even if topology is larger)
+    >> Estimated worst-case RTT... 119.594 ms
+  > Link interface traffic control queuing disciplines
+    >> Per link interface mapping was read
+
+SETUP NODES
+  > Creating nodes
+  > Installing Internet stack on each node
+
+SETUP LINKS
+  > Installing links
+
+SETUP ECMP ROUTING
+  > Calculating ECMP routing
+  > Setting the routing arbiter on each node
+
+POINT-TO-POINT LINK NET-DEVICE UTILIZATION TRACKING
+  > Utilization aggregation interval... 100000000 ns
+  > Tracking utilization on 2 point-to-point network devices
+  > Removed previous utilization tracking files if present
+
+POINT-TO-POINT LINK NET-DEVICE QUEUE TRACKING
+  > Tracking queue on 2 point-to-point network devices
+  > Removed previous link (net-device) queue tracking files if present
+
+POINT-TO-POINT LINK INTERFACE TC QDISC QUEUE TRACKING
+  > Tracking traffic-control qdisc queue on 1 point-to-point interfaces
+  > Removed previous link (interface traffic-control) qdisc queue tracking files if present
+
+TCP OPTIMIZATION USING WORST-CASE RTT
+  > Clock granularity.......... 1 ns
+  > Initial CWND............... 10 packets
+  > Send buffer size........... 1073.742 MB
+  > Receive buffer size........ 1073.742 MB
+  > Segment size............... 1380 byte
+  > Timestamp option........... enabled
+  > SACK option................ enabled
+  > Window scaling option...... enabled
+  > Pacing..................... disabled
+  > Delayed ACK count.......... 2
+  > No delay (disable Nagle)... enabled
+  > Maximum segment lifetime... 597.969 ms
+  > Minimum RTO................ 179.391 ms
+  > Initial RTT measurement.... 239.188 ms
+  > Connection timeout......... 239.188 ms
+  > Delayed ACK timeout........ 23.919 ms
+  > Persist timeout............ 478.375 ms
+
+TCP FLOW SCHEDULER
+  > TCP flow scheduler is enabled
+  > Read schedule (total flow start events: 1)
+  > Removed previous flow log files if present
+  > Setting up TCP flow servers
+  > Setting up traffic TCP flow starter
+
+UDP BURST SCHEDULER
+  > UDP burst scheduler is enabled
+  > Read schedule (total UDP bursts: 2)
+  > Removed previous UDP burst log files if present
+  > Setting up 2 UDP burst servers
+  > Filtered schedule (total UDP bursts: 2)
+  > Schedule start of first UDP burst client
+
+UDP PING SCHEDULER
+  > UDP ping scheduler is enabled
+  > Read schedule (total UDP pings: 2)
+  > Removed previous UDP ping log files if present
+  > Setting up 2 UDP ping servers
+  > Schedule start of first UDP ping client
+
+SIMULATION
+Running the simulation for 2.00 simulation seconds...
+Finished simulation.
+Simulation of 2.0 seconds took in wallclock time 1.4 seconds.
+
+STORE TCP FLOW RESULTS
+  > Opening TCP flow log files:
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/tcp_flows.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/tcp_flows.txt
+  > Writing tcp_flows.txt header
+  > Writing log files line-by-line
+  > Total TCP flow log entries to write... 1
+  > Closing TCP flow log files:
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/tcp_flows.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/tcp_flows.txt
+  > TCP flow log files have been written
+
+STORE UDP BURST RESULTS
+  > Opening UDP burst log files:
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/udp_bursts_outgoing.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/udp_bursts_outgoing.txt
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/udp_bursts_incoming.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/udp_bursts_incoming.txt
+  > Writing udp_bursts_{incoming, outgoing}.txt headers
+  > Writing outgoing log files
+  > Writing incoming log files
+  > Closing UDP burst log files:
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/udp_bursts_outgoing.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/udp_bursts_outgoing.txt
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/udp_bursts_incoming.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/udp_bursts_incoming.txt
+  > UDP burst log files have been written
+
+STORE UDP PING RESULTS
+  > Opening UDP ping log files:
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/udp_pings.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/udp_pings.txt
+  > Writing udp_pings.txt header
+  > Closing UDP ping log files:
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/udp_pings.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/udp_pings.txt
+  > UDP ping log files have been written
+
+POINT-TO-POINT LINK NET-DEVICE UTILIZATION TRACKING RESULTS
+  > Opening utilization log files:
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization_compressed.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization_compressed.txt
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization_summary.txt
+  > Writing utilization compressed TXT header
+  > Writing utilization summary TXT header
+  > Writing utilization log files
+  > Closing utilization log files:
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization_compressed.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization_compressed.txt
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_net_device_utilization_summary.txt
+  > Utilization log files have been written
+
+POINT-TO-POINT LINK NET-DEVICE QUEUE TRACKING RESULTS
+  > Opening link (net-device) queue log files:
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_net_device_queue_pkt.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_net_device_queue_byte.csv
+  > Writing link (net-device) queue log files
+  > Closing link (net-device) queue log files:
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_net_device_queue_pkt.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_net_device_queue_byte.csv
+  > Link (net-device) queue log files have been written
+
+POINT-TO-POINT LINK INTERFACE TC QDISC QUEUE TRACKING RESULTS
+  > Opening link (interface traffic-control) qdisc queue log files:
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv
+    >> Opened: ../test_run_folders/reproduce/logs_ns3/link_interface_tc_qdisc_queue_byte.csv
+  > Writing link (interface traffic-control) qdisc queue log files
+  > Closing link (interface traffic-control) qdisc queue log files:
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv
+    >> Closed: ../test_run_folders/reproduce/logs_ns3/link_interface_tc_qdisc_queue_byte.csv
+  > Link (interface traffic-control) qdisc queue log files have been written
+
+CLEAN-UP
+  > Simulator is destroyed
+  > Reset initial attribute and global values in configuration
+
+TIMING RESULTS
+------
+[    0.0 -     0.0] (0.0 s) :: Configure run and logs directory
+[    0.0 -     0.0] (0.0 s) :: Configure simulator
+[    0.0 -     0.0] (0.0 s) :: Parse topology graph
+[    0.0 -     0.0] (0.0 s) :: Parse link-to-channel-delay mapping
+[    0.0 -     0.0] (0.0 s) :: Parse link-to-device-data-rate mapping
+[    0.0 -     0.0] (0.0 s) :: Parse link-to-device-queue mapping
+[    0.0 -     0.0] (0.0 s) :: Parse link-to-device-receive-error-model mapping
+[    0.0 -     0.0] (0.0 s) :: Estimate worst-case RTT (ns)
+[    0.0 -     0.0] (0.0 s) :: Parse link-to-interface-tc-qdisc mapping
+[    0.0 -     0.0] (0.0 s) :: Create nodes
+[    0.0 -     0.0] (0.0 s) :: Install Internet stack (incl. routing) on nodes
+[    0.0 -     0.0] (0.0 s) :: Create links and edge-to-interface-index mapping
+[    0.0 -     0.0] (0.0 s) :: Calculate ECMP routing state
+[    0.0 -     0.0] (0.0 s) :: Setup routing arbiter on each node
+[    0.0 -     0.0] (0.0 s) :: Install utilization trackers
+[    0.0 -     0.0] (0.0 s) :: Remove previous utilization tracking log files
+[    0.0 -     0.0] (0.0 s) :: Install link (net-device) queue trackers
+[    0.0 -     0.0] (0.0 s) :: Remove previous link (net-device) queue tracking log files
+[    0.0 -     0.0] (0.0 s) :: Install link (interface traffic-control) qdisc queue trackers
+[    0.0 -     0.0] (0.0 s) :: Remove previous link (interface traffic-control) qdisc queue tracking log files
+[    0.0 -     0.0] (0.0 s) :: Setup TCP parameters
+[    0.0 -     0.0] (0.0 s) :: Read flow schedule
+[    0.0 -     0.0] (0.0 s) :: Remove previous flow log files
+[    0.0 -     0.0] (0.0 s) :: Setup TCP flow servers
+[    0.0 -     0.0] (0.0 s) :: Setup traffic TCP flow starter
+[    0.0 -     0.0] (0.0 s) :: Read UDP burst schedule
+[    0.0 -     0.0] (0.0 s) :: Remove previous UDP burst log files
+[    0.0 -     0.0] (0.0 s) :: Setup UDP burst servers
+[    0.0 -     0.0] (0.0 s) :: Filter UDP burst schedule for this system
+[    0.0 -     0.0] (0.0 s) :: Schedule start of first UDP burst client
+[    0.0 -     0.0] (0.0 s) :: Read UDP ping schedule
+[    0.0 -     0.0] (0.0 s) :: Remove previous UDP ping log files
+[    0.0 -     0.0] (0.0 s) :: Setup UDP ping servers
+[    0.0 -     0.0] (0.0 s) :: Schedule start of first UDP ping client
+[    0.0 -     0.0] (0.0 s) :: Whatever is between previous timestamp and the simulation run
+[    0.0 -     1.5] (1.4 s) :: Run simulation
+[    1.5 -     1.5] (0.0 s) :: Write TCP flow log files
+[    1.5 -     1.5] (0.0 s) :: Write UDP burst log files
+[    1.5 -     1.5] (0.0 s) :: Write UDP ping log files
+[    1.5 -     1.5] (0.0 s) :: Write utilization log files
+[    1.5 -     1.5] (0.0 s) :: Write link (net-device) queue log files
+[    1.5 -     1.5] (0.0 s) :: Write link (interface traffic-control) qdisc queue log files
+[    1.5 -     1.5] (0.0 s) :: Destroy simulator
+[    1.5 -     1.5] (0.0 s) :: Reset configuration
+
+BASIC SIMULATION END
+  > Date... Sunday January 24, 2021
+  > Time... 16:41:31
+

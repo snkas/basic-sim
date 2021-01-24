@@ -1,0 +1,44 @@
+Configure run and logs directory,93902
+Configure simulator,451152
+Parse topology graph,351214
+Parse link-to-channel-delay mapping,25274
+Parse link-to-device-data-rate mapping,99923
+Parse link-to-device-queue mapping,106257
+Parse link-to-device-receive-error-model mapping,31797557
+Estimate worst-case RTT (ns),27677
+Parse link-to-interface-tc-qdisc mapping,198453
+Create nodes,210938
+Install Internet stack (incl. routing) on nodes,2659648
+Create links and edge-to-interface-index mapping,1369286
+Calculate ECMP routing state,87770
+Setup routing arbiter on each node,79382
+Install utilization trackers,126117
+Remove previous utilization tracking log files,16821
+Install link (net-device) queue trackers,156686
+Remove previous link (net-device) queue tracking log files,6326
+Install link (interface traffic-control) qdisc queue trackers,86598
+Remove previous link (interface traffic-control) qdisc queue tracking log files,6112
+Setup TCP parameters,756705
+Read flow schedule,99192
+Remove previous flow log files,7215
+Setup TCP flow servers,281775
+Setup traffic TCP flow starter,24584
+Read UDP burst schedule,97541
+Remove previous UDP burst log files,8947
+Setup UDP burst servers,378004
+Filter UDP burst schedule for this system,9893
+Schedule start of first UDP burst client,20562
+Read UDP ping schedule,85576
+Remove previous UDP ping log files,5796
+Setup UDP ping servers,228004
+Schedule start of first UDP ping client,21404
+Whatever is between previous timestamp and the simulation run,2816
+Run simulation,1410801400
+Write TCP flow log files,135897
+Write UDP burst log files,102811
+Write UDP ping log files,168211
+Write utilization log files,156834
+Write link (net-device) queue log files,5354954
+Write link (interface traffic-control) qdisc queue log files,2395079
+Destroy simulator,7639039
+Reset configuration,660199

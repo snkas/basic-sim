@@ -128,6 +128,9 @@ if [ "$1" == "" ] || [ "$1" == "--outside" ] || [ "$2" == "--outside" ] || [ "$3
     exit 1
   fi
 
+  # Reproduce
+  bash check_reproduce.sh || exit 1
+
 fi
 
 # Coverage report
