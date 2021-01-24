@@ -28,6 +28,7 @@
 #include "ns3/ptr.h"
 #include "ns3/traced-callback.h"
 #include "ns3/address.h"
+#include "ns3/socket-generator.h"
 
 namespace ns3 {
 
@@ -41,6 +42,8 @@ public:
   static TypeId GetTypeId (void);
   TcpFlowServer ();
   virtual ~TcpFlowServer ();
+
+  void SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator);
  
 protected:
   virtual void DoDispose (void);
@@ -63,6 +66,7 @@ private:
   Ptr<Socket> m_socket;                 //!< Listening socket (upon connection request, forks off a socket)
   std::list<Ptr<Socket> > m_socketList; //!< List of accepted sockets (are removed upon closed)
   uint64_t m_totalRx;                   //!< Total (payload) bytes received
+  Ptr<TcpSocketGenerator> m_tcpSocketGenerator;  //!< TCP socket generator
 
 };
 

@@ -26,6 +26,7 @@
 #include "ns3/ipv4-address.h"
 #include "ns3/traced-callback.h"
 #include "ns3/udp-ping-header.h"
+#include "ns3/socket-generator.h"
 
 namespace ns3 {
 
@@ -38,6 +39,8 @@ public:
   static TypeId GetTypeId (void);
   UdpPingClient ();
   virtual ~UdpPingClient ();
+
+  void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
 
   uint32_t GetUdpPingId();
   uint32_t GetSent();
@@ -65,6 +68,7 @@ private:
   Time m_duration;                       //!< Duration of the sending
   Time m_waitAfterwards;                 //!< How long to wait after the duration is over before closing socket
   std::string m_additionalParameters;    //!< Additional parameters (unused; reserved for future use)
+  Ptr<UdpSocketGenerator> m_udpSocketGenerator;  //!< UDP socket generator
 
   // State
   Time m_startTime;             //!< Start time

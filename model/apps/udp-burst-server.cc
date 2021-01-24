@@ -70,11 +70,13 @@ UdpBurstServer::GetTypeId(void) {
 
 UdpBurstServer::UdpBurstServer() {
     NS_LOG_FUNCTION(this);
+    m_udpSocketGenerator = CreateObject<UdpSocketGeneratorDefault>();
     m_socket = 0;
 }
 
 UdpBurstServer::~UdpBurstServer() {
     NS_LOG_FUNCTION(this);
+    m_udpSocketGenerator = 0;
     m_socket = 0;
 }
 
@@ -82,6 +84,11 @@ void
 UdpBurstServer::DoDispose(void) {
     NS_LOG_FUNCTION(this);
     Application::DoDispose();
+}
+
+void
+UdpBurstServer::SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator) {
+    m_udpSocketGenerator = udpSocketGenerator;
 }
 
 uint32_t
@@ -113,8 +120,7 @@ UdpBurstServer::StartApplication(void) {
     if (m_socket == 0) {
 
         // Create socket
-        TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket = Socket::CreateSocket(GetNode(), tid);
+        m_socket = m_udpSocketGenerator->GenerateUdpSocket(UdpBurstServer::GetTypeId(), this);
 
         // Bind to local address
         if (m_socket->Bind(m_localAddress) == -1) {

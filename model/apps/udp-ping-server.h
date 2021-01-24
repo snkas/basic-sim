@@ -25,6 +25,7 @@
 #include "ns3/address.h"
 #include "ns3/traced-callback.h"
 #include "ns3/udp-ping-header.h"
+#include "ns3/socket-generator.h"
 
 namespace ns3 {
 
@@ -38,6 +39,8 @@ public:
   UdpPingServer ();
   virtual ~UdpPingServer ();
 
+  void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
+
 protected:
   virtual void DoDispose (void);
 
@@ -49,6 +52,7 @@ private:
 
   // Parameters
   Address m_localAddress; //!< Local address (IPv4, port) the server operates out of
+  Ptr<UdpSocketGenerator> m_udpSocketGenerator;  //!< UDP socket generator
 
   // State
   Ptr<Socket> m_socket;   //!< IPv4 Socket

@@ -100,6 +100,7 @@ UdpBurstClient::GetTypeId(void) {
 
 UdpBurstClient::UdpBurstClient() {
     NS_LOG_FUNCTION(this);
+    m_udpSocketGenerator = CreateObject<UdpSocketGeneratorDefault>();
     m_socket = 0;
     m_sent = 0;
     m_sendEvent = EventId();
@@ -107,6 +108,7 @@ UdpBurstClient::UdpBurstClient() {
 
 UdpBurstClient::~UdpBurstClient() {
     NS_LOG_FUNCTION(this);
+    m_udpSocketGenerator = 0;
     m_socket = 0;
 }
 
@@ -114,6 +116,11 @@ void
 UdpBurstClient::DoDispose(void) {
     NS_LOG_FUNCTION(this);
     Application::DoDispose();
+}
+
+void
+UdpBurstClient::SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator) {
+    m_udpSocketGenerator = udpSocketGenerator;
 }
 
 uint32_t
@@ -130,8 +137,7 @@ void
 UdpBurstClient::StartApplication(void) {
     NS_LOG_FUNCTION(this);
     if (m_socket == 0) {
-        TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket = Socket::CreateSocket(GetNode(), tid);
+        m_socket = m_udpSocketGenerator->GenerateUdpSocket(UdpBurstClient::GetTypeId(), this);
 
         // Bind socket
         NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");

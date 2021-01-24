@@ -58,12 +58,15 @@ TcpFlowServer::GetTypeId(void) {
 
 TcpFlowServer::TcpFlowServer() {
     NS_LOG_FUNCTION(this);
+    m_tcpSocketGenerator = CreateObject<TcpSocketGeneratorDefault>();
     m_socket = 0;
     m_totalRx = 0;
 }
 
 TcpFlowServer::~TcpFlowServer() {
     NS_LOG_FUNCTION(this);
+    m_socket = 0;
+    m_tcpSocketGenerator = 0;
 }
 
 void TcpFlowServer::DoDispose(void) {
@@ -75,6 +78,10 @@ void TcpFlowServer::DoDispose(void) {
     Application::DoDispose();
 }
 
+void
+TcpFlowServer::SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator) {
+    m_tcpSocketGenerator = tcpSocketGenerator;
+}
 
 void TcpFlowServer::StartApplication() { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
@@ -84,7 +91,7 @@ void TcpFlowServer::StartApplication() { // Called at time specified by Start
     // it forks itself into a new socket, which
     // keeps the accept and close callbacks
     if (!m_socket) {
-        m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
+        m_socket = m_tcpSocketGenerator->GenerateTcpSocket(TcpFlowServer::GetTypeId(), this);
 
         // Socket constraints
         NS_ABORT_MSG_IF(addressUtils::IsMulticast(m_localAddress), "No support for multicast");

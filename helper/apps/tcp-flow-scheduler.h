@@ -30,6 +30,7 @@
 #include "ns3/exp-util.h"
 #include "ns3/topology.h"
 
+#include "ns3/socket-generator.h"
 #include "ns3/tcp-flow-schedule-reader.h"
 #include "ns3/tcp-flow-helper.h"
 #include "ns3/tcp-flow-client.h"
@@ -42,6 +43,7 @@ class TcpFlowScheduler
 
 public:
     TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
+    TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<TcpSocketGenerator> tcpSocketGenerator);
     void WriteResults();
 
 protected:
@@ -49,6 +51,7 @@ protected:
     Ptr<BasicSimulation> m_basicSimulation;
     int64_t m_simulation_end_time_ns;
     Ptr<Topology> m_topology = nullptr;
+    Ptr<TcpSocketGenerator> m_tcpSocketGenerator;
     bool m_enabled;
 
     std::vector<TcpFlowScheduleEntry> m_schedule;

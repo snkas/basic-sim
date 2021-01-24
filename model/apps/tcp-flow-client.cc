@@ -108,10 +108,13 @@ TcpFlowClient::TcpFlowClient()
           m_ackedBytes(0),
           m_isCompleted(false) {
     NS_LOG_FUNCTION(this);
+    m_tcpSocketGenerator = CreateObject<TcpSocketGeneratorDefault>();
 }
 
 TcpFlowClient::~TcpFlowClient() {
     NS_LOG_FUNCTION(this);
+    m_tcpSocketGenerator = 0;
+    m_socket = 0;
 }
 
 void
@@ -123,12 +126,17 @@ TcpFlowClient::DoDispose(void) {
     Application::DoDispose();
 }
 
+void
+TcpFlowClient::SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator) {
+    m_tcpSocketGenerator = tcpSocketGenerator;
+}
+
 void TcpFlowClient::StartApplication(void) { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
 
     // Create the socket if not already
     if (!m_socket) {
-       m_socket = Socket::CreateSocket(GetNode(), TcpSocketFactory::GetTypeId());
+        m_socket = m_tcpSocketGenerator->GenerateTcpSocket(TcpFlowClient::GetTypeId(), this);
 
         // Bind socket
         NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");

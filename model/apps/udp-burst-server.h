@@ -27,6 +27,7 @@
 #include "ns3/exp-util.h"
 #include "ns3/traced-callback.h"
 #include "ns3/udp-burst-header.h"
+#include "ns3/socket-generator.h"
 
 namespace ns3 {
 
@@ -39,6 +40,9 @@ public:
   static TypeId GetTypeId (void);
   UdpBurstServer ();
   virtual ~UdpBurstServer ();
+
+  void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
+
   uint32_t GetMaxSegmentSizeByte() const;
   uint32_t GetMaxUdpPayloadSizeByte() const;
   void RegisterIncomingBurst(int64_t udp_burst_id, bool enable_precise_logging);
@@ -58,6 +62,7 @@ private:
   std::string m_baseLogsDir;         //!< Where the logs will be written to: logs_dir/udp_burst_[id]_incoming.csv
   uint32_t m_maxSegmentSizeByte;     //!< Maximum segment size
   uint32_t m_maxUdpPayloadSizeByte;  //!< Maximum size of UDP payload before it gets fragmented
+  Ptr<UdpSocketGenerator> m_udpSocketGenerator;  //!< UDP socket generator
 
   // State
   Ptr<Socket> m_socket;  //!< IPv4 Socket

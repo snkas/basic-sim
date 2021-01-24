@@ -54,11 +54,13 @@ UdpPingServer::GetTypeId(void) {
 
 UdpPingServer::UdpPingServer() {
     NS_LOG_FUNCTION(this);
+    m_udpSocketGenerator = CreateObject<UdpSocketGeneratorDefault>();
     m_socket = 0;
 }
 
 UdpPingServer::~UdpPingServer() {
     NS_LOG_FUNCTION(this);
+    m_udpSocketGenerator = 0;
     m_socket = 0;
 }
 
@@ -69,14 +71,18 @@ UdpPingServer::DoDispose(void) {
 }
 
 void
+UdpPingServer::SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator) {
+    m_udpSocketGenerator = udpSocketGenerator;
+}
+
+void
 UdpPingServer::StartApplication(void) {
     NS_LOG_FUNCTION(this);
 
     if (m_socket == 0) {
 
         // Create socket
-        TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket = Socket::CreateSocket(GetNode(), tid);
+        m_socket = m_udpSocketGenerator->GenerateUdpSocket(UdpPingServer::GetTypeId(), this);
 
         // Bind to local address
         if (m_socket->Bind(m_localAddress) == -1) {

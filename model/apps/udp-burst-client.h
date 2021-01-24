@@ -29,6 +29,7 @@
 #include "ns3/ipv4-address.h"
 #include "ns3/traced-callback.h"
 #include "ns3/udp-burst-header.h"
+#include "ns3/socket-generator.h"
 
 namespace ns3 {
 
@@ -41,6 +42,8 @@ public:
   static TypeId GetTypeId (void);
   UdpBurstClient ();
   virtual ~UdpBurstClient ();
+
+  void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
 
   uint32_t GetUdpBurstId();
   uint32_t GetSent();
@@ -58,6 +61,7 @@ private:
   void ScheduleTransmit (Time dt);
   void Send (void);
 
+  // Parameters
   Address m_localAddress;                //!< Local address (IP, port)
   Address m_peerAddress;                 //!< Remote (server) address (IP, port)
   uint32_t m_udpBurstId;                 //!< Unique UDP burst identifier
@@ -69,7 +73,9 @@ private:
   std::string m_baseLogsDir;             //!< Where the logs will be written to: logs_dir/udp_burst_[id]_outgoing.csv
   uint32_t m_maxSegmentSizeByte;         //!< Maximum segment size
   uint32_t m_maxUdpPayloadSizeByte;      //!< Maximum size of UDP payload before it gets fragmented
+  Ptr<UdpSocketGenerator> m_udpSocketGenerator;  //!< UDP socket generator
 
+  // State
   Ptr<Socket> m_socket;  //!< Socket
   EventId m_sendEvent;   //!< Event to send the next packet
   uint32_t m_sent;       //!< Counter for sent packets

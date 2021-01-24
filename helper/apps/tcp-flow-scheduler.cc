@@ -44,6 +44,7 @@ void TcpFlowScheduler::StartNextFlow(int i) {
     // Install it on the node and start it right now
     ApplicationContainer app = source.Install(m_nodes.Get(entry.GetFromNodeId()));
     app.Start(NanoSeconds(0));
+    app.Get(0)->GetObject<TcpFlowClient>()->SetTcpSocketGenerator(m_tcpSocketGenerator);
     m_apps.push_back(app);
 
     // If there is a next flow to start, schedule its start
@@ -54,11 +55,20 @@ void TcpFlowScheduler::StartNextFlow(int i) {
 
 }
 
-TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology) {
+TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology) : TcpFlowScheduler(
+        basicSimulation,
+        topology,
+        CreateObject<TcpSocketGeneratorDefault>()
+) {
+    // Left empty intentionally
+}
+
+TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<TcpSocketGenerator> tcpSocketGenerator) {
     printf("TCP FLOW SCHEDULER\n");
 
     m_basicSimulation = basicSimulation;
     m_topology = topology;
+    m_tcpSocketGenerator = tcpSocketGenerator;
 
     // Check if it is enabled explicitly
     m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_tcp_flow_scheduler", "false"));
@@ -137,6 +147,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(endpoint)) {
                 TcpFlowServerHelper server(InetSocketAddress(Ipv4Address::GetAny(), 1024));
                 ApplicationContainer app = server.Install(m_nodes.Get(endpoint));
+                app.Get(0)->GetObject<TcpFlowServer>()->SetTcpSocketGenerator(m_tcpSocketGenerator);
                 app.Start(Seconds(0.0));
             }
         }

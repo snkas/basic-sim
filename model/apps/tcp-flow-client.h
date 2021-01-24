@@ -32,6 +32,7 @@
 #include "ns3/log-update-helper.h"
 #include "ns3/tcp-socket.h"
 #include "ns3/tcp-socket-state.h"
+#include "ns3/socket-generator.h"
 
 namespace ns3 {
 
@@ -44,8 +45,9 @@ public:
   static TypeId GetTypeId (void);
 
   TcpFlowClient ();
-
   virtual ~TcpFlowClient ();
+
+  void SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator);
 
   int64_t GetAckedBytes();
   Ptr<Socket> GetSocket();
@@ -76,6 +78,7 @@ private:
   std::string     m_additionalParameters;         //!< Additional parameters (unused; reserved for future use)
   bool            m_enableDetailedLoggingToFile;  //!< True iff you want to write detailed logs
   std::string     m_baseLogsDir;                  //!< Where the logs will be written to:  logs_dir/tcp_flow_[id]_{progress, cwnd, ...}.csv
+  Ptr<TcpSocketGenerator> m_tcpSocketGenerator;   //!< TCP socket generator
 
   // State
   Ptr<Socket>     m_socket;           //!< Associated socket

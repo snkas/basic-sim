@@ -31,6 +31,8 @@ def build(bld):
         'helper/core/tcp-optimizer.cc',
         'helper/core/point-to-point-ab-helper.cc',
 
+        'model/apps/socket-generator.cc',
+
         'model/apps/tcp-flow-client.cc',
         'model/apps/tcp-flow-server.cc',
         'model/apps/udp-burst-header.cc',
@@ -81,6 +83,8 @@ def build(bld):
         'helper/core/initial-helpers.h',
         'helper/core/tcp-optimizer.h',
         'helper/core/point-to-point-ab-helper.h',
+
+        'model/apps/socket-generator.h',
 
         'model/apps/tcp-flow-client.h',
         'model/apps/tcp-flow-server.h',
