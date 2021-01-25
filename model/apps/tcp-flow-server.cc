@@ -83,6 +83,14 @@ TcpFlowServer::SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator)
     m_tcpSocketGenerator = tcpSocketGenerator;
 }
 
+void
+TcpFlowServer::SetIpTos(uint8_t ipTos) {
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
+    InetSocketAddress newLocalAddress = InetSocketAddress::ConvertFrom(m_localAddress);
+    newLocalAddress.SetTos(ipTos);
+    m_localAddress = newLocalAddress;
+}
+
 void TcpFlowServer::StartApplication() { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
 

@@ -214,9 +214,8 @@ void TestCaseWithLogValidators::validate_link_net_device_queue_logs(
             );
 
             // Packets vs. bytes
-            ASSERT_EQUAL(
-                    std::get<2>(link_net_device_queue_byte.at(a_b)[i]),
-                    std::get<2>(link_net_device_queue_pkt.at(a_b)[i]) * 1502
+            ASSERT_TRUE(
+                    std::get<2>(link_net_device_queue_byte.at(a_b)[i]) <= std::get<2>(link_net_device_queue_pkt.at(a_b)[i]) * 1502
             );
 
         }
@@ -514,9 +513,8 @@ void TestCaseWithLogValidators::validate_link_interface_tc_qdisc_queue_logs(
             );
 
             // Packets vs. bytes
-            ASSERT_EQUAL(
-                    std::get<2>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]),
-                    std::get<2>(link_interface_tc_qdisc_queue_pkt.at(a_b)[i]) * 1500
+            ASSERT_TRUE(
+                    std::get<2>(link_interface_tc_qdisc_queue_byte.at(a_b)[i]) <= std::get<2>(link_interface_tc_qdisc_queue_pkt.at(a_b)[i]) * 1500
             );
 
         }

@@ -41,7 +41,9 @@ void UdpPingScheduler::StartNextUdpPing(int i) {
 
     // Install it on the node and start it right now
     ApplicationContainer app = client.Install(m_nodes.Get(entry.GetFromNodeId()));
-    app.Get(0)->GetObject<UdpPingClient>()->SetUdpSocketGenerator(m_udpSocketGenerator);
+    Ptr<UdpPingClient> udpPingClient = app.Get(0)->GetObject<UdpPingClient>();
+    udpPingClient->SetUdpSocketGenerator(m_udpSocketGenerator);
+    udpPingClient->SetIpTos(m_ipTosGenerator->GenerateIpTos(UdpPingClient::GetTypeId(), udpPingClient));
     app.Start(NanoSeconds(0));
     m_apps.push_back(app);
 
@@ -60,17 +62,19 @@ void UdpPingScheduler::StartNextUdpPing(int i) {
 UdpPingScheduler::UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology) : UdpPingScheduler(
         basicSimulation,
         topology,
-        CreateObject<UdpSocketGeneratorDefault>()
+        CreateObject<UdpSocketGeneratorDefault>(),
+        CreateObject<IpTosGeneratorDefault>()
 ) {
     // Left empty intentionally
 }
 
-UdpPingScheduler::UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator) {
+UdpPingScheduler::UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator) {
     printf("UDP PING SCHEDULER\n");
 
     m_basicSimulation = basicSimulation;
     m_topology = topology;
     m_udpSocketGenerator = udpSocketGenerator;
+    m_ipTosGenerator = ipTosGenerator;
 
     // Check if it is enabled explicitly
     m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_udp_ping_scheduler", "false"));
@@ -137,7 +141,9 @@ UdpPingScheduler::UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
                     InetSocketAddress(m_nodes.Get(i)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1026)
                 );
                 ApplicationContainer app = pingServerHelper.Install(m_nodes.Get(i));
-                app.Get(0)->GetObject<UdpPingServer>()->SetUdpSocketGenerator(m_udpSocketGenerator);
+                Ptr<UdpPingServer> udpPingServer = app.Get(0)->GetObject<UdpPingServer>();
+                udpPingServer->SetUdpSocketGenerator(m_udpSocketGenerator);
+                udpPingServer->SetIpTos(m_ipTosGenerator->GenerateIpTos(UdpPingServer::GetTypeId(), udpPingServer));
                 app.Start(Seconds(0.0));
             }
         }

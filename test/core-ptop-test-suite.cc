@@ -12,7 +12,6 @@ using namespace ns3;
 #include "core/ptop-receive-error-model-test.h"
 #include "core/ptop-tc-qdisc-test.h"
 
-
 class BasicSimCorePtopTestSuite : public TestSuite {
 public:
     BasicSimCorePtopTestSuite() : TestSuite("basic-sim-core-ptop", UNIT) {
@@ -37,7 +36,8 @@ public:
         AddTestCase(new PtopTcQdiscFqCodelValidTestCase, TestCase::QUICK);
         AddTestCase(new PtopTcQdiscRedValidTestCase, TestCase::QUICK);
         AddTestCase(new PtopTcQdiscInvalidTestCase, TestCase::QUICK);
-        AddTestCase(new PtopTcQdiscRedEcnAndDropMarkingTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscRedDropMarkingTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscRedEcnMarkingTestCase, TestCase::QUICK);
 
     }
 };

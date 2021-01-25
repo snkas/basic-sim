@@ -30,6 +30,7 @@
 #include "ns3/udp-ping-helper.h"
 #include "ns3/udp-ping-schedule-reader.h"
 #include "ns3/socket-generator.h"
+#include "ns3/ip-tos-generator.h"
 
 namespace ns3 {
 
@@ -38,7 +39,7 @@ class UdpPingScheduler
 
 public:
     UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
-    UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator);
+    UdpPingScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator);
     void StartNextUdpPing(int i);
     void WriteResults();
 
@@ -47,6 +48,7 @@ protected:
     int64_t m_simulation_end_time_ns;
     Ptr<Topology> m_topology = nullptr;
     Ptr<UdpSocketGenerator> m_udpSocketGenerator;
+    Ptr<IpTosGenerator> m_ipTosGenerator;
     bool m_enabled;
 
     NodeContainer m_nodes;

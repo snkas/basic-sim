@@ -109,13 +109,25 @@ UdpPingClient::SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator)
 }
 
 void
+UdpPingClient::SetIpTos(uint8_t ipTos) {
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
+    InetSocketAddress newLocalAddress = InetSocketAddress::ConvertFrom(m_localAddress);
+    newLocalAddress.SetTos(ipTos);
+    m_localAddress = newLocalAddress;
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
+    InetSocketAddress newRemoteAddress = InetSocketAddress::ConvertFrom(m_remoteAddress);
+    newRemoteAddress.SetTos(ipTos);
+    m_remoteAddress = newRemoteAddress;
+}
+
+void
 UdpPingClient::StartApplication(void) {
     NS_LOG_FUNCTION(this);
     if (m_socket == 0) {
         m_socket = m_udpSocketGenerator->GenerateUdpSocket(UdpPingClient::GetTypeId(), this);
 
         // Bind socket
-        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
         if (m_socket->Bind(m_localAddress) == -1) {
             throw std::runtime_error("Failed to bind socket");
         }
@@ -227,6 +239,10 @@ UdpPingClient::HandleRead(Ptr <Socket> socket) {
 
 uint32_t UdpPingClient::GetUdpPingId() {
     return m_udpPingId;
+}
+
+std::string UdpPingClient::GetAdditionalParameters() {
+    return m_additionalParameters;
 }
 
 uint32_t UdpPingClient::GetSent() {

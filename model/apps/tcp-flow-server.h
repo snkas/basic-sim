@@ -44,6 +44,7 @@ public:
   virtual ~TcpFlowServer ();
 
   void SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator);
+  void SetIpTos(uint8_t ipTos);
  
 protected:
   virtual void DoDispose (void);

@@ -44,7 +44,9 @@ void UdpBurstScheduler::StartNextUdpBurst(int i) {
 
     // Install it on the node and start it right now
     ApplicationContainer app = client.Install(m_nodes.Get(entry.GetFromNodeId()));
-    app.Get(0)->GetObject<UdpBurstClient>()->SetUdpSocketGenerator(m_udpSocketGenerator);
+    Ptr<UdpBurstClient> udpBurstClient = app.Get(0)->GetObject<UdpBurstClient>();
+    udpBurstClient->SetUdpSocketGenerator(m_udpSocketGenerator);
+    udpBurstClient->SetIpTos(m_ipTosGenerator->GenerateIpTos(UdpBurstClient::GetTypeId(), udpBurstClient));
     app.Start(NanoSeconds(0));
 
     // Match the entry to the application for logging later
@@ -65,17 +67,19 @@ void UdpBurstScheduler::StartNextUdpBurst(int i) {
 UdpBurstScheduler::UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology) : UdpBurstScheduler(
         basicSimulation,
         topology,
-        CreateObject<UdpSocketGeneratorDefault>()
+        CreateObject<UdpSocketGeneratorDefault>(),
+        CreateObject<IpTosGeneratorDefault>()
 ) {
     // Left empty intentionally
 }
 
-UdpBurstScheduler::UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator) {
+UdpBurstScheduler::UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator) {
     printf("UDP BURST SCHEDULER\n");
 
     m_basicSimulation = basicSimulation;
     m_topology = topology;
     m_udpSocketGenerator = udpSocketGenerator;
+    m_ipTosGenerator = ipTosGenerator;
 
     // Check if it is enabled explicitly
     m_enabled = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_udp_burst_scheduler", "false"));
@@ -155,11 +159,12 @@ UdpBurstScheduler::UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<T
                         m_basicSimulation->GetLogsDir()
                 );
                 ApplicationContainer app = burstServerHelper.Install(m_nodes.Get(endpoint));
-                app.Get(0)->GetObject<UdpBurstServer>()->SetUdpSocketGenerator(m_udpSocketGenerator);
+                Ptr<UdpBurstServer> udpBurstServer = app.Get(0)->GetObject<UdpBurstServer>();
+                udpBurstServer->SetUdpSocketGenerator(m_udpSocketGenerator);
+                udpBurstServer->SetIpTos(m_ipTosGenerator->GenerateIpTos(UdpBurstServer::GetTypeId(), udpBurstServer));
                 app.Start(Seconds(0.0));
 
                 // Register all incoming bursts of the server
-                Ptr<UdpBurstServer> udpBurstServer = app.Get(0)->GetObject<UdpBurstServer>();
                 for (UdpBurstInfo entry : complete_schedule) {
                     if (entry.GetToNodeId() == endpoint) {
                         udpBurstServer->RegisterIncomingBurst(

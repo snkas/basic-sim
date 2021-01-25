@@ -31,6 +31,7 @@
 #include "ns3/exp-util.h"
 #include "ns3/topology.h"
 #include "ns3/socket-generator.h"
+#include "ns3/ip-tos-generator.h"
 
 #include "ns3/udp-burst-schedule-reader.h"
 #include "ns3/udp-burst-helper.h"
@@ -42,7 +43,7 @@ namespace ns3 {
 
     public:
         UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
-        UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator);
+        UdpBurstScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<UdpSocketGenerator> udpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator);
         void StartNextUdpBurst(int i);
         void WriteResults();
 
@@ -51,6 +52,7 @@ namespace ns3 {
         int64_t m_simulation_end_time_ns;
         Ptr<Topology> m_topology = nullptr;
         Ptr<UdpSocketGenerator> m_udpSocketGenerator;
+        Ptr<IpTosGenerator> m_ipTosGenerator;
         bool m_enabled;
 
         bool m_enable_distributed;

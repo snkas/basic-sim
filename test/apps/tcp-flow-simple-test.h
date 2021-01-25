@@ -73,13 +73,15 @@ public:
         TcpFlowClientHelper tcpFlowClientHelper(
                 InetSocketAddress(nodes.Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 77),
                 InetSocketAddress(nodes.Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), 1029),
-                0,
+                6483,
                 1000000000,
-                "",
+                "aaa",
                 false,
                 "log_directory_does_not_matter"
         );
         ApplicationContainer tcpFlowClientApp = tcpFlowClientHelper.Install(nodes.Get(0));
+        ASSERT_EQUAL(tcpFlowClientApp.Get(0)->GetObject<TcpFlowClient>()->GetTcpFlowId(), 6483);
+        ASSERT_EQUAL(tcpFlowClientApp.Get(0)->GetObject<TcpFlowClient>()->GetAdditionalParameters(), "aaa");
         tcpFlowClientApp.Start(NanoSeconds(0));
         tcpFlowClientApp = tcpFlowClientHelper.Install(nodes.Get(0));
         tcpFlowClientApp.Start(NanoSeconds(0));

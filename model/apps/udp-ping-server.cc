@@ -76,6 +76,14 @@ UdpPingServer::SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator)
 }
 
 void
+UdpPingServer::SetIpTos(uint8_t ipTos) {
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
+    InetSocketAddress newLocalAddress = InetSocketAddress::ConvertFrom(m_localAddress);
+    newLocalAddress.SetTos(ipTos);
+    m_localAddress = newLocalAddress;
+}
+
+void
 UdpPingServer::StartApplication(void) {
     NS_LOG_FUNCTION(this);
 

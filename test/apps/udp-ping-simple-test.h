@@ -99,10 +99,11 @@ public:
                 NanoSeconds(10000000),
                 NanoSeconds(700000000),
                 NanoSeconds(10000000),
-                ""
+                "Something"
         );
         ApplicationContainer udpPingClientApp = udpPingClientHelper.Install(nodes.Get(0));
         ASSERT_EQUAL(udpPingClientApp.Get(0)->GetObject<UdpPingClient>()->GetUdpPingId(), 79);
+        ASSERT_EQUAL(udpPingClientApp.Get(0)->GetObject<UdpPingClient>()->GetAdditionalParameters(), "Something");
         udpPingClientApp.Start(NanoSeconds(0));
         udpPingClientApp = udpPingClientHelper.Install(nodes.Get(0));
         udpPingClientApp.Start(NanoSeconds(0));

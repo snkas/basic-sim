@@ -44,8 +44,11 @@ public:
   virtual ~UdpBurstClient ();
 
   void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
+  void SetIpTos(uint8_t ipTos);
 
   uint32_t GetUdpBurstId();
+  std::string GetAdditionalParameters();
+
   uint32_t GetSent();
   uint32_t GetMaxSegmentSizeByte() const;
   uint32_t GetMaxUdpPayloadSizeByte() const;
@@ -63,7 +66,7 @@ private:
 
   // Parameters
   Address m_localAddress;                //!< Local address (IP, port)
-  Address m_peerAddress;                 //!< Remote (server) address (IP, port)
+  Address m_remoteAddress;               //!< Remote (server) address (IP, port)
   uint32_t m_udpBurstId;                 //!< Unique UDP burst identifier
   Time m_startTime;                      //!< Start time
   double m_targetRateMegabitPerSec;      //!< Target rate (incl. headers) in Mbit/s

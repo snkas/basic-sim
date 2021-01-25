@@ -42,6 +42,7 @@ public:
   virtual ~UdpBurstServer ();
 
   void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
+  void SetIpTos(uint8_t ipTos);
 
   uint32_t GetMaxSegmentSizeByte() const;
   uint32_t GetMaxUdpPayloadSizeByte() const;

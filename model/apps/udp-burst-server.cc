@@ -91,6 +91,14 @@ UdpBurstServer::SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator
     m_udpSocketGenerator = udpSocketGenerator;
 }
 
+void
+UdpBurstServer::SetIpTos(uint8_t ipTos) {
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
+    InetSocketAddress newLocalAddress = InetSocketAddress::ConvertFrom(m_localAddress);
+    newLocalAddress.SetTos(ipTos);
+    m_localAddress = newLocalAddress;
+}
+
 uint32_t
 UdpBurstServer::GetMaxSegmentSizeByte() const {
     return m_maxSegmentSizeByte;

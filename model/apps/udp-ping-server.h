@@ -40,6 +40,7 @@ public:
   virtual ~UdpPingServer ();
 
   void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
+  void SetIpTos(uint8_t ipTos);
 
 protected:
   virtual void DoDispose (void);

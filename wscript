@@ -32,6 +32,7 @@ def build(bld):
         'helper/core/point-to-point-ab-helper.cc',
 
         'model/apps/socket-generator.cc',
+        'model/apps/ip-tos-generator.cc',
 
         'model/apps/tcp-flow-client.cc',
         'model/apps/tcp-flow-server.cc',
@@ -85,6 +86,7 @@ def build(bld):
         'helper/core/point-to-point-ab-helper.h',
 
         'model/apps/socket-generator.h',
+        'model/apps/ip-tos-generator.h',
 
         'model/apps/tcp-flow-client.h',
         'model/apps/tcp-flow-server.h',

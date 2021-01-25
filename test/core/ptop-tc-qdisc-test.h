@@ -348,11 +348,11 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-class PtopTcQdiscRedEcnAndDropMarkingTestCase : public TestCaseWithLogValidators
+class PtopTcQdiscRedDropMarkingTestCase : public TestCaseWithLogValidators
 {
 public:
-    PtopTcQdiscRedEcnAndDropMarkingTestCase () : TestCaseWithLogValidators ("ptop-tc-qdisc-red ecn-and-drop-marking") {};
-    const std::string test_run_dir = ".tmp-test-ptop-tc-qdisc-red-ecn-and-drop-marking";
+    PtopTcQdiscRedDropMarkingTestCase () : TestCaseWithLogValidators ("ptop-tc-qdisc-red drop-marking") {};
+    const std::string test_run_dir = ".tmp-test-ptop-tc-qdisc-red-drop-marking";
 
     void DoRun () {
         prepare_clean_run_dir(test_run_dir);
@@ -558,6 +558,261 @@ public:
         //     largest_queue_size_pkt = std::max(largest_queue_size_pkt, interval_num_pkt);
         // }
         // ASSERT_EQUAL_APPROX(largest_queue_size_pkt, AMOUNT, DEVIATION);
+
+        // Clean up
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/udp_burst_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_incoming.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_incoming.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_outgoing.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/udp_bursts_outgoing.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class PacketSaveTracer
+{
+public:
+    std::vector<Ptr<Packet>> packets;
+    void NetDevicePhyTxEndCallback(Ptr<Packet const> p) {
+        packets.push_back(p->Copy());
+    }
+};
+
+namespace ns3 {
+
+class IpTosGeneratorEnableEcn : public IpTosGenerator {
+public:
+    static TypeId GetTypeId(void);
+    uint8_t GenerateIpTos(TypeId appTypeId, Ptr<Application> app);
+};
+
+NS_OBJECT_ENSURE_REGISTERED (IpTosGeneratorEnableEcn);
+TypeId IpTosGeneratorEnableEcn::GetTypeId (void)
+{
+    static TypeId tid = TypeId ("ns3::IpTosGeneratorEnableEcn")
+            .SetParent<IpTosGenerator> ()
+            .SetGroupName("BasicSim")
+    ;
+    return tid;
+}
+
+uint8_t IpTosGeneratorEnableEcn::GenerateIpTos(TypeId appTypeId, Ptr<Application> app) {
+    return 1;
+}
+
+}
+
+class PtopTcQdiscRedEcnMarkingTestCase : public TestCaseWithLogValidators
+{
+public:
+    PtopTcQdiscRedEcnMarkingTestCase () : TestCaseWithLogValidators ("ptop-tc-qdisc-red ecn-marking") {};
+    const std::string test_run_dir = ".tmp-test-ptop-tc-qdisc-red-ecn-marking";
+
+    void DoRun () {
+        prepare_clean_run_dir(test_run_dir);
+
+        // Write configuration
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=1950000000" << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
+        config_file << "link_net_device_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
+        config_file << "link_interface_tc_qdisc_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_udp_burst_scheduler=true" << std::endl;
+        config_file << "udp_burst_schedule_filename=\"udp_burst_schedule.csv\"" << std::endl;
+        config_file.close();
+
+        // Write topology
+        std::ofstream topology_file;
+        topology_file.open (test_run_dir + "/topology.properties");
+        topology_file << "num_nodes=3" << std::endl;
+        topology_file << "num_undirected_edges=2" << std::endl;
+        topology_file << "switches=set(0,1,2)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,1,2)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1, 1-2)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
+        topology_file << "link_net_device_queue=map(0->1: drop_tail(100p), 1->0: drop_tail(100p), 1->2: drop_tail(100p), 2->1: drop_tail(100p))" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->1: simple_red(ecn; 1500; 1.0; 100; 200; 4000p; 0.1; no_wait; gentle), 1->0: fifo(100p), 1->2: fifo(100p), 2->1: fifo(100p))" << std::endl;
+        topology_file.close();
+
+        // Write UDP burst file
+        std::ofstream udp_burst_schedule_file;
+        udp_burst_schedule_file.open (test_run_dir + "/udp_burst_schedule.csv");
+        // 1000 Mbit/s for 2000000 ns = 167 packets
+        // 1000 Mbit/s for 6000000 ns = 500 packets
+        // 1000 Mbit/s for 12000000 ns = 1000 packets
+        // 2000 Mbit/s for 12000000 ns = 2000 packets
+        udp_burst_schedule_file << "0,0,2,1000,0,6000000,," << std::endl;
+        topology_file.close();
+
+        // Create simulation environment
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+
+        // Create topology
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+
+        // Track the packet being sent
+        PacketSaveTracer packetSaveTracer;
+        Ptr<PointToPointNetDevice> netDevice1to2 = topology->GetSendingNetDeviceForLink(std::make_pair(1, 2));
+        netDevice1to2->TraceConnectWithoutContext("PhyTxEnd", MakeCallback(&PacketSaveTracer::NetDevicePhyTxEndCallback, &packetSaveTracer));
+
+        // Schedule UDP bursts
+        UdpBurstScheduler udpBurstScheduler(basicSimulation, topology, CreateObject<UdpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorEnableEcn>());
+
+        // Install link net-device queue trackers
+        PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology); // Requires enable_link_net_device_queue_tracking=true
+
+        // Install link interface traffic-control qdisc queue trackers
+        PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology); // Requires enable_link_interface_tc_qdisc_queue_tracking=true
+
+        // Run simulation
+        basicSimulation->Run();
+
+        // Write UDP bursts results
+        udpBurstScheduler.WriteResults();
+
+        // Write link net-device queue results
+        netDeviceQueueTracking.WriteResults();
+
+        // Write link interface traffic-control qdisc queue results
+        tcQdiscQueueTracking.WriteResults();
+
+        // Finalize the simulation
+        basicSimulation->Finalize();
+
+        // Links
+        std::vector<std::pair<int64_t, int64_t>> links;
+        links.push_back(std::make_pair(0, 1));
+        links.push_back(std::make_pair(1, 0));
+        links.push_back(std::make_pair(1, 2));
+        links.push_back(std::make_pair(2, 1));
+
+        // Get the link net-device queue development
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_pkt;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_net_device_queue_byte;
+        validate_link_net_device_queue_logs(test_run_dir, links, link_net_device_queue_pkt, link_net_device_queue_byte);
+
+        // Get the link interface traffic-control qdisc queue development
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_pkt;
+        std::map<std::pair<int64_t, int64_t>, std::vector<std::tuple<int64_t, int64_t, int64_t>>> link_interface_tc_qdisc_queue_byte;
+        validate_link_interface_tc_qdisc_queue_logs(test_run_dir, links, link_interface_tc_qdisc_queue_pkt, link_interface_tc_qdisc_queue_byte);
+
+        /////////////////////////////////////////////////////
+        // Step 1: measure how many of them were ECN marked
+
+        size_t num_not_ect = 0;
+        size_t num_ect1 = 0;
+        size_t num_ect0 = 0;
+        size_t num_ce = 0;
+        for (Ptr<Packet> p : packetSaveTracer.packets) {
+            PppHeader pppHeader;
+            p->RemoveHeader(pppHeader);
+            Ipv4Header ipv4Header;
+            p->RemoveHeader(ipv4Header);
+            switch (ipv4Header.GetEcn()) {
+                case Ipv4Header::ECN_NotECT:
+                    num_not_ect++;
+                    break;
+                case Ipv4Header::ECN_ECT1:
+                    num_ect1++;
+                    break;
+                case Ipv4Header::ECN_ECT0:
+                    num_ect0++;
+                    break;
+                case Ipv4Header::ECN_CE:
+                    num_ce++;
+                    break;
+            }
+        }
+        // std::cout << "NOT-ECT: " << num_not_ect << std::endl;
+        // std::cout << "ECT-1:   " << num_ect1 << std::endl;
+        // std::cout << "ECT-0:   " << num_ect0 << std::endl;
+        // std::cout << "CE:      " << num_ce << std::endl;
+
+        /////////////////////////////////////////////////////
+        // Step 2: calculate what would be the expectation
+
+        // It got 1000 packets put into its queue at a rate of 1000 Mbit/s
+        // In the time of the burst, it drained 10 Mbit/s, which is 10 packets
+        // As such, 990 total packets would be the maximum queue size for first-in-first-out
+
+        // 0 -> 1:
+        // Net-device queue: FIFO of 100 packets
+        // Queuing discipline: simple_red(ecn; 1500; 1.0; 100; 200; 4000p; 0.1; no_wait; gentle)
+        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+        x->SetAttribute ("Min", DoubleValue (0.0));
+        x->SetAttribute ("Max", DoubleValue (1.0));
+        size_t num_expected_unmarked = 0;
+        size_t num_expected_marked = 0;
+        double prob = 0.1;
+        int count = 0;
+        for (int i = 0; i < 500; i++) { // 500 packets are put into the queue one-by-one
+
+            // First the net-device queue is filled up (100 packets)
+            if (i < 100) {
+                num_expected_unmarked++;
+            } else {
+                int total_in_qdisc_queue = i - 100;
+                if (total_in_qdisc_queue < 100) {
+                    num_expected_unmarked++;
+                } else {
+                    count += 1;
+                    double p_a;
+                    if (total_in_qdisc_queue < 200) {
+                        p_a = prob * ((total_in_qdisc_queue - 100.0) / (200.0 - 100.0));
+                    } else {
+                        p_a = prob + (1.0 - prob) * ((total_in_qdisc_queue - 200.0) / (400.0 - 200.0));
+                    }
+
+                    // no_wait modification rule
+                    double p_b;
+                    if (count * p_a < 1.0) {
+                        p_b = p_a / (1.0 - count * p_a);
+                    } else {
+                        p_b = 1.0;
+                    }
+                    if (x->GetValue() >= p_b) {
+                        num_expected_unmarked++;
+                    } else {
+                        num_expected_marked++;
+                        count = 0;
+                    }
+
+
+                }
+
+            }
+
+        }
+        // std::cout << "Expected marked:    " << num_expected_marked << std::endl;
+        // std::cout << "Expected unmarked:  " << num_expected_unmarked << std::endl;
+
+        /////////////////////////////////////////////////////
+        // Step 3: compare actual vs. expectation
+        ASSERT_EQUAL(0, num_not_ect);
+        ASSERT_EQUAL_APPROX(num_expected_unmarked, num_ect1, 5);
+        ASSERT_EQUAL(0, num_ect0);
+        ASSERT_EQUAL_APPROX(num_expected_marked, num_ce, 5);
 
         // Clean up
         remove_file_if_exists(test_run_dir + "/config_ns3.properties");

@@ -52,7 +52,7 @@ UdpBurstClient::GetTypeId(void) {
             .AddAttribute("RemoteAddress",
                           "The address of the destination server (IPv4 address, port)",
                           AddressValue(),
-                          MakeAddressAccessor(&UdpBurstClient::m_peerAddress),
+                          MakeAddressAccessor(&UdpBurstClient::m_remoteAddress),
                           MakeAddressChecker())
             .AddAttribute("UdpBurstId",
                           "Unique UDP burst identifier",
@@ -123,6 +123,18 @@ UdpBurstClient::SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator
     m_udpSocketGenerator = udpSocketGenerator;
 }
 
+void
+UdpBurstClient::SetIpTos(uint8_t ipTos) {
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
+    InetSocketAddress newLocalAddress = InetSocketAddress::ConvertFrom(m_localAddress);
+    newLocalAddress.SetTos(ipTos);
+    m_localAddress = newLocalAddress;
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
+    InetSocketAddress newRemoteAddress = InetSocketAddress::ConvertFrom(m_remoteAddress);
+    newRemoteAddress.SetTos(ipTos);
+    m_remoteAddress = newRemoteAddress;
+}
+
 uint32_t
 UdpBurstClient::GetMaxSegmentSizeByte() const {
     return m_maxSegmentSizeByte;
@@ -140,14 +152,14 @@ UdpBurstClient::StartApplication(void) {
         m_socket = m_udpSocketGenerator->GenerateUdpSocket(UdpBurstClient::GetTypeId(), this);
 
         // Bind socket
-        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
         if (m_socket->Bind(m_localAddress) == -1) {
             throw std::runtime_error("Failed to bind socket");
         }
 
         // Connect
-        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_peerAddress), "Only IPv4 is supported.");
-        m_socket->Connect(m_peerAddress);
+        NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
+        m_socket->Connect(m_remoteAddress);
 
     }
     m_startTime = Simulator::Now();
@@ -205,6 +217,10 @@ UdpBurstClient::Send(void) {
 
 uint32_t UdpBurstClient::GetUdpBurstId() {
     return m_udpBurstId;
+}
+
+std::string UdpBurstClient::GetAdditionalParameters() {
+    return m_additionalParameters;
 }
 
 uint32_t UdpBurstClient::GetSent() {

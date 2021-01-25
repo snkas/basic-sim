@@ -2,7 +2,6 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Add test for ECN marking for the simple_red queueing discipline
 * Upgrade to latest ns-3
 * Make all variable and function naming consistent, along with whitespace conventions,
   in accordance with the ns-3 code style guide

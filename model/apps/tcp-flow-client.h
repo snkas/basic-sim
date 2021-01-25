@@ -48,6 +48,10 @@ public:
   virtual ~TcpFlowClient ();
 
   void SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator);
+  void SetIpTos(uint8_t ipTos);
+
+  uint64_t GetTcpFlowId();
+  std::string GetAdditionalParameters();
 
   int64_t GetAckedBytes();
   Ptr<Socket> GetSocket();

@@ -131,6 +131,18 @@ TcpFlowClient::SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator)
     m_tcpSocketGenerator = tcpSocketGenerator;
 }
 
+void
+TcpFlowClient::SetIpTos(uint8_t ipTos) {
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
+    InetSocketAddress newLocalAddress = InetSocketAddress::ConvertFrom(m_localAddress);
+    newLocalAddress.SetTos(ipTos);
+    m_localAddress = newLocalAddress;
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
+    InetSocketAddress newRemoteAddress = InetSocketAddress::ConvertFrom(m_remoteAddress);
+    newRemoteAddress.SetTos(ipTos);
+    m_remoteAddress = newRemoteAddress;
+}
+
 void TcpFlowClient::StartApplication(void) { // Called at time specified by Start
     NS_LOG_FUNCTION(this);
 
@@ -475,6 +487,14 @@ TcpFlowClient::FinalizeDetailedLogs() {
         m_log_update_helper_cong_state.Finalize(Simulator::Now().GetNanoSeconds ());
 
     }
+}
+
+uint64_t TcpFlowClient::GetTcpFlowId() {
+    return m_tcpFlowId;
+}
+
+std::string TcpFlowClient::GetAdditionalParameters() {
+    return m_additionalParameters;
 }
 
 } // Namespace ns3

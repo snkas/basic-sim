@@ -97,12 +97,13 @@ public:
                 33,
                 15.0,
                 NanoSeconds(700000000),
-                "",
+                "abc",
                 false,
                 "log_directory_does_not_matter"
         );
         ApplicationContainer udpBurstClientApp = udpBurstClientHelper.Install(nodes.Get(0));
         ASSERT_EQUAL(udpBurstClientApp.Get(0)->GetObject<UdpBurstClient>()->GetUdpBurstId(), 33);
+        ASSERT_EQUAL(udpBurstClientApp.Get(0)->GetObject<UdpBurstClient>()->GetAdditionalParameters(), "abc");
         udpBurstClientApp.Start(NanoSeconds(0));
         udpBurstClientApp = udpBurstClientHelper.Install(nodes.Get(0));
         udpBurstClientApp.Start(NanoSeconds(0));

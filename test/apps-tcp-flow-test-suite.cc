@@ -39,6 +39,7 @@ public:
         AddTestCase(new TcpFlowEndToEndNotEnabledTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndInvalidLoggingIdTestCase, TestCase::QUICK);
         AddTestCase(new TcpFlowEndToEndMultiPathTestCase, TestCase::QUICK);
+        AddTestCase(new TcpFlowEndToEndOneToOneEcnTestCase, TestCase::QUICK);
 
     }
 };

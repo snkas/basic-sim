@@ -41,8 +41,11 @@ public:
   virtual ~UdpPingClient ();
 
   void SetUdpSocketGenerator(Ptr<UdpSocketGenerator> udpSocketGenerator);
+  void SetIpTos(uint8_t ipTos);
 
   uint32_t GetUdpPingId();
+  std::string GetAdditionalParameters();
+
   uint32_t GetSent();
   std::vector<int64_t> GetSendRequestTimestamps();
   std::vector<int64_t> GetReplyTimestamps();
