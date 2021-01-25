@@ -1,6 +1,7 @@
 # Plotting
 
-In here you will find a few Python scripts that can be used to easily plot certain parts of a basic simulation.
+In here you will find a few Python scripts that can be used to easily plot
+certain parts of a basic simulation.
 
 ## Requirements
 
