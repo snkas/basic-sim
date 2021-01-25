@@ -172,6 +172,7 @@ void TcpFlowClient::StartApplication(void) { // Called at time specified by Star
             // Progress
             m_log_update_helper_progress_byte = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_progress.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
             m_log_update_helper_progress_byte.Update(Simulator::Now().GetNanoSeconds(), GetAckedBytes());
+            m_socket->GetObject<TcpSocketBase>()->GetTxBuffer()->TraceConnectWithoutContext("UnackSequence", MakeCallback(&TcpFlowClient::TxBufferUnackSequenceChange, this));
 
             // Measured RTT (ns)
             m_log_update_helper_rtt_ns = LogUpdateHelper<int64_t>(false, true, m_baseLogsDir + "/" + format_string("tcp_flow_%" PRIu64 "_rtt.csv", m_tcpFlowId), std::to_string(m_tcpFlowId) + ",");
@@ -292,12 +293,6 @@ void TcpFlowClient::DataSend(Ptr <Socket>, uint32_t) {
     if (m_connected) { // Only send new data if the connection has completed
         SendData();
     }
-
-    // Log the progress as DataSend() is called anytime space in the transmission buffer frees up
-    if (m_enableDetailedLoggingToFile) {
-        m_log_update_helper_progress_byte.Update(Simulator::Now().GetNanoSeconds (), GetAckedBytes());
-    }
-
 }
 
 void TcpFlowClient::SocketClosedNormal(Ptr <Socket> socket) {
@@ -351,6 +346,17 @@ bool TcpFlowClient::IsClosedNormally() {
 
 bool TcpFlowClient::IsClosedByError() {
     return m_closedByError;
+}
+
+void TcpFlowClient::TxBufferUnackSequenceChange (SequenceNumber32, SequenceNumber32) {
+    // Note that we do not make use of the arguments, as the sequence number
+    // can loop around for transmission larger than 4 GiB. As such, we make
+    // use of the GetAckedBytes () function instead. GetAckedBytes () works because the
+    // Size () of the TcpTxBuffer (m_size) is updated before the sequence number
+    // is increased.
+    if (m_enableDetailedLoggingToFile) {
+        m_log_update_helper_progress_byte.Update(Simulator::Now().GetNanoSeconds (), GetAckedBytes());
+    }
 }
 
 void

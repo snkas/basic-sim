@@ -112,6 +112,7 @@ private:
   void DataSend (Ptr<Socket>, uint32_t);
   void SocketClosedNormal(Ptr<Socket> socket);
   void SocketClosedError(Ptr<Socket> socket);
+  void TxBufferUnackSequenceChange (SequenceNumber32, SequenceNumber32);
   void RttChange (Time, Time newRtt);
   void RtoChange(Time, Time newRto);
   void CwndChange(uint32_t, uint32_t newCwnd);
