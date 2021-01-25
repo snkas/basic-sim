@@ -150,7 +150,7 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         for (int64_t endpoint : m_topology->GetEndpoints()) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(endpoint)) {
                 TcpFlowServerHelper server(
-                        InetSocketAddress(Ipv4Address::GetAny(), 1024)
+                        InetSocketAddress(m_nodes.Get(endpoint)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024)
                 );
                 ApplicationContainer app = server.Install(m_nodes.Get(endpoint));
                 Ptr<TcpFlowServer> tcpFlowServer = app.Get(0)->GetObject<TcpFlowServer>();
