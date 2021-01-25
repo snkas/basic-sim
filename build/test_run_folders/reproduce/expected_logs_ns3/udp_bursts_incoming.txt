@@ -1,3 +1,3 @@
 UDP burst ID    From      To        Target rate         Start time      Duration        Incoming rate (w/ headers)  Incoming rate (payload)     Packets received   Data received (w/headers)   Data received (payload)     Metadata
-0               0         1         15.00 Mbit/s        0.00 ms         5000.00 ms      14.79 Mbit/s                14.51 Mbit/s                2465               29.58 Mbit                  29.03 Mbit                  
-1               1         0         19.20 Mbit/s        1000.00 ms      4000.00 ms      19.20 Mbit/s                18.84 Mbit/s                1600               19.20 Mbit                  18.84 Mbit                  
+0               0         1         7.50 Mbit/s         0.00 ms         5000.00 ms      7.36 Mbit/s                 7.22 Mbit/s                 1839               22.07 Mbit                  21.66 Mbit                  
+1               1         0         9.60 Mbit/s         1000.00 ms      4000.00 ms      9.59 Mbit/s                 9.41 Mbit/s                 1599               19.19 Mbit                  18.83 Mbit                  

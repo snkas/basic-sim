@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NS3_VERSION="ns-3.31"
+NS3_VERSION="ns-3.33"
 
 # Usage help
 if [ "$1" == "--help" ] || [ "$#" -ne 2 ]; then
@@ -49,10 +49,10 @@ else
   # Multiple logical processes
 
   # Debug version (through waf shell): (cannot set -o pipefail because it might be a dash shell)
-  echo "set -eu; cd build/debug_all; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-debug --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt' || exit 1" | ./waf shell || exit 1
+  echo "set -eu; cd build/debug_all; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.33-basic-sim-main-full-debug --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt' || exit 1" | ./waf shell || exit 1
 
   # Optimized version (through waf shell): (cannot set -o pipefail because it might be a dash shell)
-  # echo "set -eu; cd build/optimized; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.31-basic-sim-main-full-optimized --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt' || exit 1" | ./waf shell || exit 1
+  # echo "set -eu; cd build/optimized; mpirun -np ${mpi_np} contrib/basic-sim/main/ns3.33-basic-sim-main-full-optimized --run_dir='../../../${run_folder}' 2>&1 | tee '../../../${run_folder}/logs_ns3/console.txt' || exit 1" | ./waf shell || exit 1
 
   # Not going through the waf shell can cause some concurrent file check errors:
   # set -eu -o pipefail; mpirun -np "${mpi_np}" ./waf --run="basic-sim-main-full --run_dir='../${run_folder}'" 2>&1 | tee "../${run_folder}/logs_ns3/console.txt || exit 1"

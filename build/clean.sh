@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NS3_VERSION="ns-3.31"
+NS3_VERSION="ns-3.33"
 
 rm -rf ${NS3_VERSION}
 rm -rf test_results

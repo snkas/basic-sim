@@ -184,7 +184,7 @@ void UdpPingScheduler::WriteResults() {
         // Header
         std::cout << "  > Writing udp_pings.txt header" << std::endl;
         fprintf(file_txt, "%-16s%-10s%-10s%-18s%-18s%-18s%-22s%-22s%-16s%-16s%-16s%-16s%s\n",
-                "UDP Ping ID", "Source", "Target", "Start time (ns)", "End time (ns)", "Interval (ns)",
+                "UDP ping ID", "Source", "Target", "Start time (ns)", "End time (ns)", "Interval (ns)",
                 "Mean latency there", "Mean latency back", "Min. RTT", "Mean RTT", "Max. RTT", "Smp.std. RTT", "Reply arrival");
 
         // Go over the applications, write each ping's result

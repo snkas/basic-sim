@@ -287,42 +287,42 @@ We are going to install three different applications:
 7. For example, `tcp_flows.txt` will contain:
 
    ```
-   TCP Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
-   0               1         3         100.00 Mbit     0                 2114688479        2114.69 ms      100.00 Mbit     100.0%       47.3 Mbit/s     YES           
-   1               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      72.18 Mbit      72.2%        20.6 Mbit/s     NO_ONGOING    
-   2               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      95.20 Mbit      95.2%        27.2 Mbit/s     NO_ONGOING    
+   TCP flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata
+   0               1         3         100.00 Mbit     0                 2080320640        2080.32 ms      100.00 Mbit     100.0%       48.1 Mbit/s     YES           
+   1               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      77.81 Mbit      77.8%        22.2 Mbit/s     NO_ONGOING    
+   2               2         3         100.00 Mbit     500000000         4000000000        3500.00 ms      90.51 Mbit      90.5%        25.9 Mbit/s     NO_ONGOING    
    ```
 
 8. For example, `udp_bursts_incoming.txt` will contain:
 
    ```
    UDP burst ID    From      To        Target rate         Start time      Duration        Incoming rate (w/ headers)  Incoming rate (payload)     Packets received   Data received (w/headers)   Data received (payload)     Metadata
-   0               1         2         50.00 Mbit/s        0.00 ms         5000.00 ms      49.97 Mbit/s                49.04 Mbit/s                16657              199.88 Mbit                 196.15 Mbit                 
-   1               2         1         50.00 Mbit/s        0.00 ms         5000.00 ms      49.85 Mbit/s                48.92 Mbit/s                16616              199.39 Mbit                 195.67 Mbit                 
+   0               1         2         50.00 Mbit/s        0.00 ms         5000.00 ms      49.99 Mbit/s                49.06 Mbit/s                16665              199.98 Mbit                 196.25 Mbit                 
+   1               2         1         50.00 Mbit/s        0.00 ms         5000.00 ms      49.81 Mbit/s                48.88 Mbit/s                16603              199.24 Mbit                 195.52 Mbit                 
    ```
    
 9. For example, `udp_pings.txt` will contain:
 
    ```                
-   UDP Ping ID     Source    Target    Start time (ns)   End time (ns)     Interval (ns)     Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival
-   0               1         2         0                 4000000000        10000000          4.69 ms               7.98 ms               0.50 ms         12.67 ms        21.94 ms        4.50 ms         392/400 (98%)
-   1               1         3         0                 4000000000        10000000          5.87 ms               0.07 ms               0.06 ms         5.94 ms         16.43 ms        5.98 ms         397/400 (99%)
-   2               2         1         0                 4000000000        10000000          7.99 ms               4.59 ms               1.55 ms         12.58 ms        22.08 ms        4.47 ms         398/400 (100%)
-   3               2         3         0                 4000000000        10000000          9.25 ms               0.06 ms               0.06 ms         9.31 ms         16.84 ms        4.16 ms         398/400 (100%)
-   4               3         1         0                 4000000000        10000000          0.06 ms               5.87 ms               0.06 ms         5.93 ms         16.47 ms        5.97 ms         396/400 (99%)
-   5               3         2         0                 4000000000        10000000          0.06 ms               9.22 ms               0.06 ms         9.29 ms         16.83 ms        4.16 ms         392/400 (98%)
+   UDP ping ID     Source    Target    Start time (ns)   End time (ns)     Interval (ns)     Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival
+   0               1         2         0                 4000000000        10000000          4.39 ms               8.05 ms               0.50 ms         12.44 ms        21.25 ms        4.37 ms         396/400 (99%)
+   1               1         3         0                 4000000000        10000000          5.51 ms               0.07 ms               0.06 ms         5.58 ms         15.13 ms        5.53 ms         399/400 (100%)
+   2               2         1         0                 4000000000        10000000          8.01 ms               4.36 ms               1.55 ms         12.37 ms        21.16 ms        4.35 ms         399/400 (100%)
+   3               2         3         0                 4000000000        10000000          9.12 ms               0.06 ms               0.06 ms         9.18 ms         16.51 ms        4.15 ms         395/400 (99%)
+   4               3         1         0                 4000000000        10000000          0.06 ms               5.50 ms               0.06 ms         5.56 ms         15.07 ms        5.52 ms         397/400 (99%)
+   5               3         2         0                 4000000000        10000000          0.06 ms               9.08 ms               0.06 ms         9.14 ms         16.49 ms        4.14 ms         389/400 (97%)
    ```
 
 10. For example, `link_net_device_utilization_summary.txt` will contain:
 
     ```
     From     To       Utilization
-    0        1        50.64%
-    0        2        51.10%
-    0        3        70.05%
-    1        0        76.41%
+    0        1        50.56%
+    0        2        51.12%
+    0        3        69.88%
+    1        0        76.22%
     2        0        93.78%
-    3        0        1.61%
+    3        0        1.57%
     ```
 
 

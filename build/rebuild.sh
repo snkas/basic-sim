@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NS3_VERSION="ns-3.31"
+NS3_VERSION="ns-3.33"
 
 # Extract copy of ns-3
 echo "Unzipping clean ns-3 (no overwrites)"

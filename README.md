@@ -59,7 +59,7 @@ The below instructions assume you already have a working copy of ns-3 located at
 3. **Compile**
 
    Now you should be able to compile it along with all your other modules.
-   It has been tested for ns-3 version 3.31.
+   It has been tested for ns-3 version 3.33.
    ```
    cd /path/to/your/folder/of/ns-3
    ./waf configure

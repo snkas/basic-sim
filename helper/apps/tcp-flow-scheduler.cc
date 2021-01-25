@@ -193,7 +193,7 @@ void TcpFlowScheduler::WriteResults() {
         std::cout << "  > Writing tcp_flows.txt header" << std::endl;
         fprintf(
                 file_txt, "%-16s%-10s%-10s%-16s%-18s%-18s%-16s%-16s%-13s%-16s%-14s%s\n",
-                "TCP Flow ID", "Source", "Target", "Size", "Start time (ns)",
+                "TCP flow ID", "Source", "Target", "Size", "Start time (ns)",
                 "End time (ns)", "Duration", "Sent", "Progress", "Avg. rate", "Finished?", "Metadata"
         );
 

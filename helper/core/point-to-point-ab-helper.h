@@ -56,9 +56,6 @@ namespace ns3 {
         ObjectFactory m_queueFactoryB;         //!< Queue Factory B
         ObjectFactory m_deviceFactoryB;        //!< Device Factory B
         ObjectFactory m_channelFactory;        //!< Channel Factory
-#ifdef NS3_MPI
-        ObjectFactory m_remoteChannelFactory; //!< Remote Channel Factory
-#endif
     };
 
 } // namespace ns3

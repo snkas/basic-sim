@@ -584,7 +584,7 @@ void TestCaseWithLogValidators::validate_tcp_flow_logs(
         if (i == 0) {
             ASSERT_EQUAL(
                     line,
-                    "TCP Flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata"
+                    "TCP flow ID     Source    Target    Size            Start time (ns)   End time (ns)     Duration        Sent            Progress     Avg. rate       Finished?     Metadata"
             );
         } else {
             int j = i - 1;
@@ -1172,7 +1172,7 @@ void TestCaseWithLogValidators::validate_udp_ping_logs(
     std::vector<std::string> lines_txt = read_file_direct(run_dir + "/logs_ns3/udp_pings.txt");
     ASSERT_EQUAL(
             lines_txt[0],
-            "UDP Ping ID     Source    Target    Start time (ns)   End time (ns)     Interval (ns)     Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival"
+            "UDP ping ID     Source    Target    Start time (ns)   End time (ns)     Interval (ns)     Mean latency there    Mean latency back     Min. RTT        Mean RTT        Max. RTT        Smp.std. RTT    Reply arrival"
     );
     i = 0;
     for (i = 1; i < lines_txt.size(); i++) {

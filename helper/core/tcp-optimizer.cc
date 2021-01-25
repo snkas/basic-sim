@@ -29,8 +29,8 @@ void TcpOptimizer::Generic() {
     NS_ABORT_MSG_IF(GetInitialTimeValue("ns3::TcpSocketBase", "ClockGranularity").Get().GetNanoSeconds() != 1, "Default initial ClockGranularity was not updated.");
     printf("  > Clock granularity.......... 1 ns\n");
 
-    // Initial congestion window (ns-3 default: 1, we set to: 10)
-    NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "InitialCwnd") != 1, "Unexpected default initial default InitialCwnd.");
+    // Initial congestion window (ns-3 default: 10, we also keep it at 10)
+    NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "InitialCwnd") != 10, "Unexpected default initial default InitialCwnd.");
     int64_t init_cwnd_pkt = 10;
     Config::SetDefault("ns3::TcpSocket::InitialCwnd", UintegerValue(init_cwnd_pkt));
     NS_ABORT_MSG_IF(GetInitialUintValue("ns3::TcpSocket", "InitialCwnd") != init_cwnd_pkt, "Default initial InitialCwnd was not updated.");

@@ -2,7 +2,8 @@
 
 The backlog of additional work that can be done on the `basic-sim` module:
 
-* Upgrade to latest ns-3
+* Extra programmable examples
+* Upgrade to the latest available stable version of ns-3
 * Make all variable and function naming consistent, along with whitespace conventions,
   in accordance with the ns-3 code style guide
 
@@ -16,4 +17,3 @@ part of `basic-sim`, but can be in a new module depending on `basic-sim`:
 
 * Flowlet routing arbiter
 * Long-living TCP application and scheduler
-* DCTCP example
