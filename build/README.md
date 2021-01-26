@@ -16,7 +16,9 @@ The following commands are defined (in order in which they can be executed):
 
 * `tutorial.sh` : Runs the tutorial described in the `<basic-sim>/doc/getting_started.md` (and showcases the plotting helper tools by producing a bunch of plots).
 
-* `example.sh` : Runs a variety of example run folders (located in `example_run_folders/`).
+* `example_main.sh` : Runs a variety of example run folders (located in `example_run_folders/`) using the main-full executable (located in `/main/main-full.cc`).
+
+* `example_programmable.sh` : Runs all the normal ns-3 examples present in `/examples/`) of which each is its own main.
 
 * `one_tcp.sh` : Run the most simple example run folder of one TCP flow over a two node with one link topology.
 

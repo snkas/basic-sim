@@ -20,7 +20,7 @@ mpi_np=$2
 # Rebuild
 bash rebuild.sh || exit 1
 
-# Run all examples with their respective mains
+# Enter the ns-3 directory
 cd ${NS3_VERSION} || exit 1
 
 # Make the logs directory already such that we can have console.txt in there

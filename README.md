@@ -90,7 +90,8 @@ cd build
 bash build.sh
 bash test.sh
 bash tutorial.sh
-bash example.sh
+bash example_main.sh
+bash example_programmable.sh
 ```
 
 

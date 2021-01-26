@@ -2,7 +2,7 @@
 
 # Usage help
 if [ "$1" == "--help" ]; then
-  echo "Usage: bash example.sh [--help]"
+  echo "Usage: bash example_main.sh [--help]"
   exit 0
 fi
 

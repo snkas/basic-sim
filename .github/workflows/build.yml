@@ -46,7 +46,8 @@ jobs:
           cd build
           bash test.sh
           bash tutorial.sh
-          bash example.sh
+          bash example_main.sh
+          bash example_programmable.sh
           cd ..
 
       - name: Upload coverage to Codecov
