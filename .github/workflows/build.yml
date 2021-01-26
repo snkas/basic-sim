@@ -41,10 +41,15 @@ jobs:
           bash build.sh
           cd ..
 
-      - name: Run tests and examples
+      - name: Run tests
         run: |
           cd build
           bash test.sh
+          cd ..
+
+      - name: Run examples
+        run: |
+          cd build
           bash tutorial.sh
           bash example_main.sh
           bash example_programmable.sh
