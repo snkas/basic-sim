@@ -37,9 +37,7 @@ namespace ns3 {
 
     Ptr<Socket> TcpSocketGeneratorCubic::GenerateTcpSocket(TypeId appTypeId, Ptr<Application> app) {
         app->GetNode()->GetObject<TcpL4Protocol>()->SetAttribute("SocketType",  TypeIdValue(TcpCubic::GetTypeId ()));
-        Ptr<Socket> socket = Socket::CreateSocket(app->GetNode(), TcpSocketFactory::GetTypeId());
-        socket->GetObject<TcpSocketBase>()->SetUseEcn(TcpSocketState::UseEcn_t::On);
-        return socket;
+        return Socket::CreateSocket(app->GetNode(), TcpSocketFactory::GetTypeId());
     }
 
 }

@@ -38,7 +38,8 @@ namespace ns3 {
     Ptr<Socket> TcpSocketGeneratorDctcp::GenerateTcpSocket(TypeId appTypeId, Ptr<Application> app) {
         app->GetNode()->GetObject<TcpL4Protocol>()->SetAttribute("SocketType",  TypeIdValue(TcpVegas::GetTypeId ()));
         Ptr<Socket> socket = Socket::CreateSocket(app->GetNode(), TcpSocketFactory::GetTypeId());
-        socket->GetObject<TcpSocketBase>()->SetUseEcn(TcpSocketState::UseEcn_t::On);
+        // Not necessary, as TcpDctcp enables it upon initialization:
+        // socket->GetObject<TcpSocketBase>()->SetUseEcn(TcpSocketState::UseEcn_t::On);
         return socket;
     }
 
