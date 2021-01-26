@@ -58,6 +58,7 @@ run_ns3_example () {
 
 # Run them all
 run_ns3_example "basic-sim-example-single-default" || exit 1
+run_ns3_example "basic-sim-example-single-cubic" || exit 1
 run_ns3_example "basic-sim-example-single-dctcp" || exit 1
 
 # Finished

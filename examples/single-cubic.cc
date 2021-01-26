@@ -19,24 +19,24 @@ using namespace ns3;
 
 namespace ns3 {
 
-    class TcpSocketGeneratorDctcp : public TcpSocketGenerator {
+    class TcpSocketGeneratorCubic : public TcpSocketGenerator {
     public:
         static TypeId GetTypeId(void);
         Ptr<Socket> GenerateTcpSocket(TypeId appTypeId, Ptr<Application> app);
     };
 
-    NS_OBJECT_ENSURE_REGISTERED (TcpSocketGeneratorDctcp);
-    TypeId TcpSocketGeneratorDctcp::GetTypeId (void)
+    NS_OBJECT_ENSURE_REGISTERED (TcpSocketGeneratorCubic);
+    TypeId TcpSocketGeneratorCubic::GetTypeId (void)
     {
-        static TypeId tid = TypeId ("ns3::TcpSocketGeneratorDctcp")
+        static TypeId tid = TypeId ("ns3::TcpSocketGeneratorCubic")
                 .SetParent<TcpSocketGenerator> ()
                 .SetGroupName("BasicSim")
         ;
         return tid;
     }
 
-    Ptr<Socket> TcpSocketGeneratorDctcp::GenerateTcpSocket(TypeId appTypeId, Ptr<Application> app) {
-        app->GetNode()->GetObject<TcpL4Protocol>()->SetAttribute("SocketType",  TypeIdValue(TcpVegas::GetTypeId ()));
+    Ptr<Socket> TcpSocketGeneratorCubic::GenerateTcpSocket(TypeId appTypeId, Ptr<Application> app) {
+        app->GetNode()->GetObject<TcpL4Protocol>()->SetAttribute("SocketType",  TypeIdValue(TcpCubic::GetTypeId ()));
         Ptr<Socket> socket = Socket::CreateSocket(app->GetNode(), TcpSocketFactory::GetTypeId());
         socket->GetObject<TcpSocketBase>()->SetUseEcn(TcpSocketState::UseEcn_t::On);
         return socket;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 
     // Prepare run directory
     mkdir_if_not_exists("example_programmable");
-    const std::string run_dir = "example_programmable/basic-sim-example-single-dctcp";
+    const std::string run_dir = "example_programmable/basic-sim-example-single-cubic";
     mkdir_if_not_exists(run_dir);
     remove_file_if_exists(run_dir + "/config_ns3.properties");
     remove_file_if_exists(run_dir + "/topology.properties");
@@ -75,11 +75,7 @@ int main(int argc, char *argv[]) {
     // Net-device rate: 10 Mbit/s
     // Net-device queue: drop-tail of 20 packets
     // Receiving net-device error model: none (as in, no random drops)
-    // Interface traffic-control queuing discipline:
-    //    RED with min-threshold = max-threshold = 20 packets
-    //    It is not gentle, no wait and only the instantaneous queue size is used.
-    //    So once the queuing discipline queue is >= 20 packets,
-    //    any arriving packet will be ECN marked.
+    // Interface traffic-control queuing discipline: FIFO (= same as drop-tail) of 20 packets
     std::ofstream topology_file;
     topology_file.open (run_dir + "/topology.properties");
     topology_file << "num_nodes=2" << std::endl;
@@ -92,7 +88,7 @@ int main(int argc, char *argv[]) {
     topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
     topology_file << "link_net_device_queue=drop_tail(20p)" << std::endl;
     topology_file << "link_net_device_receive_error_model=none" << std::endl;
-    topology_file << "link_interface_traffic_control_qdisc=simple_red(ecn; 1500; 1.0; 20; 20; 100p; 1.0; no_wait; not_gentle)" << std::endl;
+    topology_file << "link_interface_traffic_control_qdisc=fifo(20p)" << std::endl;
     topology_file.close();
 
      // Write TCP flow schedule file
@@ -122,8 +118,8 @@ int main(int argc, char *argv[]) {
 
     // Schedule TCP flows
     // We pass on a special TCP socket generator which will be used by the
-    // TcpFlowClient (and TcpFlowServer) to use DCTCP instead of TCP NewReno (default).
-    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, CreateObject<TcpSocketGeneratorDctcp>(), CreateObject<IpTosGeneratorDefault>()); // Requires enable_tcp_flow_scheduler=true
+    // TcpFlowClient (and TcpFlowServer) to use TCP Cubic instead of TCP NewReno (default).
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, CreateObject<TcpSocketGeneratorCubic>(), CreateObject<IpTosGeneratorDefault>()); // Requires enable_tcp_flow_scheduler=true
 
     // Run simulation
     basicSimulation->Run();

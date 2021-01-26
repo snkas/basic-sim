@@ -4,5 +4,8 @@ def build(bld):
     obj = bld.create_ns3_program('basic-sim-example-single-default', ['basic-sim'])
     obj.source = 'single-default.cc'
 
+    obj = bld.create_ns3_program('basic-sim-example-single-cubic', ['basic-sim'])
+    obj.source = 'single-cubic.cc'
+
     obj = bld.create_ns3_program('basic-sim-example-single-dctcp', ['basic-sim'])
     obj.source = 'single-dctcp.cc'
