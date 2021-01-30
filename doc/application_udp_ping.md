@@ -34,35 +34,43 @@ You can use the application(s) separately, or make use of the UDP ping scheduler
 
 ## Getting started: UDP ping scheduler
 
-1. Add the following to the `config_ns3.properties` in your run folder
-   (for sending pings between all endpoints at a 100ms granularity):
+1. Add the following to the `config_ns3.properties` in your run folder:
 
    ```
    enable_udp_ping_scheduler=true
    udp_ping_schedule_filename="udp_ping_schedule.csv"
    ```
+   
+2. Add the following schedule file `udp_ping_schedule.csv` to your run folder
+   (in this example, two pings, one 1 -> 2 and the other 2 -> 1, each sending
+   in a 100ms interval, starting at t=0s for duration 5s without waiting afterwards):
 
-2. In your code, import the UDP ping scheduler:
+   ```
+   0,1,2,100000000,0,5000000000,0,,
+   1,2,1,100000000,0,5000000000,0,,
+   ```
+
+3. In your code, import the UDP ping scheduler:
 
    ```c++
    #include "ns3/udp-ping-scheduler.h"
    ```
 
-3. Before the start of the simulation run, in your code add:
+4. Before the start of the simulation run, in your code add:
 
     ```c++
     // Schedule UDP pings
     UdpPingScheduler udpPingScheduler(basicSimulation, topology); // Requires enable_udp_ping_scheduler=true
     ```
    
-4. After the run, in your code add:
+5. After the run, in your code add:
 
     ```c++
     // Write UDP pings results
     udpPingScheduler.WriteResults();
     ```
 
-5. After the run, you should have the UDP ping log files in the `logs_ns3`
+6. After the run, you should have the UDP ping log files in the `logs_ns3`
    of your run folder.
 
 
