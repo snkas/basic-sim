@@ -60,6 +60,7 @@ run_ns3_example () {
 run_ns3_example "basic-sim-example-single-default" || exit 1
 run_ns3_example "basic-sim-example-single-cubic" || exit 1
 run_ns3_example "basic-sim-example-single-dctcp" || exit 1
+run_ns3_example "basic-sim-example-absolute-priority" || exit 1
 
 # Finished
 echo "Finished running programmable examples"

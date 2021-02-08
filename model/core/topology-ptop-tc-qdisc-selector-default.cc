@@ -80,6 +80,26 @@ namespace ns3 {
             );
             return std::make_pair(true, fifoHelper);
 
+        } else if (starts_with(value, "pfifo_fast(") && ends_with(value, ")")) { // Priority first-in-first-out with 3 bands
+
+            // Get rid of the pfifo_fast( and ) part
+            std::string max_queue_size_value = trim(value.substr(11, value.size() - 12));
+
+            // Make sure it is either "100p" or "100000B'
+            if (!ends_with(max_queue_size_value, "p") && !ends_with(max_queue_size_value, "B")) {
+                throw std::runtime_error(
+                        "Invalid maximum pfifo_fast queue size value: " + max_queue_size_value);
+            }
+            parse_geq_one_int64(max_queue_size_value.substr(0, max_queue_size_value.size() - 1));
+
+            // Return pfifo_fast traffic control helper
+            TrafficControlHelper pfifoFastHelper;
+            pfifoFastHelper.SetRootQueueDisc(
+                    "ns3::PfifoFastQueueDisc",
+                    "MaxSize", QueueSizeValue (QueueSize (max_queue_size_value))  // Maximum queue size (packets)
+            );
+            return std::make_pair(true, pfifoFastHelper);
+
         // simple_red(ecn/drop; mean_pkt_size_byte; queue_weight; min_th_pkt; max_th_pkt; max_size; max_p; wait/no_wait; gentle/not_gentle)
         } else if (starts_with(value, "simple_red(") && ends_with(value, ")")) {
 

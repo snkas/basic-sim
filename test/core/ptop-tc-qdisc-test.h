@@ -300,6 +300,10 @@ public:
         qdisc_and_expected_what.push_back(std::make_pair("fifo(100b)", "Invalid maximum FIFO queue size value: 100b"));
         qdisc_and_expected_what.push_back(std::make_pair("fifo(100P)", "Invalid maximum FIFO queue size value: 100P"));
         qdisc_and_expected_what.push_back(std::make_pair("fifo(-1p)", "Negative int64 value not permitted: -1"));
+        qdisc_and_expected_what.push_back(std::make_pair("pfifo_fast(100)", "Invalid maximum pfifo_fast queue size value: 100"));
+        qdisc_and_expected_what.push_back(std::make_pair("pfifo_fast(100b)", "Invalid maximum pfifo_fast queue size value: 100b"));
+        qdisc_and_expected_what.push_back(std::make_pair("pfifo_fast(100P)", "Invalid maximum pfifo_fast queue size value: 100P"));
+        qdisc_and_expected_what.push_back(std::make_pair("pfifo_fast(-1p)", "Negative int64 value not permitted: -1"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(abc; 1500; 1.0; 10; 20; 30p; 1.0; no_wait; gentle)", "Invalid RED action: abc"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(ecn; 1500; 0.5; 10; 9; 30p; 0.9; no_wait; not_gentle)", "RED minimum threshold (10) cannot exceed maximum threshold (9)"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(drop; 1500; 0.001; 10; 20; 19p; 0.2; no_wait; not_gentle)", "RED maximum threshold (20) cannot exceed maximum queue size (19)"));
@@ -829,6 +833,185 @@ public:
         remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
         remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
         remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+class IpTosGeneratorFromAdditionalParameters : public IpTosGenerator {
+public:
+    static TypeId GetTypeId(void);
+    uint8_t GenerateIpTos(TypeId appTypeId, Ptr<Application> app);
+};
+
+NS_OBJECT_ENSURE_REGISTERED (IpTosGeneratorFromAdditionalParameters);
+TypeId IpTosGeneratorFromAdditionalParameters::GetTypeId (void)
+{
+    static TypeId tid = TypeId ("ns3::IpTosGeneratorFromAdditionalParameters")
+            .SetParent<IpTosGenerator> ()
+            .SetGroupName("BasicSim")
+    ;
+    return tid;
+}
+
+uint8_t IpTosGeneratorFromAdditionalParameters::GenerateIpTos(TypeId appTypeId, Ptr<Application> app) {
+    if (appTypeId == TcpFlowClient::GetTypeId()) {
+        Ptr<TcpFlowClient> client = app->GetObject<TcpFlowClient>();
+        return parse_positive_int64(client->GetAdditionalParameters());
+    } else {
+        return 55;
+    }
+}
+
+class PtopTcQdiscPfifoFastAbsoluteTestCase : public TestCaseWithLogValidators
+{
+public:
+    PtopTcQdiscPfifoFastAbsoluteTestCase () : TestCaseWithLogValidators ("ptop-tc-qdisc-pfifo-fast absolute") {};
+    const std::string test_run_dir = ".tmp-test-ptop-tc-qdisc-pfifo-fast-absolute";
+
+    void DoRun () {
+        prepare_clean_run_dir(test_run_dir);
+
+        // Write configuration
+        int64_t simulation_end_time_ns = 2000000000;
+        std::ofstream config_file(test_run_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
+        config_file << "simulation_seed=123456789" << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
+        config_file << "link_net_device_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
+        config_file << "link_interface_tc_qdisc_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+        config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=all" << std::endl;
+        config_file.close();
+
+        // Write topology
+        //
+        // 0 -- 1 -- 2
+        //      |
+        //      3
+        std::ofstream topology_file;
+        topology_file.open (test_run_dir + "/topology.properties");
+        topology_file << "num_nodes=4" << std::endl;
+        topology_file << "num_undirected_edges=3" << std::endl;
+        topology_file << "switches=set(0,1,2,3)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,2,3)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1,1-2,1-3)" << std::endl;
+        topology_file << "all_nodes_are_endpoints=true" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(1p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=none" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=pfifo_fast(100p)" << std::endl;
+        topology_file.close();
+
+        // Couple of flows
+        std::vector<TcpFlowScheduleEntry> write_schedule;
+        // 0 = 0b00000000 -> Strip ECN -> 0b00000000 -> Priority cares only for 3-6
+        // 0b00000000
+        //      ^^^^
+        //
+        // -> 0b00000000 -> Shift one right to get in 0-15 range value: 0b00000000 = 0
+        // ... and 0 maps to band 1 = medium priority
+        write_schedule.push_back(TcpFlowScheduleEntry(0, 0, 3, 1000000, 0, "0", ""));
+        // 55 = 0b00110111 -> Strip ECN -> 0b00110100 -> Priority cares only for 3-6
+        // 0b00110100
+        //      ^^^^
+        //
+        // -> 0b00010100 -> Shift one right to get in 0-15 range value: 0b00001010 = 10
+        // ... and 10 maps to band 0 = highest priority
+        write_schedule.push_back(TcpFlowScheduleEntry(1, 2, 3, 1000000, 0, "55", ""));
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (test_run_dir + "/tcp_flow_schedule.csv");
+        for (TcpFlowScheduleEntry entry : write_schedule) {
+            schedule_file
+                    << entry.GetTcpFlowId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetSizeByte() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorFromAdditionalParameters>());
+        PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
+        PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology);
+        basicSimulation->Run();
+        tcpFlowScheduler.WriteResults();
+        netDeviceQueueTracking.WriteResults();
+        tcQdiscQueueTracking.WriteResults();
+        basicSimulation->Finalize();
+
+        // For which logging was enabled
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        for (size_t i = 0; i < write_schedule.size(); i++) {
+            tcp_flow_ids_with_logging.insert(i);
+        }
+
+        // For results
+        std::vector<int64_t> end_time_ns_list;
+        std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
+
+        // Validate TCP flow logs
+        validate_tcp_flow_logs(
+                simulation_end_time_ns,
+                test_run_dir,
+                write_schedule,
+                tcp_flow_ids_with_logging,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
+
+        // Check that the end times are according to absolute prioritization expectations
+        int64_t end_time_ns_first = end_time_ns_list.at(0);
+        int64_t end_time_ns_second = end_time_ns_list.at(1);
+        ASSERT_EQUAL_APPROX(end_time_ns_first, 1600000000, 100000000);  // 1.6 seconds +- 100ms
+        ASSERT_EQUAL_APPROX(end_time_ns_second, 800000000, 100000000);  // 0.8 seconds +- 100ms
+        std::cout << end_time_ns_first << std::endl;
+        std::cout << end_time_ns_second << std::endl;
+
+        // Make sure these are removed
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.txt");
+        for (int64_t i : tcp_flow_ids_with_logging) {
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_state.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cong_state.csv");
+        }
         remove_dir_if_exists(test_run_dir + "/logs_ns3");
         remove_dir_if_exists(test_run_dir);
 

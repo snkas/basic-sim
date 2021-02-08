@@ -115,7 +115,7 @@ undirected_edges=set(0-1,0-2,0-3)
 link_channel_delay_ns=map(0-1: 10000, 0-2: 10000, 0-3: 10000)
 link_net_device_data_rate_megabit_per_s=100.0
 link_net_device_queue=map(0->1: drop_tail(50p), 1->0: drop_tail(100p), 0->2: drop_tail(100000B), 2->0: drop_tail(50p), 0->3: drop_tail(100p), 3->0: drop_tail(100p))
-link_net_device_receive_error_model=uniform_random_pkt(0.0)
+link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)
 link_interface_traffic_control_qdisc=disabled
 ```
 
@@ -284,6 +284,42 @@ Besides it just defining a graph, the following rules apply:
   - `disabled` for no queueing discipline
   
   - `fifo(<integer>p)` or `fifo(<integer>B)` for first-in-first-out (= drop-tail)
+  
+  - `pfifo_fast(<integer>p)` or `pfifo_fast(<integer>B)` for priority first-in-first-out.
+    It uses makes use of three bands. It uses the IP TOS field to map to a band.
+    The band it is assigned to is based on bits 3-6 (with 0 the most significant) of the IP TOS field.
+    
+    ```
+    Bits 3-6    Priority                pfifo_fast band
+    0 to 3	    0 (Best Effort)         1
+    4 to 7	    2 (Bulk)                2
+    8 to 11	    6 (Interactive)         0
+    12 to 15    4 (Interactive Bulk)    1
+    ```
+    (sources: https://www.nsnam.org/docs/models/html/sockets-api.html 
+    and https://www.nsnam.org/docs/models/html/pfifo-fast.html)
+    
+    As a concrete example, let's say we set TOS to 55:
+    ```
+    55 = 0b00110111
+    
+    ... the least significant 2 bits are set to zero for ECN (for a stream socket):
+    0b00110100
+    
+    ... of this, take bits 3-6, which is: 
+    
+    0b00110100
+         ^^^^
+    
+    ... resulting in:
+    0b00010100
+    
+    ... and then shift one to the right (to get in range 0-15):
+    0b00001010
+    
+    ... which equals: 10
+    ... which (from the table) corresponds to band: 0 (highest priority)
+    ```
   
   - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology
   

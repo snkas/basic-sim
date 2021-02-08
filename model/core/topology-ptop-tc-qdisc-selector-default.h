@@ -23,6 +23,7 @@
 #include "ns3/topology-ptop.h"
 #include "ns3/fq-codel-queue-disc.h"
 #include "ns3/fifo-queue-disc.h"
+#include "ns3/pfifo-fast-queue-disc.h"
 #include "ns3/red-queue-disc.h"
 
 namespace ns3 {

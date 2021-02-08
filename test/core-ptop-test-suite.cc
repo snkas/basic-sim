@@ -38,6 +38,7 @@ public:
         AddTestCase(new PtopTcQdiscInvalidTestCase, TestCase::QUICK);
         AddTestCase(new PtopTcQdiscRedDropMarkingTestCase, TestCase::QUICK);
         AddTestCase(new PtopTcQdiscRedEcnMarkingTestCase, TestCase::QUICK);
+        AddTestCase(new PtopTcQdiscPfifoFastAbsoluteTestCase, TestCase::QUICK);
 
     }
 };
