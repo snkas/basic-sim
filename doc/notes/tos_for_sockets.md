@@ -1,5 +1,6 @@
 # How ToS works for sockets in ns-3
 
+
 ## Step-by-step
 
 **Step 1.** Set the IP TOS field in the Socket. 
@@ -119,6 +120,7 @@ the queueing discipline later down the line.
 
 ```
 // ipv4-l3-protocol.cc
+void  Ipv4L3Protocol::Send(Ptr<Packet> packet, Ipv4Address source, Ipv4Address destination, uint8_t protocol, Ptr<Ipv4Route> route)
 ```
 
 **Step 4** The packet is given to the traffic-control layer (which might use the tag).
@@ -126,14 +128,49 @@ Just before passing it to the network device (either via dequeue, or if there
 is no queue, giving it directly), it will remove the SocketPriorityTag.
 The network device, which sends it out.
 
+```
+// traffic-control-layer.cc
+void TrafficControlLayer::Send (Ptr<NetDevice> device, Ptr<QueueDiscItem> item) {
+  // ...
+  item->AddHeader ();
+  // a single queue device makes no use of the priority tag
+  if (!devQueueIface || devQueueIface->GetNTxQueues () == 1)
+    {
+      SocketPriorityTag priorityTag;
+      item->GetPacket ()->RemovePacketTag (priorityTag);
+    }
+  device->Send (item->GetPacket (), item->GetAddress (), item->GetProtocol ());
+  // ...
+}
+
+// queue-disc.cc
+bool QueueDisc::Transmit (Ptr<QueueDiscItem> item) {
+  // ...
+  if (!m_devQueueIface || m_devQueueIface->GetNTxQueues () == 1)
+    {
+      SocketPriorityTag priorityTag;
+      item->GetPacket ()->RemovePacketTag (priorityTag);
+    }
+  NS_ASSERT_MSG (m_send, "Send callback not set");
+  m_send (item);
+}
+```
+
 **Step 5.** The next node's Ipv4L3Protocol receives the packet, it removes any
-SocketPriorityTag still lingering, and creates a new based on the IP TOS value in the header. 
-The might give it down, or step 4 happens.
+SocketPriorityTag still lingering, and creates a new one based on the
+IP TOS value in the header. It might give it down to an application, or step 4 happens
+to the next hop.
+
+```
+// ipv4-l3-protocol.cc
+void Ipv4L3Protocol::IpForward (Ptr<Ipv4Route> rtentry, Ptr<const Packet> p, const Ipv4Header &header)
+```
 
 ## Code for implementing your own queueing discipline
 
 Get header TOS from a queue disc item by casting it to IPv4
 (note: you should check header->GetProtocol beforehand):
+
 ```
 Ipv4Header header = ((Ipv4QueueDiscItem*) (PeekPointer (item)))->GetHeader();
 std::cout << "IP header TOS: " << (int) header.GetTos() << std::endl;
