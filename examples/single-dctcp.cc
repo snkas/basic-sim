@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
     // Schedule TCP flows
     // We pass on a special TCP socket generator which will be used by the
     // TcpFlowClient (and TcpFlowServer) to use DCTCP instead of TCP NewReno (default).
-    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, CreateObject<TcpSocketGeneratorDctcp>(), CreateObject<IpTosGeneratorDefault>()); // Requires enable_tcp_flow_scheduler=true
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {TcpFlowScheduler::DEFAULT_SERVER_PORT}, CreateObject<ClientRemotePortSelectorDefault>(TcpFlowScheduler::DEFAULT_SERVER_PORT), CreateObject<TcpSocketGeneratorDctcp>(), CreateObject<IpTosGeneratorDefault>()); // Requires enable_tcp_flow_scheduler=true
 
     // Run simulation
     basicSimulation->Run();

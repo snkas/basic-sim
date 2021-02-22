@@ -200,4 +200,8 @@ void TcpFlowServer::CleanUp(Ptr<Socket> socket) {
     }
 }
 
+uint64_t TcpFlowServer::GetTotalRx() {
+    return m_totalRx;
+}
+
 } // Namespace ns3

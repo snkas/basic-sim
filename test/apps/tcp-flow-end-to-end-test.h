@@ -1315,7 +1315,7 @@ public:
     TcpFlowEndToEndOneToOneEcnTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end 1-to-1 ecn") {};
 
     void DoRun () {
-        test_run_dir = ".tmp-test-tcp-flow-end-to-end-logging-all";
+        test_run_dir = ".tmp-test-tcp-flow-end-to-end-1-to-1-ecn";
         prepare_clean_run_dir(test_run_dir);
 
         int64_t simulation_end_time_ns = 2000000000; // 5 seconds
@@ -1378,7 +1378,7 @@ public:
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
         TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
-        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, CreateObject<TcpSocketGeneratorEnableEcn>(), CreateObject<IpTosGeneratorDefault>());
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {888}, CreateObject<ClientRemotePortSelectorDefault>(888), CreateObject<TcpSocketGeneratorEnableEcn>(), CreateObject<IpTosGeneratorDefault>());
         PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
         PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology);
         basicSimulation->Run();
@@ -1435,6 +1435,192 @@ public:
         // So, once there are 350 packets it will start marking
         // A congestion window of: 350 * 1.5 = 525 will be reached before it cuts the window
         ASSERT_EQUAL_APPROX(max_size_qdisc_pkt, 525 - 100, 5); // 100 subtracted because of link net-device queue of 100
+
+        // Make sure these are removed
+        remove_file_if_exists(test_run_dir + "/config_ns3.properties");
+        remove_file_if_exists(test_run_dir + "/topology.properties");
+        remove_file_if_exists(test_run_dir + "/tcp_flow_schedule.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/finished.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.txt");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/timing_results.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_net_device_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_byte.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/link_interface_tc_qdisc_queue_pkt.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.csv");
+        remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flows.txt");
+        for (int64_t i : tcp_flow_ids_with_logging) {
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_progress.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rtt.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_rto.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cwnd_inflated.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_ssthresh.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_inflight.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_state.csv");
+            remove_file_if_exists(test_run_dir + "/logs_ns3/tcp_flow_" + std::to_string(i) + "_cong_state.csv");
+        }
+        remove_dir_if_exists(test_run_dir + "/logs_ns3");
+        remove_dir_if_exists(test_run_dir);
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+namespace ns3 {
+
+    class ClientRemotePortSelectorTwo : public ClientRemotePortSelector {
+    public:
+        static TypeId GetTypeId(void);
+        uint16_t SelectRemotePort(TypeId appTypeId, Ptr<Application> app);
+    };
+
+    NS_OBJECT_ENSURE_REGISTERED (ClientRemotePortSelectorTwo);
+    TypeId ClientRemotePortSelectorTwo::GetTypeId (void)
+    {
+        static TypeId tid = TypeId ("ns3::ClientRemotePortSelectorTwo")
+                .SetParent<ClientRemotePortSelector> ()
+                .SetGroupName("BasicSim")
+        ;
+        return tid;
+    }
+
+    uint16_t ClientRemotePortSelectorTwo::SelectRemotePort(TypeId appTypeId, Ptr<Application> app) {
+        if (app->GetObject<TcpFlowClient>()->GetTcpFlowId() == 0) {
+            return 1000;
+        } else {
+            return 888;
+        }
+    }
+
+}
+
+class TcpFlowEndToEndOneToOneTwoServersTestCase : public TcpFlowEndToEndTestCase
+{
+public:
+    TcpFlowEndToEndOneToOneTwoServersTestCase () : TcpFlowEndToEndTestCase ("tcp-flow-end-to-end 1-to-1 two-servers") {};
+
+    void DoRun () {
+        test_run_dir = ".tmp-test-tcp-flow-end-to-end-1-to-1-two-servers";
+        prepare_clean_run_dir(test_run_dir);
+
+        int64_t simulation_end_time_ns = 2000000000; // 5 seconds
+        int64_t simulation_seed = 1839582950225;
+
+        // Topology: 0 -- 1
+        // 10 Mbit/s, 10 us delay, 100p link net-device queue,
+        std::ofstream topology_file;
+        topology_file.open (test_run_dir + "/topology.properties");
+        topology_file << "num_nodes=2" << std::endl;
+        topology_file << "num_undirected_edges=1" << std::endl;
+        topology_file << "switches=set(0,1)" << std::endl;
+        topology_file << "switches_which_are_tors=set(0,1)" << std::endl;
+        topology_file << "servers=set()" << std::endl;
+        topology_file << "undirected_edges=set(0-1)" << std::endl;
+        topology_file << "link_channel_delay_ns=10000" << std::endl;
+        topology_file << "link_net_device_data_rate_megabit_per_s=10.0" << std::endl;
+        topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
+        topology_file << "link_net_device_receive_error_model=iid_uniform_random_pkt(0.0)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->1: simple_red(ecn; 1500; 1.0; 250; 250; 1000p; 0.1; no_wait; not_gentle), 1->0: fifo(100p))" << std::endl;
+        topology_file.close();
+
+        // config_ns3.properties
+        std::ofstream config_file;
+        config_file.open (test_run_dir + "/config_ns3.properties");
+        config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
+        config_file << "simulation_seed=" << simulation_seed << std::endl;
+        config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
+        config_file << "link_net_device_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
+        config_file << "link_interface_tc_qdisc_queue_tracking_enable_for_links=all" << std::endl;
+        config_file << "enable_tcp_flow_scheduler=true" << std::endl;
+        config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
+        config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=all" << std::endl;
+        config_file.close();
+
+        // Couple of flows
+        std::vector<TcpFlowScheduleEntry> write_schedule;
+        write_schedule.push_back(TcpFlowScheduleEntry(0, 0, 1, 100000, 0, "", ""));
+        write_schedule.push_back(TcpFlowScheduleEntry(1, 0, 1, 110000, 0, "", ""));
+
+        // Write schedule file
+        std::ofstream schedule_file;
+        schedule_file.open (test_run_dir + "/tcp_flow_schedule.csv");
+        for (TcpFlowScheduleEntry entry : write_schedule) {
+            schedule_file
+                    << entry.GetTcpFlowId() << ","
+                    << entry.GetFromNodeId() << ","
+                    << entry.GetToNodeId() << ","
+                    << entry.GetSizeByte() << ","
+                    << entry.GetStartTimeNs() << ","
+                    << entry.GetAdditionalParameters() << ","
+                    << entry.GetMetadata()
+                    << std::endl;
+        }
+        schedule_file.close();
+
+        // Perform basic simulation
+        Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
+        Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
+        ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {888, 1000}, CreateObject<ClientRemotePortSelectorTwo>(), CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorDefault>());
+        PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
+        PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology);
+        basicSimulation->Run();
+        tcpFlowScheduler.WriteResults();
+        netDeviceQueueTracking.WriteResults();
+        tcQdiscQueueTracking.WriteResults();
+        NodeContainer nodes = topology->GetNodes();
+        Ptr<Node> node1 = nodes.Get(1);
+        ASSERT_EQUAL(node1->GetNApplications(), 2);
+        Ptr<TcpFlowServer> tcpFlowServer0 = node1->GetApplication(0)->GetObject<TcpFlowServer>();
+        Ptr<TcpFlowServer> tcpFlowServer1 = node1->GetApplication(1)->GetObject<TcpFlowServer>();
+        AddressValue addressValue0;
+        tcpFlowServer0->GetAttribute ("LocalAddress", addressValue0);
+        InetSocketAddress address0 = InetSocketAddress::ConvertFrom(addressValue0.Get());
+        AddressValue addressValue1;
+        tcpFlowServer1->GetAttribute ("LocalAddress", addressValue1);
+        InetSocketAddress address1 = InetSocketAddress::ConvertFrom(addressValue1.Get());
+        ASSERT_TRUE(
+                (address0.GetPort() == 888 && address1.GetPort() == 1000) ||
+                (address0.GetPort() == 1000 && address1.GetPort() == 888)
+        );
+        if (address0.GetPort() == 888 && address1.GetPort() == 1000) {
+            ASSERT_EQUAL(tcpFlowServer0->GetTotalRx(), 110000);
+            ASSERT_EQUAL(tcpFlowServer1->GetTotalRx(), 100000);
+        } else {
+            ASSERT_EQUAL(tcpFlowServer0->GetTotalRx(), 100000);
+            ASSERT_EQUAL(tcpFlowServer1->GetTotalRx(), 110000);
+        }
+
+        basicSimulation->Finalize();
+
+        // For which logging was enabled (all)
+        std::set<int64_t> tcp_flow_ids_with_logging;
+        tcp_flow_ids_with_logging.insert(0);
+        tcp_flow_ids_with_logging.insert(1);
+
+        // For results (in this case, we don't check this, as we just care about logging)
+        std::vector<int64_t> end_time_ns_list;
+        std::vector<int64_t> sent_byte_list;
+        std::vector<std::string> finished_list;
+
+        // Validate TCP flow logs
+        validate_tcp_flow_logs(
+                simulation_end_time_ns,
+                test_run_dir,
+                write_schedule,
+                tcp_flow_ids_with_logging,
+                end_time_ns_list,
+                sent_byte_list,
+                finished_list
+        );
+
+        // Check they both have finished
+        ASSERT_EQUAL(finished_list.at(0), "YES");
+        ASSERT_EQUAL(finished_list.at(1), "YES");
 
         // Make sure these are removed
         remove_file_if_exists(test_run_dir + "/config_ns3.properties");

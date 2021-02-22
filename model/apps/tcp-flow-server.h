@@ -45,6 +45,8 @@ public:
 
   void SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator);
   void SetIpTos(uint8_t ipTos);
+
+  uint64_t GetTotalRx();
  
 protected:
   virtual void DoDispose (void);

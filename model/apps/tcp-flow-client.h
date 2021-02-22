@@ -48,6 +48,7 @@ public:
   virtual ~TcpFlowClient ();
 
   void SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator);
+  void SetRemotePort(uint16_t remotePort);
   void SetIpTos(uint8_t ipTos);
 
   uint64_t GetTcpFlowId();

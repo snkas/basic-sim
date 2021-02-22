@@ -43,6 +43,7 @@ def build(bld):
         'model/apps/udp-ping-server.cc',
         'model/apps/udp-ping-client.cc',
 
+        'helper/apps/client-remote-port-selector.cc',
         'helper/apps/tcp-flow-helper.cc',
         'helper/apps/tcp-flow-schedule-reader.cc',
         'helper/apps/tcp-flow-scheduler.cc',
@@ -97,6 +98,7 @@ def build(bld):
         'model/apps/udp-ping-server.h',
         'model/apps/udp-ping-client.h',
 
+        'helper/apps/client-remote-port-selector.h',
         'helper/apps/tcp-flow-helper.h',
         'helper/apps/tcp-flow-schedule-reader.h',
         'helper/apps/tcp-flow-scheduler.h',

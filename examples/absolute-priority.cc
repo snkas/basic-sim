@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
     // Schedule TCP flows
-    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorFromAdditionalParameters>()); // Requires enable_tcp_flow_scheduler=true
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {TcpFlowScheduler::DEFAULT_SERVER_PORT}, CreateObject<ClientRemotePortSelectorDefault>(TcpFlowScheduler::DEFAULT_SERVER_PORT), CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorFromAdditionalParameters>()); // Requires enable_tcp_flow_scheduler=true
 
     // Run simulation
     basicSimulation->Run();

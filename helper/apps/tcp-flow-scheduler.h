@@ -30,6 +30,7 @@
 #include "ns3/exp-util.h"
 #include "ns3/topology.h"
 
+#include "ns3/client-remote-port-selector.h"
 #include "ns3/socket-generator.h"
 #include "ns3/ip-tos-generator.h"
 #include "ns3/tcp-flow-schedule-reader.h"
@@ -43,8 +44,9 @@ class TcpFlowScheduler
 {
 
 public:
+    static const uint16_t DEFAULT_SERVER_PORT;
     TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology);
-    TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<TcpSocketGenerator> tcpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator);
+    TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, std::set<uint16_t> serverPorts, Ptr<ClientRemotePortSelector> clientRemotePortSelector, Ptr<TcpSocketGenerator> tcpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator);
     void WriteResults();
 
 protected:
@@ -52,6 +54,8 @@ protected:
     Ptr<BasicSimulation> m_basicSimulation;
     int64_t m_simulation_end_time_ns;
     Ptr<Topology> m_topology = nullptr;
+    std::set<uint16_t> m_serverPorts;
+    Ptr<ClientRemotePortSelector> m_clientRemotePortSelector;
     Ptr<TcpSocketGenerator> m_tcpSocketGenerator;
     Ptr<IpTosGenerator> m_ipTosGenerator;
     bool m_enabled;
@@ -63,7 +67,6 @@ protected:
     bool m_enable_distributed;
     std::string m_flows_csv_filename;
     std::string m_flows_txt_filename;
-
 };
 
 }

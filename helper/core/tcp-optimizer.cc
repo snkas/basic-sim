@@ -171,6 +171,9 @@ void TcpOptimizer::OptimizeUsingWorstCaseRtt(Ptr<BasicSimulation> basicSimulatio
     printf("  > Initial RTT measurement.... %.3f ms\n", initial_rtt_estimate_ns / 1e6);
 
     // Connection timeout (ns-3 default: 3s, we set to 2 * worst-case-RTT)
+    // A TCP connection starts with the initiator sending a SYN and awaiting a SYN+ACK.
+    // It sets the retransmission timeout to:  2^(syn_reties) * conn_timeout
+    // At each retry, it increments the syn_retries with 1
     NS_ABORT_MSG_IF(GetInitialTimeValue("ns3::TcpSocket", "ConnTimeout").Get().GetNanoSeconds() != 3000000000, "Unexpected default initial default ConnTimeout.");
     int64_t connection_timeout_ns = 2 * worst_case_rtt_ns;
     Config::SetDefault("ns3::TcpSocket::ConnTimeout", TimeValue(NanoSeconds(connection_timeout_ns)));

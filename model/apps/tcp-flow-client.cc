@@ -132,6 +132,14 @@ TcpFlowClient::SetTcpSocketGenerator(Ptr<TcpSocketGenerator> tcpSocketGenerator)
 }
 
 void
+TcpFlowClient::SetRemotePort(uint16_t remotePort) {
+    NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_remoteAddress), "Only IPv4 is supported.");
+    InetSocketAddress newRemoteAddress = InetSocketAddress::ConvertFrom(m_remoteAddress);
+    newRemoteAddress.SetPort(remotePort);
+    m_remoteAddress = newRemoteAddress;
+}
+
+void
 TcpFlowClient::SetIpTos(uint8_t ipTos) {
     NS_ABORT_MSG_UNLESS(InetSocketAddress::IsMatchingType(m_localAddress), "Only IPv4 is supported.");
     InetSocketAddress newLocalAddress = InetSocketAddress::ConvertFrom(m_localAddress);

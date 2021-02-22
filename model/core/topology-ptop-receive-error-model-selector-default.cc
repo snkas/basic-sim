@@ -32,11 +32,11 @@ namespace ns3 {
     }
 
     /*
-     * Parse the queue value into a queue object factory.
+     * Parse the receive error model value into an error model.
      *
      * @param value     String value (e.g., "iid_uniform_random_pkt(0.01)")
      *
-     * @return Pair of (Queue object factory, Maximum queue size) if success, else throws an exception
+     * @return Pair(True iff enabled, error model instance) if success, else throws an exception
      */
     std::pair<bool, Ptr<ErrorModel>> TopologyPtopReceiveErrorModelSelectorDefault::ParseReceiveErrorModelValue(Ptr<TopologyPtop>, std::string value) {
 

@@ -23,6 +23,8 @@
 
 namespace ns3 {
 
+const uint16_t TcpFlowScheduler::DEFAULT_SERVER_PORT = 1024;
+
 void TcpFlowScheduler::StartNextFlow(int i) {
 
     // Fetch the flow to start
@@ -46,6 +48,9 @@ void TcpFlowScheduler::StartNextFlow(int i) {
     app.Start(NanoSeconds(0));
     Ptr<TcpFlowClient> tcpFlowClient = app.Get(0)->GetObject<TcpFlowClient>();
     tcpFlowClient->SetTcpSocketGenerator(m_tcpSocketGenerator);
+    uint16_t remotePort = m_clientRemotePortSelector->SelectRemotePort(TcpFlowClient::GetTypeId(), tcpFlowClient);
+    NS_ABORT_MSG_IF(m_serverPorts.find(remotePort) == m_serverPorts.end(), "Selected remote port " + std::to_string(remotePort) + " is not among the server ports");
+    tcpFlowClient->SetRemotePort(remotePort);
     tcpFlowClient->SetIpTos(m_ipTosGenerator->GenerateIpTos(TcpFlowClient::GetTypeId(), tcpFlowClient));
     m_apps.push_back(app);
 
@@ -60,17 +65,21 @@ void TcpFlowScheduler::StartNextFlow(int i) {
 TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology) : TcpFlowScheduler(
         basicSimulation,
         topology,
+        {DEFAULT_SERVER_PORT},
+        CreateObject<ClientRemotePortSelectorDefault>(DEFAULT_SERVER_PORT),
         CreateObject<TcpSocketGeneratorDefault>(),
         CreateObject<IpTosGeneratorDefault>()
 ) {
     // Left empty intentionally
 }
 
-TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, Ptr<TcpSocketGenerator> tcpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator) {
+TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Topology> topology, std::set<uint16_t> serverPorts, Ptr<ClientRemotePortSelector> clientRemotePortSelector, Ptr<TcpSocketGenerator> tcpSocketGenerator, Ptr<IpTosGenerator> ipTosGenerator) {
     printf("TCP FLOW SCHEDULER\n");
 
     m_basicSimulation = basicSimulation;
     m_topology = topology;
+    m_serverPorts = serverPorts;
+    m_clientRemotePortSelector = clientRemotePortSelector;
     m_tcpSocketGenerator = tcpSocketGenerator;
     m_ipTosGenerator = ipTosGenerator;
 
@@ -149,14 +158,16 @@ TcpFlowScheduler::TcpFlowScheduler(Ptr<BasicSimulation> basicSimulation, Ptr<Top
         std::cout << "  > Setting up TCP flow servers" << std::endl;
         for (int64_t endpoint : m_topology->GetEndpoints()) {
             if (!m_enable_distributed || m_basicSimulation->IsNodeAssignedToThisSystem(endpoint)) {
-                TcpFlowServerHelper server(
-                        InetSocketAddress(m_nodes.Get(endpoint)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal(), 1024)
-                );
-                ApplicationContainer app = server.Install(m_nodes.Get(endpoint));
-                Ptr<TcpFlowServer> tcpFlowServer = app.Get(0)->GetObject<TcpFlowServer>();
-                tcpFlowServer->SetTcpSocketGenerator(m_tcpSocketGenerator);
-                tcpFlowServer->SetIpTos(m_ipTosGenerator->GenerateIpTos(TcpFlowServer::GetTypeId(), tcpFlowServer));
-                app.Start(Seconds(0.0));
+                for (uint16_t server_port : m_serverPorts) {
+                    TcpFlowServerHelper server(
+                            InetSocketAddress(m_nodes.Get(endpoint)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(), server_port)
+                    );
+                    ApplicationContainer app = server.Install(m_nodes.Get(endpoint));
+                    Ptr<TcpFlowServer> tcpFlowServer = app.Get(0)->GetObject<TcpFlowServer>();
+                    tcpFlowServer->SetTcpSocketGenerator(m_tcpSocketGenerator);
+                    tcpFlowServer->SetIpTos(m_ipTosGenerator->GenerateIpTos(TcpFlowServer::GetTypeId(), tcpFlowServer));
+                    app.Start(Seconds(0.0));
+                }
             }
         }
         m_basicSimulation->RegisterTimestamp("Setup TCP flow servers");
