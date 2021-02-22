@@ -17,6 +17,39 @@
 
 using namespace ns3;
 
+uint16_t SERVER_PORT_LOW_PRIORITY = 88;
+uint16_t SERVER_PORT_HIGH_PRIORITY = 89;
+uint8_t IP_TOS_LOW_PRIORITY = 0;
+uint8_t IP_TOS_HIGH_PRIORITY = 55;
+
+class ClientRemotePortSelectorTwo : public ClientRemotePortSelector {
+public:
+    static TypeId GetTypeId(void);
+    uint16_t SelectRemotePort(TypeId appTypeId, Ptr<Application> app);
+};
+
+NS_OBJECT_ENSURE_REGISTERED (ClientRemotePortSelectorTwo);
+TypeId ClientRemotePortSelectorTwo::GetTypeId (void)
+{
+    static TypeId tid = TypeId ("ns3::ClientRemotePortSelectorTwo")
+            .SetParent<ClientRemotePortSelector> ()
+            .SetGroupName("BasicSim")
+    ;
+    return tid;
+}
+
+uint16_t ClientRemotePortSelectorTwo::SelectRemotePort(TypeId appTypeId, Ptr<Application> app) {
+    Ptr<TcpFlowClient> client = app->GetObject<TcpFlowClient>();
+    std::string additional_parameters = client->GetAdditionalParameters();
+    if (additional_parameters == "low") {
+        return SERVER_PORT_LOW_PRIORITY;
+    } else if (additional_parameters == "high") {
+        return SERVER_PORT_HIGH_PRIORITY;
+    } else {
+        throw std::runtime_error("Invalid additional parameters.");
+    }
+}
+
 class IpTosGeneratorFromAdditionalParameters : public IpTosGenerator {
 public:
     static TypeId GetTypeId(void);
@@ -36,9 +69,26 @@ TypeId IpTosGeneratorFromAdditionalParameters::GetTypeId (void)
 uint8_t IpTosGeneratorFromAdditionalParameters::GenerateIpTos(TypeId appTypeId, Ptr<Application> app) {
     if (appTypeId == TcpFlowClient::GetTypeId()) {
         Ptr<TcpFlowClient> client = app->GetObject<TcpFlowClient>();
-        return parse_positive_int64(client->GetAdditionalParameters());
+        std::string additional_parameters = client->GetAdditionalParameters();
+        if (additional_parameters == "low") {
+            return IP_TOS_LOW_PRIORITY;
+        } else if (additional_parameters == "high") {
+            return IP_TOS_HIGH_PRIORITY;
+        } else {
+            throw std::runtime_error("Invalid additional parameters.");
+        }
     } else {
-        return 0;
+        Ptr<TcpFlowServer> server = app->GetObject<TcpFlowServer>();
+        AddressValue addressValue;
+        server->GetAttribute ("LocalAddress", addressValue);
+        InetSocketAddress address = InetSocketAddress::ConvertFrom(addressValue.Get());
+        if (address.GetPort() == SERVER_PORT_LOW_PRIORITY) {
+            return IP_TOS_LOW_PRIORITY;
+        } else if (address.GetPort() == SERVER_PORT_HIGH_PRIORITY) {
+            return IP_TOS_HIGH_PRIORITY;
+        } else {
+            throw std::runtime_error("Invalid port.");
+        }
     }
 }
 
@@ -92,8 +142,8 @@ int main(int argc, char *argv[]) {
      // Write TCP flow schedule file
     std::ofstream schedule_file;
     schedule_file.open (run_dir + "/tcp_flow_schedule.csv");
-    schedule_file << "0,0,1,2000000,0,0," << std::endl; // Flow 0 from node 0 to node 1 of size 2 MB starting at t=0 with IP TOS 0
-    schedule_file << "1,0,1,2000000,0,55," << std::endl; // Flow 0 from node 0 to node 1 of size 2 MB starting at t=0 with IP TOS 55
+    schedule_file << "0,0,1,2000000,0,low," << std::endl; // Flow 0 from node 0 to node 1 of size 2 MB starting at t=0 with low priority
+    schedule_file << "1,0,1,2000000,0,high," << std::endl; // Flow 0 from node 0 to node 1 of size 2 MB starting at t=0 with high priority
     schedule_file.close();
 
     // Load basic simulation environment
@@ -116,7 +166,7 @@ int main(int argc, char *argv[]) {
     TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
 
     // Schedule TCP flows
-    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {TcpFlowScheduler::DEFAULT_SERVER_PORT}, CreateObject<ClientRemotePortSelectorDefault>(TcpFlowScheduler::DEFAULT_SERVER_PORT), CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorFromAdditionalParameters>()); // Requires enable_tcp_flow_scheduler=true
+    TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {SERVER_PORT_LOW_PRIORITY, SERVER_PORT_HIGH_PRIORITY}, CreateObject<ClientRemotePortSelectorTwo>(), CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorFromAdditionalParameters>()); // Requires enable_tcp_flow_scheduler=true
 
     // Run simulation
     basicSimulation->Run();
