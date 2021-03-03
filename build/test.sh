@@ -25,7 +25,7 @@ lcov --directory build/debug_all --zerocounters
 # Function to run multiple test suites but get a single file with all outcomes
 run_test_suite_and_append () {
   echo "Running test suite $1"
-  python test.py -v -s "$1" -t ../test_results/temp || exit 1
+  python3 test.py -v -s "$1" -t ../test_results/temp || exit 1
   cat ../test_results/temp.txt >> "$2" || exit 1
   rm ../test_results/temp.txt || exit 1
 }
@@ -66,17 +66,17 @@ if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] 
 
   # 1 core tests
   bash run_assist.sh "test_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
-  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
+  python3 test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_1_core_default" 1 || exit 1
 
   bash run_assist.sh "test_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
-  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
+  python3 test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
 
   # 2 core tests
   bash run_assist.sh "test_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
-  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
+  python3 test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
 
   bash run_assist.sh "test_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
-  python test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
+  python3 test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
 
 fi
 

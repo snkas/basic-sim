@@ -39,17 +39,17 @@ run_ns3_example () {
 
   # Plot TCP flow with ID 0
   cd plot_tcp_flow || exit 1
-  python plot_tcp_flow.py ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3 ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/data ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/pdf 0 100000000 || exit 1
+  python3 plot_tcp_flow.py ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3 ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/data ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/pdf 0 100000000 || exit 1
   cd .. || exit 1
 
   # Link net-device queue plot of 0 -> 1
   cd plot_link_net_device_queue || exit 1
-  python plot_link_net_device_queue.py ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3 ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/data ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/pdf 0 1 || exit 1
+  python3 plot_link_net_device_queue.py ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3 ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/data ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/pdf 0 1 || exit 1
   cd .. || exit 1
 
   # Link interface traffic-control queueing discipline queue plot of 0 -> 1
   cd plot_link_interface_tc_qdisc_queue || exit 1
-  python plot_link_interface_tc_qdisc_queue.py ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3 ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/data ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/pdf 0 1 || exit 1
+  python3 plot_link_interface_tc_qdisc_queue.py ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3 ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/data ../../../build/${NS3_VERSION}/example_programmable/$1/logs_ns3/pdf 0 1 || exit 1
   cd .. || exit 1
 
   cd ../../build/${NS3_VERSION} || exit 1

@@ -31,9 +31,9 @@ The below instructions assume you already have a working copy of ns-3 located at
    Additionally, if you are going to make use of functionality beyond the C++ ns-3 module:
    
    * gnuplot (for plotting): `sudo apt-get install gnuplot`
-   * numpy (for plotting): `pip install numpy`
-   * statsmodels (for plotting): `pip install statsmodels`
-   * exputilpy (for testing and plotting): `pip install git+https://github.com/snkas/exputilpy.git`
+   * numpy (for plotting): `pip3 install numpy`
+   * statsmodels (for plotting): `pip3 install statsmodels`
+   * exputilpy (for testing and plotting): `pip3 install git+https://github.com/snkas/exputilpy.git`
 
 2. **Add the basic-sim module**
 
@@ -81,9 +81,9 @@ sudo apt-get update
 sudo apt-get -y install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev
 sudo apt-get -y install lcov
 sudo apt-get -y install gnuplot
-pip install numpy
-pip install statsmodels
-pip install git+https://github.com/snkas/exputilpy.git
+pip3 install numpy
+pip3 install statsmodels
+pip3 install git+https://github.com/snkas/exputilpy.git
 cd build
 bash build.sh
 bash test.sh

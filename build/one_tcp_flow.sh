@@ -17,17 +17,17 @@ cd ../tools/plotting || exit 1
 
 # TCP flow plots
 cd plot_tcp_flow || exit 1
-python plot_tcp_flow.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 0 100000000 || exit 1
+python3 plot_tcp_flow.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 0 100000000 || exit 1
 cd .. || exit 1
 
 # Link net-device utilization plots
 cd plot_link_net_device_utilization || exit 1
-python plot_link_net_device_utilization.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 0 1 || exit 1
-python plot_link_net_device_utilization.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 1 0 || exit 1
+python3 plot_link_net_device_utilization.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 0 1 || exit 1
+python3 plot_link_net_device_utilization.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 1 0 || exit 1
 cd .. || exit 1
 
 # Link net-device queue plots
 cd plot_link_net_device_queue || exit 1
-python plot_link_net_device_queue.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 0 1 || exit 1
-python plot_link_net_device_queue.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 1 0 || exit 1
+python3 plot_link_net_device_queue.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 0 1 || exit 1
+python3 plot_link_net_device_queue.py ../../../build/example_run_folders/one_tcp_flow/logs_ns3 ../../../build/example_run_folders/one_tcp_flow/logs_ns3/data ../../../build/example_run_folders/one_tcp_flow/logs_ns3/pdf 1 0 || exit 1
 cd .. || exit 1

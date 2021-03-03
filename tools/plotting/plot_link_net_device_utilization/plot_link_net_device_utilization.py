@@ -72,7 +72,7 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python plot_link_net_device_utilization.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
+        print("Usage: python3 plot_link_net_device_utilization.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir]"
               " [from_node_id] [to_node_id]")
         exit(1)
     else:

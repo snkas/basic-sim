@@ -39,7 +39,7 @@ cd ../tools/plotting || exit 1
 
 ## Plotting: fat_tree_k4_servers_poisson
 cd plot_tcp_flows_ecdfs || exit 1
-python plot_tcp_flows_ecdfs.py ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3 \
+python3 plot_tcp_flows_ecdfs.py ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3 \
                                ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3/data \
                                ../../../build/example_run_folders/fat_tree_k4_servers_poisson/logs_ns3/pdf || exit 1
 cd .. || exit 1
@@ -48,34 +48,34 @@ cd .. || exit 1
 
 # Link net-device utilization plots
 cd plot_link_net_device_utilization || exit 1
-python plot_link_net_device_utilization.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 || exit 1
-python plot_link_net_device_utilization.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 0 || exit 1
+python3 plot_link_net_device_utilization.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 || exit 1
+python3 plot_link_net_device_utilization.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 0 || exit 1
 cd .. || exit 1
 
 # Link net-device queue plots
 cd plot_link_net_device_queue || exit 1
-python plot_link_net_device_queue.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 || exit 1
-python plot_link_net_device_queue.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 0 || exit 1
+python3 plot_link_net_device_queue.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 || exit 1
+python3 plot_link_net_device_queue.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 0 || exit 1
 cd .. || exit 1
 
 # Link interface traffic-control queueing discipline queue plots
 cd plot_link_interface_tc_qdisc_queue || exit 1
-python plot_link_interface_tc_qdisc_queue.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 || exit 1
+python3 plot_link_interface_tc_qdisc_queue.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 1 || exit 1
 cd .. || exit 1
 
 # TCP flow plots
 cd plot_tcp_flow || exit 1
-python plot_tcp_flow.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
+python3 plot_tcp_flow.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
 cd .. || exit 1
 
 # UDP burst plots
 cd plot_udp_burst || exit 1
-python plot_udp_burst.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
-python plot_udp_burst.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 100000000 || exit 1
+python3 plot_udp_burst.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
+python3 plot_udp_burst.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 100000000 || exit 1
 cd .. || exit 1
 
 # UDP ping plots
 cd plot_udp_ping || exit 1
-python plot_udp_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
-python plot_udp_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 100000000 || exit 1
+python3 plot_udp_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 0 100000000 || exit 1
+python3 plot_udp_ping.py ../../../build/example_run_folders/single_everything/logs_ns3 ../../../build/example_run_folders/single_everything/logs_ns3/data ../../../build/example_run_folders/single_everything/logs_ns3/pdf 1 100000000 || exit 1
 cd .. || exit 1

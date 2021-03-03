@@ -172,7 +172,7 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python plot_tcp_flow.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [tcp_flow_id]"
+        print("Usage: python3 plot_tcp_flow.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir] [tcp_flow_id]"
               " [interval_ns (for rates)]")
         exit(1)
     else:

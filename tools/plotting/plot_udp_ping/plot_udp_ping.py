@@ -171,7 +171,7 @@ def main():
     args = sys.argv[1:]
     if len(args) != 5:
         print("Must supply exactly five arguments")
-        print("Usage: python plot_udp_ping.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir] "
+        print("Usage: python3 plot_udp_ping.py [logs_ns3 directory] [data_out_dir] [pdf_out_dir] "
               "[udp_ping_id] [interval_ns (for out-of-order counting)]")
         exit(1)
     else:

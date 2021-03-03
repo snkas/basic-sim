@@ -19,19 +19,19 @@ cd ../tools/plotting || exit 1
 
 # TCP flow plots
 cd plot_tcp_flow || exit 1
-python plot_tcp_flow.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 0 100000000 || exit 1
+python3 plot_tcp_flow.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 0 100000000 || exit 1
 cd .. || exit 1
 
 # UDP burst plots
 cd plot_udp_burst || exit 1
-python plot_udp_burst.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 0 100000000 || exit 1
-python plot_udp_burst.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 1 100000000 || exit 1
+python3 plot_udp_burst.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 0 100000000 || exit 1
+python3 plot_udp_burst.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 1 100000000 || exit 1
 cd .. || exit 1
 
 # UDP ping plots
 cd plot_udp_ping || exit 1
-python plot_udp_ping.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 0 100000000 || exit 1
-python plot_udp_ping.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 1 100000000 || exit 1
+python3 plot_udp_ping.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 0 100000000 || exit 1
+python3 plot_udp_ping.py ../../../build/test_run_folders/reproduce/logs_ns3 ../../../build/test_run_folders/reproduce/logs_ns3/data ../../../build/test_run_folders/reproduce/logs_ns3/pdf 1 100000000 || exit 1
 cd .. || exit 1
 
 # Return to build directory

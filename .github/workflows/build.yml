@@ -29,10 +29,10 @@ jobs:
 
       - name: Install Python module dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install numpy
-          pip install statsmodels
-          pip install git+https://github.com/snkas/exputilpy.git
+          sudo apt-get install python3-pip
+          pip3 install numpy
+          pip3 install statsmodels
+          pip3 install git+https://github.com/snkas/exputilpy.git
 
       - name: Build
         run: |

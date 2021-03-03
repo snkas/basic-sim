@@ -339,23 +339,23 @@ A few example plots you could make:
 1. Plot the TCP flow with ID 1:
    ```
    cd /path/to/basic-sim/tools/plotting/plot_tcp_flow
-   python plot_tcp_flow.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 1 10000000
+   python3 plot_tcp_flow.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 1 10000000
    ```
    
 2. Plot the UDP burst with ID 0:
    ```
    cd /path/to/basic-sim/tools/plotting/plot_udp_burst
-   python plot_udp_burst.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 0 100000000
+   python3 plot_udp_burst.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 0 100000000
    ```
    
 3. Plot the UDP ping with ID 2 (node 2 to 1):
    ```
    cd /path/to/basic-sim/tools/plotting/plot_udp_ping
-   python plot_udp_ping.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 2 10000000
+   python3 plot_udp_ping.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 2 10000000
    ```
    
 4. Plot the net-device queue of the link from node 1 to node 0:
    ```
    cd /path/to/basic-sim/tools/plotting/plot_link_net_device_queue
-   python plot_link_net_device_queue.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 1 0
+   python3 plot_link_net_device_queue.py path/to/example_run/logs_ns3 path/to/example_run/logs_ns3/data path/to/example_run/logs_ns3/pdf 1 0
    ```

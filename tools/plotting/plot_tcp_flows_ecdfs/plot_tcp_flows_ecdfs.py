@@ -119,7 +119,7 @@ def main():
     args = sys.argv[1:]
     if len(args) != 3:
         print("Must supply exactly three arguments")
-        print("Usage: python plot_tcp_flows_ecdfs.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir]")
+        print("Usage: python3 plot_tcp_flows_ecdfs.py [logs_ns3_dir] [data_out_dir] [pdf_out_dir]")
         exit(1)
     else:
         plot_tcp_flows_ecdfs(

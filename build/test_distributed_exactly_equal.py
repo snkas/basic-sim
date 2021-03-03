@@ -55,7 +55,7 @@ def main():
     args = sys.argv[1:]
     if len(args) != 3:
         print("Must supply exactly three arguments")
-        print("Usage: python test_distributed_exactly_equal.py [base_run_folder] [multi_core_run_folder] [num_cores]")
+        print("Usage: python3 test_distributed_exactly_equal.py [base_run_folder] [multi_core_run_folder] [num_cores]")
         exit(1)
     else:
         test_distributed_exactly_equal(
