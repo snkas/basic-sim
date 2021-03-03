@@ -24,8 +24,7 @@ The below instructions assume you already have a working copy of ns-3 located at
    * Python 3.7+
    * MPI:
      ```
-     sudo apt-get install mpic++
-     sudo apt-get install libopenmpi-dev
+     sudo apt-get install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev
      ```
    * lcov: `sudo apt-get install lcov`
    
@@ -79,8 +78,7 @@ To perform the full range of testing of this module (Python 3.7+):
 
 ```
 sudo apt-get update
-sudo apt-get -y install mpic++
-sudo apt-get -y install libopenmpi-dev
+sudo apt-get -y install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev
 sudo apt-get -y install lcov
 sudo apt-get -y install gnuplot
 pip install numpy
