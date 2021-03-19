@@ -21,6 +21,7 @@
 #define INITIAL_HELPERS_H
 
 #include "ns3/core-module.h"
+#include "ns3/queue-size.h"
 
 namespace ns3 {
 
@@ -29,6 +30,7 @@ namespace ns3 {
     double GetInitialDoubleValue(std::string tidName, std::string attributeName);
     TimeValue GetInitialTimeValue(std::string tidName, std::string attributeName);
     bool GetInitialBooleanValue(std::string tidName, std::string attributeName);
+    QueueSize GetInitialQueueSizeValue(std::string tidName, std::string attributeName);
 
 } // namespace ns3
 

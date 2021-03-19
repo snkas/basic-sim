@@ -20,6 +20,7 @@
 #ifndef TOPOLOGY_PTOP_TC_QDISC_SELECTOR_DEFAULT_H
 #define TOPOLOGY_PTOP_TC_QDISC_SELECTOR_DEFAULT_H
 
+#include "ns3/initial-helpers.h"
 #include "ns3/topology-ptop.h"
 #include "ns3/fq-codel-queue-disc.h"
 #include "ns3/fifo-queue-disc.h"
@@ -31,7 +32,7 @@ namespace ns3 {
     class TopologyPtopTcQdiscSelectorDefault : public TopologyPtopTcQdiscSelector {
     public:
         static TypeId GetTypeId(void);
-        std::pair<bool, TrafficControlHelper> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value);
+        std::tuple<bool, TrafficControlHelper, QueueSize> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value);
     };
 
 }

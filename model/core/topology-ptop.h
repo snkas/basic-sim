@@ -58,7 +58,7 @@ public:
     static TypeId GetTypeId(void);
     TopologyPtopTcQdiscSelector() {};
     virtual ~TopologyPtopTcQdiscSelector() {};
-    virtual std::pair<bool, TrafficControlHelper> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value) = 0;
+    virtual std::tuple<bool, TrafficControlHelper, QueueSize> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value) = 0;
 };
 
 class TopologyPtop : public Topology
@@ -148,10 +148,11 @@ private:
     std::map<std::pair<int64_t, int64_t>, double> m_link_net_device_data_rate_megabit_per_s_mapping;
     std::map<std::pair<int64_t, int64_t>, std::pair<ObjectFactory, QueueSize>> m_link_net_device_queue_mapping;
     std::map<std::pair<int64_t, int64_t>, std::pair<bool, Ptr<ErrorModel>>> m_link_net_device_receive_error_model_mapping;
-    std::map<std::pair<int64_t, int64_t>, std::pair<bool, TrafficControlHelper>> m_link_interface_traffic_control_qdisc_mapping;
+    std::map<std::pair<int64_t, int64_t>, std::tuple<bool, TrafficControlHelper, QueueSize>> m_link_interface_traffic_control_qdisc_mapping;
 
     // Estimations
-    int64_t m_worst_case_rtt_estimate_ns;
+    bool m_worst_case_rtt_was_estimated = false;
+    int64_t m_worst_case_rtt_estimate_ns = 0;
 
     // From generating ns-3 objects
     NodeContainer m_nodes;

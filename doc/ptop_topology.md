@@ -321,7 +321,8 @@ Besides it just defining a graph, the following rules apply:
     ... which (from the table) corresponds to band: 0 (highest priority)
     ```
   
-  - `fq_codel_better_rtt` for fq_codel but with an RTT estimate based on the topology
+  - `fq_codel(interval_ns; target_ns; max_queue_size)`
+     for an fq_codel with a particular interval, target and maximum queue size.
   
   - `simple_red(ecn/drop; mean_pkt_size_byte; queue_weight; min_th_pkt; max_th_pkt; max_size; max_p; wait/no_wait; gentle/not_gentle)` 
     for a simple RED queueing discipline. It does an increasing linear probability
@@ -370,4 +371,4 @@ Besides it just defining a graph, the following rules apply:
     Between 60 and 120 packets because it is gentle the probability goes from 0.3 to 1.0.
     
   - `link_interface_traffic_control_qdisc=map(0->1: none, 1->0: fifo(100000B), 
-    1->2: fifo(80p), 2->1: fq_codel_better_rtt)`
+    1->2: fifo(80p), 2->1: fq_codel(30000; 2000; 10240p))`

@@ -221,7 +221,7 @@ public:
         topology_file << "link_net_device_data_rate_megabit_per_s=map(0->4: 2.8,1->4: 3.1,2->4: 3.4,3->4: 3.7,4->5: 4.7,4->6: 5.4,4->7: 6.1,4->0: 1.2,4->1: 1.9,4->2: 2.6,4->3: 3.3,5->4: 4.3,6->4: 4.6,7->4: 4.9)" << std::endl;
         topology_file << "link_net_device_queue=map(0->4: drop_tail(4p),1->4: drop_tail(4B),2->4: drop_tail(4p),3->4: drop_tail(4B),4->5: drop_tail(5p),4->6: drop_tail(6p),4->7: drop_tail(7p),4->0: drop_tail(77p),4->1: drop_tail(1p),4->2: drop_tail(2p),4->3: drop_tail(3p),5->4: drop_tail(4B),6->4: drop_tail(4p),7->4: drop_tail(4B))" << std::endl;
         topology_file << "link_net_device_receive_error_model=map(0->4: iid_uniform_random_pkt(0.0), 1->4: iid_uniform_random_pkt(0.1), 2->4: iid_uniform_random_pkt(0.2), 3->4: iid_uniform_random_pkt(0.3), 5->4:iid_uniform_random_pkt(0.5), 6->4:iid_uniform_random_pkt(0.6), 7->4:iid_uniform_random_pkt(0.7), 4->0: iid_uniform_random_pkt(0.4), 4->1: none, 4->2: iid_uniform_random_pkt(0.4), 4->3: none, 4->5: none, 4->6: iid_uniform_random_pkt(0.400000), 4->7: iid_uniform_random_pkt(1.0))" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=map(0->4: default, 1->4: fq_codel_better_rtt, 2->4: disabled, 3->4: default, 5->4:disabled, 6->4:default, 7->4:fq_codel_better_rtt, 4->0: disabled, 4->1: fq_codel_better_rtt, 4->2: default, 4->3: disabled, 4->5: default, 4->6: disabled, 4->7: fq_codel_better_rtt)" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=map(0->4: default, 1->4: fq_codel(1000; 400; 1400p), 2->4: disabled, 3->4: default, 5->4:disabled, 6->4:default, 7->4:fq_codel(7000; 400; 7400p), 4->0: disabled, 4->1: fq_codel(4000; 100; 4100p), 4->2: default, 4->3: disabled, 4->5: default, 4->6: disabled, 4->7: fq_codel(4000; 700; 4700p))" << std::endl;
         topology_file.close();
         
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
@@ -240,22 +240,23 @@ public:
                 std::pair<int64_t, int64_t> link = link_and_device.first;
                 Ptr<PointToPointNetDevice> device = link_and_device.second;
 
-                // Traffic control queueing discipline (based on formula (a * 2 + b * 7) % 3 = {0, 1, 2} = {fq_codel_better_rtt, default, disabled)
+                // Traffic control queueing discipline (based on formula (a * 2 + b * 7) % 3 = {0, 1, 2} = {fq_codel, default, disabled)
                 Ptr<QueueDisc> queueDisc = topology->GetNodes().Get(link.first)->GetObject<TrafficControlLayer>()->GetRootQueueDiscOnDevice(device);
                 if ((link.first * 2 + link.second * 7) % 3 == 0) {
-                    // fq_codel_better_rtt
+
+                    // fq_codel
                     Ptr<FqCoDelQueueDisc> realDisc = queueDisc->GetObject<FqCoDelQueueDisc>();
                     ASSERT_NOT_EQUAL(realDisc, 0);
 
                     // Improved interval (= RTT estimate)
                     StringValue interval_att;
                     realDisc->GetAttribute ("Interval", interval_att);
-                    ASSERT_EQUAL(interval_att.Get(), std::to_string(topology->GetWorstCaseRttEstimateNs()) + "ns");
+                    ASSERT_EQUAL(interval_att.Get(), std::to_string(link.first * 1000) + "ns");
 
                     // Improved target (= RTT estimate / 20)
                     StringValue target_att;
                     realDisc->GetAttribute ("Target", target_att);
-                    ASSERT_EQUAL(target_att.Get(), std::to_string(topology->GetWorstCaseRttEstimateNs() / 20) + "ns");
+                    ASSERT_EQUAL(target_att.Get(), std::to_string(link.second * 100) + "ns");
 
                 } else if ((link.first * 2 + link.second * 7) % 3 == 1) {
                     // default (currently, fq codel is default)

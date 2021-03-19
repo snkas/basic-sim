@@ -36,29 +36,52 @@ namespace ns3 {
      * can generate that.
      *
      * @param topology  Handle to the topology (might have relevant information)
-     * @param value     String value (e.g., "disabled", "default", "fq_codel_better_rtt")
+     * @param value     String value (e.g., "disabled", "default", "fq_codel(...)",
+     *                  "fifo(...)", "pfifo_fast(...)", "simple_red(...)")
      *
-     * @return Pair(True iff enabled, traffic control helper instance) (or an exception if invalid)
+     * @return Tuple(True iff enabled, traffic control helper instance, queue size) (or an exception if invalid)
      */
-    std::pair<bool, TrafficControlHelper> TopologyPtopTcQdiscSelectorDefault::ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value) {
+    std::tuple<bool, TrafficControlHelper, QueueSize> TopologyPtopTcQdiscSelectorDefault::ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value) {
         if (value == "disabled") {
             TrafficControlHelper unusedHelper; // We have to create some instance, but it is not used
-            return std::make_pair(false, unusedHelper);
+            return std::make_tuple(false, unusedHelper, QueueSize ("0B"));
 
         } else if (value == "default") {
-            TrafficControlHelper defaultHelper; // Default is actually fq_codel with some high RTT value
-            return std::make_pair(true, defaultHelper);
+            TrafficControlHelper defaultHelper; // Default is actually fq_codel with values for high RTTs
+            return std::make_tuple(true, defaultHelper, QueueSize (GetInitialQueueSizeValue ("ns3::FqCoDelQueueDisc", "MaxSize")));
 
-        } else if (value == "fq_codel_better_rtt") {
-            TrafficControlHelper fqCoDelBetterRttHelper;
-            std::string interval = format_string("%" PRId64 "ns", topology->GetWorstCaseRttEstimateNs());
-            std::string target = format_string("%" PRId64 "ns", topology->GetWorstCaseRttEstimateNs() / 20);
-            fqCoDelBetterRttHelper.SetRootQueueDisc(
+        } else if (starts_with(value, "fq_codel(") && ends_with(value, ")")) {  // fq_codel(interval_ns; target_ns; max_queue_size)
+
+            // Get rid of the "fq_codel("-prefix and ")"-postfix
+            std::string inner_part = value.substr(9, value.size() - 10);
+            std::vector<std::string> spl = split_string(inner_part, ";", 3);
+
+            // Interval
+            std::string interval = format_string("%" PRId64 "ns", parse_geq_one_int64(spl.at(0)));
+
+            // Target
+            std::string target = format_string("%" PRId64 "ns", parse_geq_one_int64(spl.at(1)));
+
+            // Maximum queue size
+            // Make sure it is either "100p" or "100000B'
+            std::string max_queue_size_value = trim(spl.at(2));
+            if (!ends_with(max_queue_size_value, "p") && !ends_with(max_queue_size_value, "B")) {
+                throw std::runtime_error(
+                        "Invalid maximum fq_codel queue size value: " + max_queue_size_value);
+            }
+            parse_geq_one_int64(max_queue_size_value.substr(0, max_queue_size_value.size() - 1));
+
+            // Create the traffic control helper
+            TrafficControlHelper fqCoDelHelper;
+            fqCoDelHelper.SetRootQueueDisc(
                     "ns3::FqCoDelQueueDisc",
                     "Interval", StringValue(interval),
-                    "Target", StringValue(target)
+                    "Target", StringValue(target),
+                    "MaxSize", QueueSizeValue (QueueSize (max_queue_size_value))
             );
-            return std::make_pair(true, fqCoDelBetterRttHelper);
+
+            // Return result
+            return std::make_tuple(true, fqCoDelHelper, QueueSize (max_queue_size_value));
 
         } else if (starts_with(value, "fifo(") && ends_with(value, ")")) { // First-in-first-out = drop-tail (in ns-3, it is called "FIFO" for qdiscs)
 
@@ -76,9 +99,9 @@ namespace ns3 {
             TrafficControlHelper fifoHelper;
             fifoHelper.SetRootQueueDisc(
                     "ns3::FifoQueueDisc",
-                    "MaxSize", QueueSizeValue (QueueSize (max_queue_size_value))  // Maximum queue size (packets)
+                    "MaxSize", QueueSizeValue (QueueSize (max_queue_size_value))  // Maximum queue size
             );
-            return std::make_pair(true, fifoHelper);
+            return std::make_tuple(true, fifoHelper, QueueSize (max_queue_size_value));
 
         } else if (starts_with(value, "pfifo_fast(") && ends_with(value, ")")) { // Priority first-in-first-out with 3 bands
 
@@ -98,7 +121,7 @@ namespace ns3 {
                     "ns3::PfifoFastQueueDisc",
                     "MaxSize", QueueSizeValue (QueueSize (max_queue_size_value))  // Maximum queue size (packets)
             );
-            return std::make_pair(true, pfifoFastHelper);
+            return std::make_tuple(true, pfifoFastHelper, QueueSize (max_queue_size_value));
 
         // simple_red(ecn/drop; mean_pkt_size_byte; queue_weight; min_th_pkt; max_th_pkt; max_size; max_p; wait/no_wait; gentle/not_gentle)
         } else if (starts_with(value, "simple_red(") && ends_with(value, ")")) {
@@ -195,7 +218,7 @@ namespace ns3 {
             );
 
             // Return traffic control qdisc is enabled and the helper to create it
-            return std::make_pair(true, simpleRedHelper);
+            return std::make_tuple(true, simpleRedHelper, QueueSize (max_size_str));
 
         } else {
             throw std::runtime_error("Invalid traffic control qdisc value: " + value);

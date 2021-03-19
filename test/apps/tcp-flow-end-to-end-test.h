@@ -284,7 +284,7 @@ public:
         topology_file << "link_net_device_data_rate_megabit_per_s=30.0" << std::endl;
         topology_file << "link_net_device_queue=drop_tail(100p)" << std::endl;
         topology_file << "link_net_device_receive_error_model=none" << std::endl;
-        topology_file << "link_interface_traffic_control_qdisc=fq_codel_better_rtt" << std::endl;
+        topology_file << "link_interface_traffic_control_qdisc=fq_codel(100000000; 2000000000; 10240p)" << std::endl;
         topology_file.close();
 
         // A flow each way
