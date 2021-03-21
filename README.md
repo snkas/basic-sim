@@ -97,6 +97,6 @@ bash example_programmable.sh
 
 Refactored, extended and maintained by Simon.
 
-Contributions were made by (former) students in the Network Design lab who did a project or their thesis, among which: Hussain, Hanjing (list will continue to be updated).
+Contributions were made by (former) students who collaborated with me for a project or their thesis, among which: Hussain, Hanjing (list will continue to be updated).
 
 The ECMP routing hashing function is inspired by https://github.com/mkheirkhah/ecmp (accessed: February 20th, 2020), though heavily modified.
