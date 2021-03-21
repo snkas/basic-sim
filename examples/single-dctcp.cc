@@ -8,7 +8,7 @@
 #include "ns3/ip-tos-generator.h"
 #include "ns3/tcp-flow-scheduler.h"
 #include "ns3/topology-ptop.h"
-#include "ns3/tcp-optimizer.h"
+#include "ns3/tcp-config-helper.h"
 #include "ns3/arbiter-ecmp-helper.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/ptop-link-net-device-utilization-tracking.h"
@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
     config_file << "simulation_end_time_ns=5000000000" << std::endl;
     config_file << "simulation_seed=747385728" << std::endl;
     config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+    config_file << "tcp_config=basic" << std::endl;
     config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
     config_file << "enable_link_net_device_utilization_tracking=true" << std::endl;
     config_file << "link_net_device_utilization_tracking_interval_ns=100000000" << std::endl;
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]) {
     PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology); // Requires enable_link_interface_tc_qdisc_queue_tracking=true
 
     // Optimize TCP
-    TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+    TcpConfigHelper::Configure(basicSimulation);
 
     // Schedule TCP flows
     // We pass on a special TCP socket generator which will be used by the

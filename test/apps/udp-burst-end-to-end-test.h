@@ -70,7 +70,6 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
         basicSimulation->Run();
         udpBurstScheduler.WriteResults();
@@ -537,7 +536,6 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
         basicSimulation->Run();
         udpBurstScheduler.WriteResults();
@@ -656,7 +654,6 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
         basicSimulation->Run();
         udpBurstScheduler.WriteResults();
@@ -786,7 +783,6 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
         UdpBurstScheduler udpBurstScheduler(basicSimulation, topology);
         PtopLinkNetDeviceUtilizationTracking utilTrackerHelper = PtopLinkNetDeviceUtilizationTracking(basicSimulation, topology);
         basicSimulation->Run();

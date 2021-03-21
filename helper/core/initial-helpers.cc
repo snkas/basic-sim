@@ -95,18 +95,4 @@ bool GetInitialBooleanValue(std::string tidName, std::string attributeName) {
 
 }
 
-QueueSize GetInitialQueueSizeValue(std::string tidName, std::string attributeName) {
-
-    // Retrieve the base value
-    struct TypeId::AttributeInformation info = GetAttributeInformation(tidName, attributeName);
-
-    // Convert into time value
-    const QueueSizeValue* queueSizeAttribute = dynamic_cast<const QueueSizeValue*>(PeekPointer(info.initialValue));
-    if (queueSizeAttribute == 0) {
-        throw std::invalid_argument("Value provided for " + tidName + "::" + attributeName + " is not a queue size type");
-    }
-    return queueSizeAttribute->Get();
-
-}
-
 }

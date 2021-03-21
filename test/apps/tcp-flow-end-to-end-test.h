@@ -27,6 +27,7 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file << "enable_tcp_flow_scheduler=true" << std::endl;
         config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
         std::string ids = "";
@@ -84,7 +85,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         beforeRunOperation->operation(topology);
         basicSimulation->Run();
@@ -399,6 +400,7 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file << "enable_tcp_flow_scheduler=true" << std::endl;
         config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
         config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=set(2, 4, 5)" << std::endl;
@@ -433,7 +435,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         basicSimulation->Run();
         tcpFlowScheduler.WriteResults();
@@ -524,6 +526,7 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file << "enable_tcp_flow_scheduler=true" << std::endl;
         config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
         config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=all" << std::endl;
@@ -558,7 +561,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         basicSimulation->Run();
         tcpFlowScheduler.WriteResults();
@@ -743,7 +746,7 @@ public:
         prepare_clean_run_dir(test_run_dir);
 
         // One-to-one, 10s, 30.0 Mbit/s, 200 microsec delay
-        int64_t simulation_end_time_ns = 50000000000;
+        int64_t simulation_end_time_ns = 200000000000;
         write_basic_config(simulation_end_time_ns, 123456, 1);
         std::ofstream topology_file;
         topology_file.open (test_run_dir + "/topology.properties");
@@ -771,7 +774,7 @@ public:
         BeforeRunOperationDropper op(0);
         test_run_and_validate_tcp_flow_logs(simulation_end_time_ns, test_run_dir, schedule, end_time_ns_list, sent_byte_list, finished_list, &op);
 
-        // Can only consume the bandwidth of one path, the one it is hashed to
+        // Should fail after some point
         ASSERT_EQUAL(end_time_ns_list[0], simulation_end_time_ns);
         ASSERT_EQUAL(sent_byte_list[0], 0);
         ASSERT_EQUAL(finished_list[0], "NO_CONN_FAIL");
@@ -912,6 +915,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
+        TcpConfigHelper::Configure(basicSimulation);
         Config::SetDefault("ns3::TcpSocket::SndBufSize", UintegerValue(100000)); // This is set exactly to the send-size to force the buffer to go empty after sending it out
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         beforeRunOperation.operation(topology);
@@ -1141,6 +1145,7 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file << "enable_tcp_flow_scheduler=true" << std::endl;
         config_file << "tcp_flow_schedule_filename=\"tcp_flow_schedule.csv\"" << std::endl;
         config_file << "tcp_flow_enable_logging_for_tcp_flow_ids=all" << std::endl;
@@ -1176,7 +1181,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology);
         PtopLinkNetDeviceUtilizationTracking utilTrackerHelper = PtopLinkNetDeviceUtilizationTracking(basicSimulation, topology);
         basicSimulation->Run();
@@ -1344,6 +1349,7 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
         config_file << "link_net_device_queue_tracking_enable_for_links=all" << std::endl;
         config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
@@ -1377,7 +1383,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {888}, CreateObject<ClientRemotePortSelectorDefault>(888), CreateObject<TcpSocketGeneratorEnableEcn>(), CreateObject<IpTosGeneratorDefault>());
         PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
         PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology);
@@ -1530,6 +1536,7 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=" << simulation_seed << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
         config_file << "link_net_device_queue_tracking_enable_for_links=all" << std::endl;
         config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
@@ -1564,7 +1571,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {888, 1000}, CreateObject<ClientRemotePortSelectorTwo>(), CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorDefault>());
         PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
         PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology);

@@ -32,7 +32,7 @@ namespace ns3 {
     class TopologyPtopTcQdiscSelectorDefault : public TopologyPtopTcQdiscSelector {
     public:
         static TypeId GetTypeId(void);
-        std::tuple<bool, TrafficControlHelper, QueueSize> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value);
+        std::pair<bool, TrafficControlHelper> ParseTcQdiscValue(Ptr<TopologyPtop> topology, std::string value);
     };
 
 }

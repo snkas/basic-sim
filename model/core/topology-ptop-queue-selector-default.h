@@ -27,7 +27,7 @@ namespace ns3 {
     class TopologyPtopQueueSelectorDefault : public TopologyPtopQueueSelector {
     public:
         static TypeId GetTypeId(void);
-        std::pair<ObjectFactory, QueueSize> ParseQueueValue(Ptr<TopologyPtop> topology, std::string value);
+        ObjectFactory ParseQueueValue(Ptr<TopologyPtop> topology, std::string value);
     };
 
 }

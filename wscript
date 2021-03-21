@@ -7,6 +7,7 @@ def build(bld):
 
     # Source files
     module.source = [
+
         'model/core/exp-util.cc',
         'model/core/basic-simulation.cc',
         'model/core/topology-ptop.cc',
@@ -28,7 +29,6 @@ def build(bld):
         'helper/core/ptop-link-net-device-queue-tracking.cc',
         'helper/core/ptop-link-interface-tc-qdisc-queue-tracking.cc',
         'helper/core/initial-helpers.cc',
-        'helper/core/tcp-optimizer.cc',
         'helper/core/point-to-point-ab-helper.cc',
 
         'model/apps/socket-generator.cc',
@@ -53,6 +53,7 @@ def build(bld):
         'helper/apps/udp-ping-helper.cc',
         'helper/apps/udp-ping-schedule-reader.cc',
         'helper/apps/udp-ping-scheduler.cc',
+        'helper/apps/tcp-config-helper.cc',
 
         ]
 
@@ -60,6 +61,7 @@ def build(bld):
     headers = bld(features='ns3header')
     headers.module = 'basic-sim'
     headers.source = [
+
         'model/core/log-update-helper.h',
         'model/core/exp-util.h',
         'model/core/basic-simulation.h',
@@ -83,7 +85,6 @@ def build(bld):
         'helper/core/ptop-link-net-device-queue-tracking.h',
         'helper/core/ptop-link-interface-tc-qdisc-queue-tracking.h',
         'helper/core/initial-helpers.h',
-        'helper/core/tcp-optimizer.h',
         'helper/core/point-to-point-ab-helper.h',
 
         'model/apps/socket-generator.h',
@@ -108,26 +109,31 @@ def build(bld):
         'helper/apps/udp-ping-helper.h',
         'helper/apps/udp-ping-schedule-reader.h',
         'helper/apps/udp-ping-scheduler.h',
+        'helper/apps/tcp-config-helper.h',
 
         ]
 
     # Tests
     module_test = bld.create_ns3_module_test_library('basic-sim')
     module_test.source = [
+
         'test/test-helpers.cc',
         'test/test-case-with-log-validators.cc',
+
         'test/core-basic-simulation-test-suite.cc',
         'test/core-exp-util-test-suite.cc',
         'test/core-log-update-helper-test-suite.cc',
         'test/core-ptop-test-suite.cc',
         'test/core-ptop-tracking-test-suite.cc',
-        'test/core-tcp-optimizer-test-suite.cc',
         'test/core-arbiter-test-suite.cc',
+
         'test/apps-initial-helpers-test-suite.cc',
         'test/apps-manual-test-suite.cc',
         'test/apps-tcp-flow-test-suite.cc',
         'test/apps-udp-burst-test-suite.cc',
         'test/apps-udp-ping-test-suite.cc',
+        'test/apps-tcp-config-helper-test-suite.cc',
+
         ]
 
     # Main

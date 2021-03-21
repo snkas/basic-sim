@@ -39,7 +39,6 @@ if [ "$1" == "" ] || [ "$1" == "--core" ] || [ "$2" == "--core" ] || [ "$3" == "
   run_test_suite_and_append "basic-sim-core-ptop" "../test_results/test_results_core.txt"
   run_test_suite_and_append "basic-sim-core-arbiter" "../test_results/test_results_core.txt"
   run_test_suite_and_append "basic-sim-core-ptop-tracking"  "../test_results/test_results_core.txt"
-  run_test_suite_and_append "basic-sim-core-tcp-optimizer"  "../test_results/test_results_core.txt"
   cat ../test_results/test_results_core.txt
 fi
 
@@ -51,6 +50,7 @@ if [ "$1" == "" ] || [ "$1" == "--apps" ] || [ "$2" == "--apps" ] || [ "$3" == "
   run_test_suite_and_append "basic-sim-apps-tcp-flow" "../test_results/test_results_apps.txt"
   run_test_suite_and_append "basic-sim-apps-udp-burst" "../test_results/test_results_apps.txt"
   run_test_suite_and_append "basic-sim-apps-udp-ping" "../test_results/test_results_apps.txt"
+  run_test_suite_and_append "basic-sim-apps-tcp-config-helper"  "../test_results/test_results_apps.txt"
   cat ../test_results/test_results_apps.txt
 fi
 

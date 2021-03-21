@@ -322,7 +322,7 @@ Besides it just defining a graph, the following rules apply:
     ```
   
   - `fq_codel(interval_ns; target_ns; max_queue_size)`
-     for an fq_codel with a particular interval, target and maximum queue size.
+     for an fq_codel with a particular interval, target and maximum queue size (only in packets, e.g., "30p").
   
   - `simple_red(ecn/drop; mean_pkt_size_byte; queue_weight; min_th_pkt; max_th_pkt; max_size; max_p; wait/no_wait; gentle/not_gentle)` 
     for a simple RED queueing discipline. It does an increasing linear probability

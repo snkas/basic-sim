@@ -38,7 +38,7 @@ namespace ns3 {
      *
      * @return Pair of (Queue object factory, Maximum queue size) if success, else throws an exception
      */
-    std::pair<ObjectFactory, QueueSize> TopologyPtopQueueSelectorDefault::ParseQueueValue(Ptr<TopologyPtop>, std::string value) {
+    ObjectFactory TopologyPtopQueueSelectorDefault::ParseQueueValue(Ptr<TopologyPtop>, std::string value) {
 
         // First-in-first-out = drop-tail (in ns-3, it is called "DropTail" for queues)
         if (starts_with(value, "drop_tail(") && ends_with(value, ")")) {
@@ -57,7 +57,7 @@ namespace ns3 {
             ObjectFactory queueFactory;
             queueFactory.SetTypeId("ns3::DropTailQueue<Packet>");
             queueFactory.Set("MaxSize", QueueSizeValue(QueueSize(max_queue_size_value)));
-            return std::make_pair(queueFactory, QueueSize(max_queue_size_value));
+            return queueFactory;
 
         } else {
             throw std::runtime_error("Invalid queue value: " + value);

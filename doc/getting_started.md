@@ -11,10 +11,9 @@ You can either immediately start with the tutorial below, or read more documenta
 * `application_tcp_flow.md` -- Flow application ("send from A to B a flow of size X at time T")
 * `application_udp_burst.md` -- UDP burst application ("send from A to B at a rate of X Mbit/s at time T for duration D")
 * `application_udp_ping.md` -- UDP ping application ("send from A to B pings at an interval I starting at time T for duration D and wait afterwards W time to get the last replies")
-* `tcp_optimizer.md` -- Optimize certain TCP parameters
+* `tcp_config_helper.md` -- Configure certain TCP parameters
 * `future_work.md` -- To find out what can be extended / improved
-* `general_coding_notes.md` -- A collection of general notes about how ns-3 is modeled and how one uses that model
-* `peculiarities.md` -- A collection of notes about peculiar behavior in ns-3
+* `notes/` -- A collection of general notes about how ns-3 is modeled and how one uses that model
 
 
 ## Tutorial
@@ -84,6 +83,8 @@ We are going to install three different applications:
    simulation_seed=123456789
     
    topology_ptop_filename="topology.properties"
+   
+   tcp_config=basic
     
    enable_link_net_device_utilization_tracking=true
    link_net_device_utilization_tracking_interval_ns=100000000
@@ -174,7 +175,7 @@ We are going to install three different applications:
     #include "ns3/ptop-link-net-device-utilization-tracking.h"
     #include "ns3/ptop-link-net-device-queue-tracking.h"
     #include "ns3/ptop-link-interface-tc-qdisc-queue-tracking.h"
-    #include "ns3/tcp-optimizer.h"
+    #include "ns3/tcp-config-helper.h"
     
     #include "ns3/tcp-flow-scheduler.h"
     #include "ns3/udp-burst-scheduler.h"
@@ -215,7 +216,7 @@ We are going to install three different applications:
         PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology); // Requires enable_link_interface_tc_qdisc_queue_tracking=true
     
         // Optimize TCP
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
     
         // Schedule TCP flows
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true

@@ -5,7 +5,7 @@
 This ns-3 module is intended to make experimental simulation of networks a bit easier.
 It has a wrapper to take care of loading in run folder configurations (e.g., runtime, random seed),
 a topology abstraction, an additional routing abstraction called "arbiter routing",
-a heuristic TCP optimizer, and three handy applications (TCP flows, UDP bursts, and UDP pings).
+a TCP configuration helper, and three handy applications (TCP flows, UDP bursts, and UDP pings).
 
 **This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

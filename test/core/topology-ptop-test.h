@@ -222,10 +222,6 @@ public:
             }
         }
 
-        // Worst-case RTT estimate
-        // ((((1 + 2 + 10240) * 1502 byte) / 2.6 Mbit/s) + 600ns) * 14 in nanoseconds = 662737866868 ns
-        ASSERT_EQUAL(topology->GetWorstCaseRttEstimateNs(), 662737866868);
-
         // And now we are going to go test all the network devices installed and their channels in-between
         std::vector<std::pair<Ptr<PointToPointNetDevice>, Ptr<PointToPointNetDevice>>> netDevicesForUndirectedEdges = topology->GetNetDevicesForUndirectedEdges();
         size_t undirected_edge_id = 0;
@@ -298,15 +294,22 @@ public:
                     Ptr<FqCoDelQueueDisc> realDisc = queueDisc->GetObject<FqCoDelQueueDisc>();
                     ASSERT_NOT_EQUAL(realDisc, 0);
 
-                    // Improved interval (= RTT estimate)
+                    // Interval
                     StringValue interval_att;
                     realDisc->GetAttribute ("Interval", interval_att);
                     ASSERT_EQUAL(interval_att.Get(), std::to_string(link.first * 1000) + "ns");
 
-                    // Improved target (= RTT estimate / 20)
+                    // Target
                     StringValue target_att;
                     realDisc->GetAttribute ("Target", target_att);
                     ASSERT_EQUAL(target_att.Get(), std::to_string(link.second * 100) + "ns");
+
+                    // Maximum queue size
+                    QueueSizeValue max_size_att;
+                    realDisc->GetAttribute ("MaxSize", max_size_att);
+                    QueueSize max_size_queue_size = max_size_att.Get();
+                    ASSERT_EQUAL(max_size_queue_size.GetValue(), link.first * 1000 + link.second * 100);
+                    ASSERT_EQUAL(max_size_queue_size.GetUnit(), QueueSizeUnit::PACKETS);
 
                 } else if ((link.first * 2 + link.second * 7) % 3 == 1) {
                     // default (currently, fq codel is default)

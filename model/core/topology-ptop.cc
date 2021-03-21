@@ -405,11 +405,11 @@ void TopologyPtop::ParseLinkNetDeviceQueueProperty() {
 
         // Create default mapping
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            std::pair<ObjectFactory, QueueSize> link_net_device_queue = m_queueSelector->ParseQueueValue(this, value);
+            ObjectFactory link_net_device_queue = m_queueSelector->ParseQueueValue(this, value);
             m_link_net_device_queue_mapping.insert(std::make_pair(p, link_net_device_queue));
             m_link_net_device_queue_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_net_device_queue));
         }
-        std::cout << "    >> Single global value... " << m_queueSelector->ParseQueueValue(this, value).first << std::endl;
+        std::cout << "    >> Single global value... " << m_queueSelector->ParseQueueValue(this, value) << std::endl;
 
     } else { // Mapping
         std::map <std::pair<int64_t, int64_t>, std::string> directed_edge_mapping = ParseDirectedEdgeMap(value);
@@ -449,99 +449,6 @@ void TopologyPtop::ParseLinkNetDeviceReceiveErrorModelProperty() {
 }
 
 /**
- * Estimation of the worst case RTT based on the topology and the link settings.
- *
- * MTU = 1500 byte, +2 with the p2p header.
- * There are n_ndq packets in the net-device queue at most, with n_q + 1 (incl. transmit)
- * There are n_qdq packets in the queueing discipline queue at most
- * Queueing + transmission delay/hop = (n_ndq + n_qdq + 1) * 1502 byte / link data rate
- * Propagation delay/hop = link delay
- *
- * If the topology is big, lets assume 10 hops either direction worst case, so 20 hops total
- * If the topology is not big, < 10 undirected edges, we just use 2 * number of undirected edges as worst-case hop count
- *
- * num_hops * (((n_ndq + n_qdq + 1) * 1502 byte) / link data rate) + link delay)
- *
- */
-void TopologyPtop::EstimateWorstCaseRtt() {
-
-    // Find link with the worst worst-case hop
-    int64_t worst_worst_case_link_hop_delay_ns = 0;
-    int64_t corresponding_channel_delay_ns = 0;
-    double corresponding_net_device_data_rate_megabit_per_s = 0.0;
-    int64_t corresponding_net_device_max_queue_size_byte = 0;
-    int64_t corresponding_qdisc_max_queue_size_byte = 0;
-    for (std::pair<int64_t, int64_t> undirected_edge : m_undirected_edges) {
-        for (uint32_t i = 0; i < 2; i++) {
-            std::pair<int64_t, int64_t> link;
-            if (i == 0) {
-                link = undirected_edge;
-            } else {
-                link = std::make_pair(undirected_edge.second, undirected_edge.first);
-            }
-
-            // Link channel delay (ns)
-            int64_t link_channel_delay_ns = m_link_channel_delay_ns_mapping.at(undirected_edge); // Is undirected
-
-            // Link net-device data rate (Mbit/s)
-            double link_net_device_data_rate_megabit_per_s = m_link_net_device_data_rate_megabit_per_s_mapping.at(link);
-
-            // Link net-device maximum queue size (byte)
-            QueueSize a = m_link_net_device_queue_mapping.at(link).second;
-            int64_t net_device_max_queue_size_byte;
-            if (a.GetUnit() == PACKETS) {
-                net_device_max_queue_size_byte = (a.GetValue() + 1) * 1502;
-            } else {
-                net_device_max_queue_size_byte = a.GetValue() + 1502;
-            }
-
-            // Link traffic-control queueing discipline maximum queue size (byte)
-            QueueSize b = std::get<2>(m_link_interface_traffic_control_qdisc_mapping.at(link));
-            int64_t qdisc_max_queue_size_byte;
-            if (b.GetUnit() == PACKETS) {
-                qdisc_max_queue_size_byte = b.GetValue() * 1502;
-            } else {
-                qdisc_max_queue_size_byte = b.GetValue();
-            }
-
-            // Worst-case estimate of link hop delay (ns)
-            double float_estimated_link_hop_delay_ns = link_channel_delay_ns;
-            float_estimated_link_hop_delay_ns += net_device_max_queue_size_byte / (link_net_device_data_rate_megabit_per_s * 125000.0 / 1000000000.0);
-            float_estimated_link_hop_delay_ns += qdisc_max_queue_size_byte / (link_net_device_data_rate_megabit_per_s * 125000.0 / 1000000000.0);
-            int64_t estimated_link_hop_delay_ns = (int64_t) std::ceil(float_estimated_link_hop_delay_ns);
-
-            // Only if this hop turns out to have the worst worst-case estimation
-            if (estimated_link_hop_delay_ns > worst_worst_case_link_hop_delay_ns) {
-                worst_worst_case_link_hop_delay_ns = estimated_link_hop_delay_ns;
-                corresponding_channel_delay_ns = link_channel_delay_ns;
-                corresponding_net_device_data_rate_megabit_per_s = link_net_device_data_rate_megabit_per_s;
-                corresponding_net_device_max_queue_size_byte = net_device_max_queue_size_byte;
-                corresponding_qdisc_max_queue_size_byte = qdisc_max_queue_size_byte;
-            }
-
-        }
-    }
-
-    // Estimated worst-case per-hop delay
-    std::cout << "    >> Worst worst-case hop... " << worst_worst_case_link_hop_delay_ns / 1e6 << " ms" << std::endl;
-    std::cout << "       ... which has the following link properties:" << std::endl;
-    std::cout << "       >>> Channel delay................ " << corresponding_channel_delay_ns << " ns" << std::endl;
-    std::cout << "       >>> Net-device data rate......... " << corresponding_net_device_data_rate_megabit_per_s << " Mbit/s" << std::endl;
-    std::cout << "       >>> Net-device max. queue size... " << corresponding_net_device_max_queue_size_byte << " byte (assuming 1502 byte frames)" << std::endl;
-    std::cout << "       >>> Qdisc max. queue size........ " << corresponding_qdisc_max_queue_size_byte << " byte (assuming 1502 byte frames)" << std::endl;
-
-    // Maximum number of hops
-    int64_t worst_case_num_hops = std::min((int64_t) 20, m_num_undirected_edges * 2);
-    std::cout << "    >> Worst-case hop count....... " << worst_case_num_hops << " (set to at most 20 even if topology is larger)" << std::endl;
-
-    // Final worst-case RTT estimate
-    m_worst_case_rtt_estimate_ns = worst_case_num_hops * worst_worst_case_link_hop_delay_ns;
-    printf("    >> Estimated worst-case RTT... %.3f ms\n", m_worst_case_rtt_estimate_ns / 1e6);
-    m_worst_case_rtt_was_estimated = true;
-
-}
-
-/**
  * Parse the link_interface_traffic_control_qdisc from the topology configuration.
  *
  * @return Mapping of directed edge (a, b) (i.e., link) to its interface's traffic control queueing discipline
@@ -554,7 +461,7 @@ void TopologyPtop::ParseLinkInterfaceTrafficControlQdiscProperty() {
 
         // Create default mapping
         for (std::pair<int64_t, int64_t> p : m_undirected_edges_set) {
-            std::tuple<bool, TrafficControlHelper, QueueSize> link_interface_traffic_control_qdisc = m_tcQdiscSelector->ParseTcQdiscValue(this, value);
+            std::pair<bool, TrafficControlHelper> link_interface_traffic_control_qdisc = m_tcQdiscSelector->ParseTcQdiscValue(this, value);
             m_link_interface_traffic_control_qdisc_mapping.insert(std::make_pair(p, link_interface_traffic_control_qdisc));
             m_link_interface_traffic_control_qdisc_mapping.insert(std::make_pair(std::make_pair(p.second, p.first), link_interface_traffic_control_qdisc));
         }
@@ -600,11 +507,6 @@ void TopologyPtop::ParseTopologyLinkProperties() {
     std::cout << "  > Link interface traffic control queuing disciplines" << std::endl;
     ParseLinkInterfaceTrafficControlQdiscProperty();
     m_basicSimulation->RegisterTimestamp("Parse link-to-interface-tc-qdisc mapping");
-
-    // Worst-case RTT
-    std::cout << "  > Worst-case RTT estimation" << std::endl;
-    EstimateWorstCaseRtt();
-    m_basicSimulation->RegisterTimestamp("Estimate worst-case RTT (ns)");
 
     std::cout << std::endl;
 }
@@ -661,8 +563,8 @@ void TopologyPtop::SetupLinks() {
         PointToPointAbHelper p2p;
         p2p.SetDeviceAttributeA("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(link_a_to_b)) + "Mbps")));
         p2p.SetDeviceAttributeB("DataRate", DataRateValue(DataRate(std::to_string(m_link_net_device_data_rate_megabit_per_s_mapping.at(link_b_to_a)) + "Mbps")));
-        p2p.SetQueueFactoryA(m_link_net_device_queue_mapping.at(link_a_to_b).first);
-        p2p.SetQueueFactoryB(m_link_net_device_queue_mapping.at(link_b_to_a).first);
+        p2p.SetQueueFactoryA(m_link_net_device_queue_mapping.at(link_a_to_b));
+        p2p.SetQueueFactoryB(m_link_net_device_queue_mapping.at(link_b_to_a));
         p2p.SetChannelAttribute("Delay", TimeValue(NanoSeconds(m_link_channel_delay_ns_mapping.at(undirected_edge))));
         NetDeviceContainer container = p2p.Install(m_nodes.Get(undirected_edge.first), m_nodes.Get(undirected_edge.second));
 
@@ -679,13 +581,13 @@ void TopologyPtop::SetupLinks() {
         }
 
         // Traffic control queueing discipline
-        std::tuple<bool, TrafficControlHelper, QueueSize> a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(link_a_to_b);
-        std::tuple<bool, TrafficControlHelper, QueueSize> b_to_a_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(link_b_to_a);
-        if (std::get<0>(a_to_b_traffic_control_qdisc)) {
-            std::get<1>(a_to_b_traffic_control_qdisc).Install(netDeviceA);
+        std::pair<bool, TrafficControlHelper> a_to_b_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(link_a_to_b);
+        std::pair<bool, TrafficControlHelper> b_to_a_traffic_control_qdisc = m_link_interface_traffic_control_qdisc_mapping.at(link_b_to_a);
+        if (a_to_b_traffic_control_qdisc.first) {
+            a_to_b_traffic_control_qdisc.second.Install(netDeviceA);
         }
-        if (std::get<0>(b_to_a_traffic_control_qdisc)) {
-            std::get<1>(b_to_a_traffic_control_qdisc).Install(netDeviceB);
+        if (b_to_a_traffic_control_qdisc.first) {
+            b_to_a_traffic_control_qdisc.second.Install(netDeviceB);
         }
 
         // Assign IP addresses
@@ -694,10 +596,10 @@ void TopologyPtop::SetupLinks() {
 
         // Remove the (default) traffic control layer if undesired
         TrafficControlHelper tch_uninstaller;
-        if (!std::get<0>(a_to_b_traffic_control_qdisc)) {
+        if (!a_to_b_traffic_control_qdisc.first) {
             tch_uninstaller.Uninstall(netDeviceA);
         }
-        if (!std::get<0>(b_to_a_traffic_control_qdisc)) {
+        if (!b_to_a_traffic_control_qdisc.first) {
             tch_uninstaller.Uninstall(netDeviceB);
         }
 
@@ -804,11 +706,6 @@ const std::vector<std::set<int64_t>>& TopologyPtop::GetAllAdjacencyLists() {
 
 const std::set<int64_t>& TopologyPtop::GetAdjacencyList(int64_t node_id) {
     return m_adjacency_list.at(node_id);
-}
-
-int64_t TopologyPtop::GetWorstCaseRttEstimateNs() {
-    NS_ABORT_MSG_UNLESS (m_worst_case_rtt_was_estimated, "Worst-case RTT estimate must be calculated before being retrieved");
-    return m_worst_case_rtt_estimate_ns;
 }
 
 const std::vector<std::pair<uint32_t, uint32_t>>& TopologyPtop::GetInterfaceIdxsForUndirectedEdges() {

@@ -248,15 +248,22 @@ public:
                     Ptr<FqCoDelQueueDisc> realDisc = queueDisc->GetObject<FqCoDelQueueDisc>();
                     ASSERT_NOT_EQUAL(realDisc, 0);
 
-                    // Improved interval (= RTT estimate)
+                    // Interval
                     StringValue interval_att;
                     realDisc->GetAttribute ("Interval", interval_att);
                     ASSERT_EQUAL(interval_att.Get(), std::to_string(link.first * 1000) + "ns");
 
-                    // Improved target (= RTT estimate / 20)
+                    // Target
                     StringValue target_att;
                     realDisc->GetAttribute ("Target", target_att);
                     ASSERT_EQUAL(target_att.Get(), std::to_string(link.second * 100) + "ns");
+
+                    // Maximum queue size
+                    QueueSizeValue max_size_att;
+                    realDisc->GetAttribute ("MaxSize", max_size_att);
+                    QueueSize max_size_queue_size = max_size_att.Get();
+                    ASSERT_EQUAL(max_size_queue_size.GetValue(), link.first * 1000 + link.second * 100);
+                    ASSERT_EQUAL(max_size_queue_size.GetUnit(), QueueSizeUnit::PACKETS);
 
                 } else if ((link.first * 2 + link.second * 7) % 3 == 1) {
                     // default (currently, fq codel is default)
@@ -319,6 +326,8 @@ public:
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(drop; 0; 1.0; 10; 20; 30p; 1.0; wait; not_gentle)", "Value must be >= 1: 0"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(drop; -1; 1.0; 10; 20; 30p; 1.0; wait; not_gentle)", "Negative int64 value not permitted: -1"));
         qdisc_and_expected_what.push_back(std::make_pair("simple_red(drop; 1500; 0.6; 10; 20; 10000P; 0.999; wait; not_gentle)", "Invalid maximum RED queue size value: 10000P"));
+        qdisc_and_expected_what.push_back(std::make_pair("fq_codel(10000; 1000; 1000000B)", "Invalid maximum fq_codel queue size value: 1000000B"));
+        qdisc_and_expected_what.push_back(std::make_pair("fq_codel(20000; 1435; 1000P)", "Invalid maximum fq_codel queue size value: 1000P"));
 
         // Check each invalid case
         for (std::pair<std::string, std::string> scenario : qdisc_and_expected_what) {
@@ -882,6 +891,7 @@ public:
         config_file << "simulation_end_time_ns=" << simulation_end_time_ns << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file << "enable_link_net_device_queue_tracking=true" << std::endl;
         config_file << "link_net_device_queue_tracking_enable_for_links=all" << std::endl;
         config_file << "enable_link_interface_tc_qdisc_queue_tracking=true" << std::endl;
@@ -949,7 +959,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+        TcpConfigHelper::Configure(basicSimulation);
         TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology, {22000}, CreateObject<ClientRemotePortSelectorDefault>(22000), CreateObject<TcpSocketGeneratorDefault>(), CreateObject<IpTosGeneratorFromAdditionalParameters>());
         PtopLinkNetDeviceQueueTracking netDeviceQueueTracking = PtopLinkNetDeviceQueueTracking(basicSimulation, topology);
         PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology);

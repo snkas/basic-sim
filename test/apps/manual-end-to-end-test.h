@@ -18,6 +18,7 @@ public:
         config_file << "simulation_end_time_ns=2000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file.close();
 
         // Topology
@@ -40,7 +41,7 @@ public:
         Ptr<BasicSimulation> basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         Ptr<TopologyPtop> topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeBasic(basicSimulation);
+        TcpConfigHelper::Configure(basicSimulation);
 
         // Install burst server on node 1
         UdpBurstServerHelper burstServerHelper(
@@ -207,6 +208,7 @@ public:
         config_file << "simulation_end_time_ns=2000000000" << std::endl;
         config_file << "simulation_seed=123456789" << std::endl;
         config_file << "topology_ptop_filename=\"topology.properties\"" << std::endl;
+        config_file << "tcp_config=basic" << std::endl;
         config_file.close();
 
         // Topology
@@ -229,7 +231,7 @@ public:
         basicSimulation = CreateObject<BasicSimulation>(test_run_dir);
         topology = CreateObject<TopologyPtop>(basicSimulation, Ipv4ArbiterRoutingHelper());
         ArbiterEcmpHelper::InstallArbiters(basicSimulation, topology);
-        TcpOptimizer::OptimizeBasic(basicSimulation);
+        TcpConfigHelper::Configure(basicSimulation);
 
     }
 

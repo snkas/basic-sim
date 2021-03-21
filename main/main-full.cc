@@ -25,7 +25,7 @@
 #include "ns3/ptop-link-net-device-utilization-tracking.h"
 #include "ns3/ptop-link-net-device-queue-tracking.h"
 #include "ns3/ptop-link-interface-tc-qdisc-queue-tracking.h"
-#include "ns3/tcp-optimizer.h"
+#include "ns3/tcp-config-helper.h"
 
 #include "ns3/tcp-flow-scheduler.h"
 #include "ns3/udp-burst-scheduler.h"
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology); // Requires enable_link_interface_tc_qdisc_queue_tracking=true
 
     // Optimize TCP
-    TcpOptimizer::OptimizeUsingWorstCaseRtt(basicSimulation, topology->GetWorstCaseRttEstimateNs());
+    TcpConfigHelper::Configure(basicSimulation);
 
     // Schedule TCP flows
     TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
