@@ -43,7 +43,7 @@ UdpPingClient::GetTypeId(void) {
             .SetGroupName("Applications")
             .AddConstructor<UdpPingClient>()
             .AddAttribute("LocalAddress",
-                          "The local address (IPv4 address, port). Setting the IPv4 address will enable"
+                          "The local address (IPv4 address, port). Setting the IPv4 address will enable "
                           "proper ECMP routing (as else it forces an early lookup with only destination IP). "
                           "Setting the port is not necessary, as it will be assigned an ephemeral one.",
                           AddressValue(),

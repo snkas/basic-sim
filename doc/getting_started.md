@@ -215,7 +215,7 @@ We are going to install three different applications:
         // Install link interface traffic-control qdisc queue trackers
         PtopLinkInterfaceTcQdiscQueueTracking tcQdiscQueueTracking = PtopLinkInterfaceTcQdiscQueueTracking(basicSimulation, topology); // Requires enable_link_interface_tc_qdisc_queue_tracking=true
     
-        // Optimize TCP
+        // Configure TCP
         TcpConfigHelper::Configure(basicSimulation);
     
         // Schedule TCP flows

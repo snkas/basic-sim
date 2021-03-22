@@ -43,7 +43,7 @@ UdpBurstServer::GetTypeId(void) {
             .SetGroupName("Applications")
             .AddConstructor<UdpBurstServer>()
             .AddAttribute("LocalAddress",
-                          "The local address (IPv4 address, port). Setting the IPv4 address will enable"
+                          "The local address (IPv4 address, port). Setting the IPv4 address will enable "
                           "proper ECMP routing (as else it forces an early lookup with only destination IP). "
                           "Setting the port is handy as it is a server, so it's good to be reachable.",
                           AddressValue(),
