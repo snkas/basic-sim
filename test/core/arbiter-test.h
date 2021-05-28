@@ -143,8 +143,8 @@ public:
 
         // IP header which was stripped before
         Ipv4Header ipHeader;
-        ipHeader.SetSource(Ipv4Address("10.0.0.1"));
-        ipHeader.SetDestination(Ipv4Address("10.0.3.1"));
+        ipHeader.SetSource(Ipv4Address("10.0.0.1")); // Interface of node 0
+        ipHeader.SetDestination(Ipv4Address("10.0.1.2")); // Interface of node 3
         ipHeader.SetProtocol(6);
 
         // TCP packet
@@ -168,7 +168,7 @@ public:
         ASSERT_EQUAL(result.GetOutIfIdx(), 2);
         ASSERT_EQUAL(result.GetGatewayIpAddress(), 0);
 
-        // Check the string representation too
+        // Check the string representation
         ASSERT_EQUAL(
                 arbiterParent->StringReprOfForwardingState(),
                 "ECMP state of node 0\n  -> 0: {}\n  -> 1: {1}\n  -> 2: {1,3}\n  -> 3: {3}\n"
@@ -440,6 +440,66 @@ public:
         ASSERT_EQUAL(
                 routingArbiterEcmp->ComputeFiveTupleHash(p1header, p1, 7, true),
                 routingArbiterEcmp->ComputeFiveTupleHash(p2header, p2, 7, true)
+        );
+
+        // Expected hash input buffer
+        uint8_t buf[21];
+
+        // Source IP address = 3301134135 = 11000100 11000011 01001111 00110111
+        buf[0] = (uint8_t) 196;
+        buf[1] = (uint8_t) 195;
+        buf[2] = (uint8_t) 79;
+        buf[3] = (uint8_t) 55;
+
+        // Destination IP address = 1232533515 = 01001001 01110110 11111000 00001011
+        buf[4] = (uint8_t) 73;
+        buf[5] = (uint8_t) 118;
+        buf[6] = (uint8_t) 248;
+        buf[7] = (uint8_t) 11;
+
+        // Protocol specific
+        // buf[8] = (uint8_t) ;
+
+        // Source port = 12325 = 00110000 00100101
+        buf[9] = (uint8_t) 48;
+        buf[10] = (uint8_t) 37;
+
+        // Destination port = 33321 = 10000010 00101001
+        buf[11] = (uint8_t) 130;
+        buf[12] = (uint8_t) 41;
+
+        // Per-node perturbation = 1233533413 = 01001001 10000110 00111001 11100101
+        buf[13] = (uint8_t) 73;
+        buf[14] = (uint8_t) 134;
+        buf[15] = (uint8_t) 57;
+        buf[16] = (uint8_t) 229;
+
+        // ECMP constant perturbation = 1333527522 = 01001111 01111100 00000011 11100010
+        buf[17] = (uint8_t) 79;
+        buf[18] = (uint8_t) 124;
+        buf[19] = (uint8_t) 3;
+        buf[20] = (uint8_t) 226;
+
+        // TCP: exact match expectation with murmur3
+        p1 = Create<Packet>(77);
+        create_headered_packet(p1, {1233533413, 3301134135, 1232533515, true, false, 12325, 33321});
+        p1->RemoveHeader(p1header);
+        // Protocol = 6 = 00000110
+        buf[8] = (uint8_t) 6;
+        ASSERT_EQUAL(
+                routingArbiterEcmp->ComputeFiveTupleHash(p1header, p1, 1233533413, false),
+                Hash32 ((char*) buf, 21)
+        );
+
+        // UDP: exact match expectation with murmur3
+        p1 = Create<Packet>(434);
+        create_headered_packet(p1, {1233533413, 3301134135, 1232533515, false, true, 12325, 33321});
+        p1->RemoveHeader(p1header);
+        // Protocol = 17 = 00010001
+        buf[8] = (uint8_t) 17;
+        ASSERT_EQUAL(
+                routingArbiterEcmp->ComputeFiveTupleHash(p1header, p1, 1233533413, false),
+                Hash32 ((char*) buf, 21)
         );
 
         // Clean-up

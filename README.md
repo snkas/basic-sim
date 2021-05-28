@@ -1,6 +1,8 @@
 # Basic simulation ns-3 module
 
-[![build](https://github.com/snkas/basic-sim/workflows/build/badge.svg)](https://github.com/snkas/basic-sim/actions?query=workflow%3Abuild+branch%3Amaster) [![codecov](https://codecov.io/gh/snkas/basic-sim/branch/master/graph/badge.svg)](https://codecov.io/gh/snkas/basic-sim)
+[![build](https://github.com/snkas/basic-sim/workflows/build/badge.svg)](https://github.com/snkas/basic-sim/actions?query=workflow%3Abuild+branch%3Amaster)
+[![codecov](https://codecov.io/gh/snkas/basic-sim/branch/master/graph/badge.svg)](https://codecov.io/gh/snkas/basic-sim)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://img.shields.io/badge/License-GPL%20v2-blue.svg)
 
 This ns-3 module is intended to make experimental simulation of networks a bit easier.
 It has a wrapper to take care of loading in run folder configurations (e.g., runtime, random seed),
@@ -98,5 +100,3 @@ bash example_programmable.sh
 Refactored, extended and maintained by Simon.
 
 Contributions were made by (former) students who collaborated with me, among which: Hussain, Hanjing (list will continue to be updated).
-
-The ECMP routing hashing function is inspired by https://github.com/mkheirkhah/ecmp (accessed: February 20th, 2020), though heavily modified.

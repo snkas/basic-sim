@@ -25,9 +25,6 @@
 
 namespace ns3 {
 
-const uint8_t TCP_PROT_NUMBER = 6;
-const uint8_t UDP_PROT_NUMBER = 17;
-
 class ArbiterEcmp : public ArbiterPtop
 {
 public:
@@ -56,12 +53,10 @@ public:
     std::string StringReprOfForwardingState();
 
     // Made public for testing
-    uint64_t ComputeFiveTupleHash(const Ipv4Header &header, Ptr<const Packet> p, int32_t node_id, bool no_other_headers);
+    uint32_t ComputeFiveTupleHash(const Ipv4Header &header, Ptr<const Packet> p, int32_t node_id, bool no_other_headers);
 
 private:
     std::vector<std::vector<uint32_t>> m_candidate_list;
-    char m_hash_input_buff[17];
-    ns3::Hasher m_hasher;
 
 };
 
