@@ -61,7 +61,7 @@ cd .. || exit 1
 if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] || [ "$3" == "--distributed" ] || [ "$4" == "--distributed" ] || [ "$5" == "--distributed" ]; then
   echo "Performing distributed tests"
 
-  # Baseline
+  # Leaf-spine baseline
   bash run_assist.sh "test_run_folders/leaf_spine" 0 || exit 1
 
   # 1 core tests
@@ -71,12 +71,15 @@ if [ "$1" == "" ] || [ "$1" == "--distributed" ] || [ "$2" == "--distributed" ] 
   bash run_assist.sh "test_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
   python3 test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_1_core_nullmsg" 1 || exit 1
 
-  # 2 core tests
-  bash run_assist.sh "test_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
-  python3 test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_default" 2 || exit 1
+  # Side-by-side baseline
+  bash run_assist.sh "test_run_folders/side_by_side" 0 || exit 1
 
-  bash run_assist.sh "test_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
-  python3 test_distributed_exactly_equal.py "test_run_folders/leaf_spine" "test_run_folders/leaf_spine_distributed_2_core_nullmsg" 2 || exit 1
+  # 2 core tests
+  bash run_assist.sh "test_run_folders/side_by_side_distributed_2_core_default" 2 || exit 1
+  python3 test_distributed_exactly_equal.py "test_run_folders/side_by_side" "test_run_folders/side_by_side_distributed_2_core_default" 2 || exit 1
+
+  bash run_assist.sh "test_run_folders/side_by_side_distributed_2_core_nullmsg" 2 || exit 1
+  python3 test_distributed_exactly_equal.py "test_run_folders/side_by_side" "test_run_folders/side_by_side_distributed_2_core_nullmsg" 2 || exit 1
 
 fi
 

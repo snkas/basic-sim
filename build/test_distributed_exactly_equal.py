@@ -43,12 +43,12 @@ def test_distributed_exactly_equal(base_run_folder, multi_core_run_folder, num_c
 
         # Line numbers must match up
         if len(base_lines) != len(merged_lines):
-            raise ValueError("Line numbers do not match up")
+            raise ValueError("%s:\n\nLine numbers do not match up" % f)
 
         # Lines must exactly match up
         for i in range(len(base_lines)):
             if base_lines[i] != merged_lines[i]:
-                raise ValueError("%s\n\n... is different from...\n\n%s" % (base_lines[i], merged_lines[i]))
+                raise ValueError("%s:\n\n%s\n\n... is different from...\n\n%s\n" % (f, base_lines[i], merged_lines[i]))
 
 
 def main():
