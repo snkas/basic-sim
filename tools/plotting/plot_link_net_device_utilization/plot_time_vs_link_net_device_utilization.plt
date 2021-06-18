@@ -1,8 +1,7 @@
-###
-###  Released under the MIT License (MIT) --- see ../LICENSE
-###  Copyright (c) 2014 Ankit Singla, Sangeetha Abdu Jyothi, Chi-Yao Hong,
-###  Lucian Popa, P. Brighten Godfrey, Alexandra Kolla, Simon Kassing
-###
+###  Released under the MIT License (MIT) --- see ../MIT_LICENSE
+###  Copyright (c) 2020  Simon Kassing
+###  Copyright (c) 2014  Ankit Singla, Sangeetha Abdu Jyothi, Chi-Yao Hong,
+###                      Lucian Popa, P. Brighten Godfrey, Alexandra Koll
 
 #####################################
 ### STYLING

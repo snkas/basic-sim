@@ -99,4 +99,12 @@ bash example_programmable.sh
 
 Refactored, extended and maintained by Simon.
 
-Contributions were made by (former) students who collaborated with me, among which: Hussain, Hanjing (list will continue to be updated).
+Contributions were made by (former) students who collaborated with me, among which:
+
+* Hussain
+* Hanjing 
+* (list will continue to be updated)
+
+Several gnuplot files in `tools/plotting` are under the MIT license.
+They make use of a gnuplot (styling) released under the MIT license.
+See `tools/plotting/MIT_LICENSE` for more information including a full list of its authors.
