@@ -244,7 +244,7 @@ public:
                 if ((link.first * 2 + link.second * 7) % 3 == 0) {
                     // fq_codel_better_rtt
                     Ptr<FqCoDelQueueDisc> realDisc = queueDisc->GetObject<FqCoDelQueueDisc>();
-                    ASSERT_NOT_EQUAL(realDisc, 0);
+                    ASSERT_NOT_EQUAL(realDisc, Ptr<FqCoDelQueueDisc>(nullptr));
 
                     // Improved interval (= RTT estimate)
                     StringValue interval_att;
@@ -258,11 +258,11 @@ public:
 
                 } else if ((link.first * 2 + link.second * 7) % 3 == 1) {
                     // default (currently, fq codel is default)
-                    ASSERT_NOT_EQUAL(queueDisc->GetObject<FqCoDelQueueDisc>(), 0);
+                    ASSERT_NOT_EQUAL(queueDisc->GetObject<FqCoDelQueueDisc>(), Ptr<FqCoDelQueueDisc>(nullptr));
 
                 } else {
                     // disabled
-                    ASSERT_EQUAL(queueDisc, 0);
+                    ASSERT_EQUAL(queueDisc, Ptr<QueueDisc>(nullptr));
                 }
 
                 // Check if the node identifiers here and on the other side match up

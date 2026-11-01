@@ -23,7 +23,6 @@
       std::clog << Simulator::Now ().GetSeconds () \
                 << " [node " << m_ipv4->GetObject<Node> ()->GetId () << "] "; }
 
-#include <iomanip>
 #include "ns3/log.h"
 #include "ns3/names.h"
 #include "ns3/packet.h"
@@ -67,7 +66,7 @@ namespace ns3 {
     Ipv4ArbiterRouting::LookupArbiter (const Ipv4Address& dest, const Ipv4Header &header, Ptr<const Packet> p, Ptr<NetDevice> oif) {
 
         // Arbiter must be set
-        if (m_arbiter == 0) {
+        if (m_arbiter == Ptr<Arbiter>()) {
             throw std::runtime_error("Arbiter has not been set");
         }
 
@@ -77,7 +76,7 @@ namespace ns3 {
         }
 
         // No support for requested output interfaces
-        if (oif != 0) {
+        if (oif != Ptr<NetDevice>()) {
             throw std::runtime_error("Requested output interfaces are not supported");
         }
 
@@ -151,7 +150,7 @@ namespace ns3 {
         //       the TCP socket will conclude there is no route and not even send out SYNs (any real packet).
         //       If source IP is set already, it just gets dropped and the TCP socket sees it as a normal loss somewhere in the network.
         Ptr<Ipv4Route> route = LookupArbiter(destination, header, p, oif);
-        if (route == 0) {
+        if (route == Ptr<Ipv4Route>(nullptr)) {
             sockerr = Socket::ERROR_NOROUTETOHOST;
         } else {
             sockerr = Socket::ERROR_NOTERROR;
@@ -162,9 +161,9 @@ namespace ns3 {
 
     bool
     Ipv4ArbiterRouting::RouteInput(Ptr<const Packet> p, const Ipv4Header &ipHeader, Ptr<const NetDevice> idev,
-                                          UnicastForwardCallback ucb, MulticastForwardCallback mcb,
-                                          LocalDeliverCallback lcb, ErrorCallback ecb) {
-        NS_ASSERT(m_ipv4 != 0);
+                                          const UnicastForwardCallback &ucb, const MulticastForwardCallback &mcb,
+                                          const LocalDeliverCallback &lcb, const ErrorCallback &ecb) {
+        NS_ASSERT(m_ipv4 != Ptr<Ipv4>(nullptr));
 
         // Check if input device supports IP
         NS_ASSERT(m_ipv4->GetInterfaceForDevice(idev) >= 0);
@@ -195,7 +194,7 @@ namespace ns3 {
 
         // Uni-cast delivery
         Ptr<Ipv4Route> route = LookupArbiter(ipHeader.GetDestination(), ipHeader, p);
-        if (route == 0) {
+        if (route == Ptr<Ipv4Route>(nullptr)) {
 
             // Lookup failed, so we did not find a route
             // If there are no other routing protocols, this will lead to a drop
@@ -267,7 +266,7 @@ namespace ns3 {
     void
     Ipv4ArbiterRouting::SetIpv4(Ptr <Ipv4> ipv4) {
         NS_LOG_FUNCTION(this << ipv4);
-        NS_ASSERT(m_ipv4 == 0 && ipv4 != 0);
+        NS_ASSERT(m_ipv4 == Ptr<Ipv4>(nullptr) && ipv4 != Ptr<Ipv4>(nullptr));
         m_ipv4 = ipv4;
         for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
             if (m_ipv4->IsUp(i)) {

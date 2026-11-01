@@ -1,6 +1,7 @@
 #ifndef TEST_HELPERS_H
 #define TEST_HELPERS_H
 
+#include <set>
 #include "ns3/test.h"
 
 #define ASSERT_EQUAL(a, b) NS_TEST_ASSERT_MSG_EQ((a), (b), "")

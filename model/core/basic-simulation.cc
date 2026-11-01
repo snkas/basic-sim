@@ -246,7 +246,7 @@ void BasicSimulation::ShowSimulationProgress() {
 }
 
 void BasicSimulation::ConfirmAllConfigParamKeysRequested() {
-    for (const std::pair<std::string, std::string>& key_val : m_config) {
+    for (const auto& key_val : m_config) {
         if (m_configRequestedKeys.find(key_val.first) == m_configRequestedKeys.end()) {
             throw std::runtime_error(format_string("Config key \'%s\' has not been requested (unused config keys are not allowed)", key_val.first.c_str()));
         }

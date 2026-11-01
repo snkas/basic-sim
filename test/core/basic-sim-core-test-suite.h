@@ -14,45 +14,45 @@ using namespace ns3;
 
 class BasicSimTestSuite : public TestSuite {
 public:
-    BasicSimTestSuite() : TestSuite("basic-sim-core", UNIT) {
+    BasicSimTestSuite() : TestSuite("basic-sim-core", Type::UNIT) {
 
         // Experiment utilities
-        AddTestCase(new ExpUtilStringsTestCase, TestCase::QUICK);
-        AddTestCase(new ExpUtilParsingTestCase, TestCase::QUICK);
-        AddTestCase(new ExpUtilSetsTestCase, TestCase::QUICK);
-        AddTestCase(new ExpUtilConfigurationReadingTestCase, TestCase::QUICK);
-        AddTestCase(new ExpUtilUnitConversionTestCase, TestCase::QUICK);
-        AddTestCase(new ExpUtilFileSystemTestCase, TestCase::QUICK);
+        AddTestCase(new ExpUtilStringsTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ExpUtilParsingTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ExpUtilSetsTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ExpUtilConfigurationReadingTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ExpUtilUnitConversionTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ExpUtilFileSystemTestCase, TestCase::Duration::QUICK);
 
         // Log update helper
-        AddTestCase(new LogUpdateHelperValidTestCase, TestCase::QUICK);
-        AddTestCase(new LogUpdateHelperInvalidTestCase, TestCase::QUICK);
+        AddTestCase(new LogUpdateHelperValidTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new LogUpdateHelperInvalidTestCase, TestCase::Duration::QUICK);
 
         // Point-to-point topology
-        AddTestCase(new TopologyPtopEmptyTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyPtopSingleTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyPtopTorTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyPtopLeafSpineTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyPtopRingTestCase, TestCase::QUICK);
-        AddTestCase(new TopologyPtopInvalidTestCase, TestCase::QUICK);
+        AddTestCase(new TopologyPtopEmptyTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new TopologyPtopSingleTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new TopologyPtopTorTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new TopologyPtopLeafSpineTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new TopologyPtopRingTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new TopologyPtopInvalidTestCase, TestCase::Duration::QUICK);
 
         // Arbiter
-        AddTestCase(new ArbiterIpResolutionTestCase, TestCase::QUICK);
-        AddTestCase(new ArbiterEcmpHashTestCase, TestCase::QUICK);
-        AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::QUICK);
-        AddTestCase(new ArbiterBadImplTestCase, TestCase::QUICK);
+        AddTestCase(new ArbiterIpResolutionTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ArbiterEcmpHashTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ArbiterEcmpStringReprTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new ArbiterBadImplTestCase, TestCase::Duration::QUICK);
 
         // Point-to-point link utilization tracking
-        AddTestCase(new PtopLinkUtilizationSimpleTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkUtilizationNotEnabledTestCase, TestCase::QUICK);
+        AddTestCase(new PtopLinkUtilizationSimpleTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new PtopLinkUtilizationNotEnabledTestCase, TestCase::Duration::QUICK);
 
         // Point-to-point link queue tracking
-        AddTestCase(new PtopLinkQueueSimpleTestCase, TestCase::QUICK);
-        AddTestCase(new PtopLinkQueueNotEnabledTestCase, TestCase::QUICK);
+        AddTestCase(new PtopLinkQueueSimpleTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new PtopLinkQueueNotEnabledTestCase, TestCase::Duration::QUICK);
 
         // TCP optimizer
-        AddTestCase(new TcpOptimizerBasicTestCase, TestCase::QUICK);
-        AddTestCase(new TcpOptimizerWorstCaseRttTestCase, TestCase::QUICK);
+        AddTestCase(new TcpOptimizerBasicTestCase, TestCase::Duration::QUICK);
+        AddTestCase(new TcpOptimizerWorstCaseRttTestCase, TestCase::Duration::QUICK);
 
     }
 };

@@ -114,7 +114,7 @@ namespace ns3 {
         NS_LOG_FUNCTION(this);
 
         // Bind a socket to the UDP port
-        if (m_socket == 0) {
+        if (m_socket == Ptr<Socket>(nullptr)) {
             TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
             m_socket = Socket::CreateSocket(GetNode(), tid);
             InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
@@ -202,7 +202,7 @@ namespace ns3 {
     void
     UdpBurstApplication::StopApplication() {
         NS_LOG_FUNCTION(this);
-        if (m_socket != 0) {
+        if (m_socket != Ptr<Socket>(nullptr)) {
             m_socket->Close();
             m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
             Simulator::Cancel(m_startNextBurstEvent);

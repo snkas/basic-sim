@@ -191,7 +191,7 @@ void TcpFlowSendApplication::StartApplication(void) { // Called at time specifie
 
 void TcpFlowSendApplication::StopApplication(void) { // Called at time specified by Stop
     NS_LOG_FUNCTION(this);
-    if (m_socket != 0) {
+    if (m_socket != Ptr<Socket>(nullptr)) {
         m_socket->Close();
         m_connected = false;
     } else {

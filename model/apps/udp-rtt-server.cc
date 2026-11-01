@@ -68,7 +68,7 @@ namespace ns3 {
     UdpRttServer::StartApplication(void) {
         NS_LOG_FUNCTION(this);
 
-        if (m_socket == 0) {
+        if (m_socket == Ptr<Socket>(nullptr)) {
             TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
             m_socket = Socket::CreateSocket(GetNode(), tid);
             InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
@@ -86,7 +86,7 @@ namespace ns3 {
     void
     UdpRttServer::StopApplication() {
         NS_LOG_FUNCTION(this);
-        if (m_socket != 0) {
+        if (m_socket != Ptr<Socket>(nullptr)) {
             m_socket->Close();
             m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
         }

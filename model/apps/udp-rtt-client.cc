@@ -90,7 +90,7 @@ UdpRttClient::DoDispose(void) {
 void
 UdpRttClient::StartApplication(void) {
     NS_LOG_FUNCTION(this);
-    if (m_socket == 0) {
+    if (m_socket == Ptr<Socket>(nullptr)) {
         TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
         m_socket = Socket::CreateSocket(GetNode(), tid);
         if (Ipv4Address::IsMatchingType(m_peerAddress) == true) {
@@ -115,7 +115,7 @@ UdpRttClient::StartApplication(void) {
 void
 UdpRttClient::StopApplication() {
     NS_LOG_FUNCTION(this);
-    if (m_socket != 0) {
+    if (m_socket != Ptr<Socket>(nullptr)) {
         m_socket->Close();
         m_socket->SetRecvCallback(MakeNullCallback < void, Ptr < Socket > > ());
         m_socket = 0;
